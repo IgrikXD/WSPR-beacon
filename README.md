@@ -1,6 +1,7 @@
 # wspr-beacon
 
 This program is a revised version of the [ESP WSPR](https://antrak.org.tr/blog/esp-wspr-simple-and-inexpensive-wspr-transmitter/) program.  
+
 *Main changes:* added GPS time synchronization (has priority over NTP synchronization, NTP synchronization is used if GPS time synchronization is not available), changed the detail of displaying status information while the program is running, code refactoring.
 
 ## How to use?
