@@ -37,6 +37,9 @@ Now, in the "_Tools_" -> "_Board_" menu, choose "_NodeMCU 0.9 (ESP-12 Module)_" 
 ### Choose the Port:
 Connect the ESP8266 to your computer via USB. Then, in the "_Tools_" -> "_Port_" menu, select the corresponding port.
 
+### Upload an Firmware:
+Click the "Upload" button in the Arduino IDE to compile and upload your program to the ESP8266.
+
 ## Resources:
 [ESP WSPR – Simple and Inexpensive WSPR Transmitter - Ankara Telsiz ve Radyo Amatörleri Kulübü Derneği](https://antrak.org.tr/blog/esp-wspr-simple-and-inexpensive-wspr-transmitter/)  
 [K1FM-WSPR-TX - GitHub](https://github.com/adecarolis/K1FM-WSPR-TX)  
