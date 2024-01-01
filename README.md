@@ -2,7 +2,9 @@
 
 This program is a revised version of the [ESP WSPR](https://antrak.org.tr/blog/esp-wspr-simple-and-inexpensive-wspr-transmitter/) program.  
 
-**Main changes:** added GPS time synchronization (has priority over NTP synchronization, NTP synchronization is used if GPS time synchronization is not available), changed the detail of displaying status information while the program is running, code refactoring.
+**Main changes:** added GPS time synchronization (has priority over NTP synchronization, NTP synchronization is used if GPS time synchronization is not available), changed the detail of displaying status information while the program is running, code refactoring.  
+
+The correct encoding of the transmitted WSPR message was verified by decoding the transmission through the locally located Airspy R2 SDR receiver and the [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) application.
 
 ## How to use?
 
@@ -38,7 +40,7 @@ Now, in the "_Tools_" -> "_Board_" menu, choose "_NodeMCU 0.9 (ESP-12 Module)_" 
 Connect the ESP8266 to your computer via USB. Then, in the "_Tools_" -> "_Port_" menu, select the corresponding port.
 
 ### Upload an Firmware:
-Click the "Upload" button in the Arduino IDE to compile and upload your program to the ESP8266.
+Click the "_Upload_" button in the Arduino IDE to compile and upload your program to the ESP8266.
 
 ## Resources:
 [ESP WSPR – Simple and Inexpensive WSPR Transmitter - Ankara Telsiz ve Radyo Amatörleri Kulübü Derneği](https://antrak.org.tr/blog/esp-wspr-simple-and-inexpensive-wspr-transmitter/)  
