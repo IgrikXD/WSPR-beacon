@@ -37,5 +37,6 @@ Click the "_Upload_" button in the Arduino IDE to compile and upload your progra
 [ESP WSPR – Simple and Inexpensive WSPR Transmitter - Ankara Telsiz ve Radyo Amatörleri Kulübü Derneği](https://antrak.org.tr/blog/esp-wspr-simple-and-inexpensive-wspr-transmitter/)  
 [K1FM-WSPR-TX - GitHub](https://github.com/adecarolis/K1FM-WSPR-TX)  
 [A Little WSPR Beacon (Aren’t They All Little?) – Dave Richards AA7EE](https://aa7ee.wordpress.com/2023/02/26/a-little-wspr-beacon-arent-they-all-little/)
-[PCBWay](https://www.pcbway.com/)
-[JLCPCB](https://jlcpcb.com/)
+
+[PCBWay]: <https://www.pcbway.com/>
+[JLCPCB]: <https://jlcpcb.com/>
