@@ -1,6 +1,6 @@
 # wspr-beacon
 
-A small hardware device for WSPR message transmission based on the SI5351 IC and GPS transmission time synchronization
+A small hardware device for transmitting WSPR messages based on the SI5351 IC and using GPS to synchronize the transmission time.  
 
 The project has a [schematic](./Schematics) and [GERBER](./Gerbers) files for making a PCB of the finished device based on SMD components and installation in an aluminum case with dimensions 80 x 50 x 20 mm. Based on the submitted files, you can order PCB manufacturing at the factory ([PCBWay], [JLCPCB]). The device has a built-in TCXO to eliminate frequency drift of SI5351, built-in GPS module for operation with active GPS antennas and a simple amplifier based on a single BS170 transistor.
 
