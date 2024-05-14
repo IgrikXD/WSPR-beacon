@@ -1,17 +1,9 @@
-#include <ESP8266WiFi.h>
-#include <int.h>
 #include <JTEncode.h>
-#include <NTPtimeESP.h>
-#include <rs_common.h>
 #include <si5351.h>
-#include <string.h>
 #include <TimeLib.h>
-#include <WiFiClient.h>
 
-#include <TinyGPS++.h>
+#include <TinyGPSPlus.h>
 #include <SoftwareSerial.h>
-
-#include "Wire.h"
 
 //******************************************************************
 //                      WSPR configuration
@@ -43,58 +35,38 @@
 //******************************************************************
 //                      Hardware defines
 //******************************************************************
-#define TX_LED_PIN                 2
+#define TX_LED_PIN                 8
+#define POWER_ON_LED_PIN           10
 #define SI5351_CAL_FACTOR          92000
-#define ESP_SERIAL_PORT_BAUDRATE   115200
+#define SERIAL_PORT_BAUDRATE       115200
 #define INIT_MAX_TIME              10000
 
 // GPS module parameters
-#define GPS_RX_PIN                 12
-#define GPS_TX_PIN                 14
+#define GPS_RX_PIN                 3
+#define GPS_TX_PIN                 4
 #define GPS_BAUDRATE               9600
+#define GPS_STATUS_LED_PIN         9
 //******************************************************************
 
-
 //******************************************************************
-//                        WiFi parameters
+//                      Global variables
 //******************************************************************
-#define SSID                      "SSID"
-#define PASSWORD                  "PASSWORD"
-//******************************************************************
-
-
-//******************************************************************
-//                          NTP parameters
-//******************************************************************
-#define NTP_PROVIDER              "time.windows.com"
-#define SEND_INTV                 10
-#define RECV_TIMEOUT              10
-#define TIME_ZONE                 +1.0f
-#define MAX_SYNC_ATTEMPTS         10
-#define SYNC_DELAY                200
-//******************************************************************
-
-template <typename T> inline HardwareSerial& operator<< (HardwareSerial& serial, T data) 
-{ 
-    serial.print(data); 
-    return serial; 
-}
-
-// Global variables
 uint8_t tx_buffer[255];
 bool warmup{false};
-NTPtime NTPch{NTP_PROVIDER};
 Si5351 si5351;
 TinyGPSPlus gps;
 
-// The serial connection to the GPS device
+// The serial connection to the GPS module
 SoftwareSerial gpsSerial{GPS_RX_PIN, GPS_TX_PIN};
+
+//******************************************************************
 
 // Loop through the string, transmitting one character at a time.
 void transmittWsprMessage()
 {
     // Reset the tone to the base frequency and turn on the output
-    Serial << "\n- TX ON - STARTING WSPR MESSAGE TRANSMISSION -";
+    Serial.println(F("- TX ON - STARTING WSPR MESSAGE TRANSMISSION -"));
+
     digitalWrite(TX_LED_PIN, LOW);
     
     si5351.output_enable(SI5351_CLK0, 1);
@@ -108,7 +80,7 @@ void transmittWsprMessage()
     // Turn off the output
     si5351.output_enable(SI5351_CLK0, 0);
 
-    Serial << "\n- TX OFF - END OF WSPR MESSAGE TRANSMISSION -";
+    Serial.println(F("- TX OFF - END OF WSPR MESSAGE TRANSMISSION -"));
     digitalWrite(TX_LED_PIN, HIGH);
 }
 
@@ -123,77 +95,48 @@ void setWsprTxBuffer()
 
 static void ledInit()
 {
-    Serial << "\n- On-board LED initialization -";
+    Serial.println(F("- LED initialization -"));
     pinMode(TX_LED_PIN, OUTPUT);
-    Serial << "\n- On-board LED successfully initialized! -";
-}
-
-static void wiFiInit()
-{
-    Serial << "\n- Establishing Wi-Fi connection to: " << SSID << " -";
-
-    WiFi.mode(WIFI_OFF);
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(SSID, PASSWORD);
-
-    Serial << "\n- Connecting";
-
-    const auto startTime{millis()};
-    while (WiFi.status() != WL_CONNECTED && millis() <= startTime + INIT_MAX_TIME) {
-        digitalWrite(TX_LED_PIN, LOW);
-        delay(300);
-        digitalWrite(TX_LED_PIN, HIGH);
-        delay(300);
-        Serial << ".";
-    }
-
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        Serial << "\n- Connected to: " << SSID << " -";
-        Serial << "\n- IP address: " << WiFi.localIP() << " -";
-    }
-    else
-    {
-        Serial << "\n- Not conected to: " << SSID << " -";
-        Serial << "\n- Time synchronization via NTP will not be available! -";
-    }
+    pinMode(POWER_ON_LED_PIN, OUTPUT);
+    pinMode(GPS_STATUS_LED_PIN, OUTPUT);
+    Serial.println(F("- LED successfully initialized! -"));
 }
 
 static void gpsInit()
 {
-    Serial << "\n- GPS initialization -";
+    Serial.println(F("- GPS initialization -"));
     
     gpsSerial.begin(GPS_BAUDRATE);
 
-    Serial << "\n- Getting data from GPS";
+    Serial.print(F("- Getting data from GPS "));
     
     const auto startTime{millis()};
     while (!gpsSerial.available() && millis() <= startTime + INIT_MAX_TIME)
     {
         delay(600);
-        Serial << ".";
+        Serial.print(F("."));
     }
 
     if (gpsSerial.available())
     {
         gps.encode(gpsSerial.read());
-        Serial << "\n- GPS successfully initialized! -";
+        Serial.println(F("\n- GPS successfully initialized! -"));
     }
     else
     {
-        Serial << "\n- No GPS detected: check wiring! -";
+        Serial.println(F("\n- No GPS detected: check wiring! -"));
     }
 }
 
 static void si5351Init()
 {
-    Serial << "\n- SI5351 initialization -";
+    Serial.println(F("- SI5351 initialization -"));
     si5351.init(SI5351_CRYSTAL_LOAD_8PF, 0, 0);
     si5351.set_correction(SI5351_CAL_FACTOR, SI5351_PLL_INPUT_XO);
-    // Set CLK0 output
+    // Set CLK0 as WSPR TX output
     si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_8MA); // Set for max power if desired
     si5351.output_enable(SI5351_CLK0, 0); // Disable the clock initially
-    Serial << "\n- SI5351 successfully initialized! -";
+    Serial.println(F("- SI5351 successfully initialized! -"));
 }
 
 static bool gpsDateTimeSync()
@@ -207,26 +150,6 @@ static bool gpsDateTimeSync()
     }
     
     return false; 
-}
-
-static bool ntpDateTimeSync()
-{
-    uint8_t attempts{0};
-
-    while (attempts <= MAX_SYNC_ATTEMPTS)
-    {
-        const auto& dateTime{NTPch.getNTPtime(TIME_ZONE, 1)};
-        delay(SYNC_DELAY);
-        ++attempts;
-
-        if (dateTime.valid)
-        {
-            setTime(dateTime.hour, dateTime.minute, dateTime.second, dateTime.day, dateTime.month, dateTime.year);
-            return true;
-        }
-    }
-
-    return false;
 }
 
 String currentDateTime()
@@ -243,21 +166,27 @@ String currentDateTime()
 
 time_t dateTimeSyncronization()
 {
-    Serial << "\n- Date & time sychronization -";
-
-    if (gpsDateTimeSync())
+    Serial.println(F("- Date & time sychronization -"));
+    
+    uint8_t syncAttemps{0};
+    while (!gpsDateTimeSync() && syncAttemps < 10)
     {
-        Serial << "\n- Date & time synchronized by GPS: "<< currentDateTime() <<" -";
+        delay(10000);
+        ++syncAttemps;
     }
-    else if (ntpDateTimeSync())
+
+    if (timeStatus() == timeSet)
     {
-        Serial << "\n- Date & time synchronized by NTP: "<< currentDateTime() << " -";
+        Serial.print(F("- Date & time synchronized by GPS: "));
+        Serial.print(currentDateTime());
+        Serial.println(F(" -"));
     }
     else
-    {
-        Serial << "\n- Time sync not available! -";
-        Serial << "\n- Transmitting a WSPR message without time synchronization is impossible! -";
-        Serial << "\n- Check your GPS and Wi-Fi connection settings and try again! -";
+    {   
+        Serial.println(F("- GPS time sync not available! -"));
+        Serial.println(F("- Transmitting a WSPR message without time synchronization is impossible! -"));
+        Serial.println(F("- Check your GPS and try again! -"));
+        delay(1000);
         exit(0);
     }
 
@@ -267,36 +196,32 @@ time_t dateTimeSyncronization()
 void setup()
 {
     // Serial port initialization
-    Serial.begin(ESP_SERIAL_PORT_BAUDRATE); 
+    Serial.begin(SERIAL_PORT_BAUDRATE); 
     while (!Serial);
 
     // Welcome message & working frequency info
-    Serial << "\n**********************************************";
-    Serial << "\n[ WSPR BEACON ]";
-    Serial << "\n- Working frequency: " << WSPR_DEFAULT_FREQ / 1000000.0 << " MHz -";
-    Serial << "\n**********************************************";
+    Serial.println(F("**********************************************"));
+    Serial.println(F("[ WSPR BEACON ]"));
+    Serial.print(F("- Working frequency: "));
+    Serial.print(WSPR_DEFAULT_FREQ / 1000000.0);
+    Serial.println(F(" MHz -"));
+    Serial.println(F("**********************************************"));
 
-    // Use the NodeMCU on-board LED as a keying indicator
+    // LED initialization
     ledInit();
-
-    // WiFi initialization
-    wiFiInit();
 
     // GPS module initialization
     gpsInit();
-
-    // Set time sync provider
-    NTPch.setSendInterval(SEND_INTV);
-    NTPch.setRecvTimeout(RECV_TIMEOUT);
-    setSyncProvider(dateTimeSyncronization);
   
-    // Initialize the Si5351
+    // SI5351 IC initialization
     si5351Init();
 
-    Serial << "\n**********************************************";
-    Serial << "\n- Entering WSPR TX loop...";
+    dateTimeSyncronization();
+
+    Serial.println(F("**********************************************"));
+    Serial.println(F("- Entering WSPR TX loop..."));
     digitalWrite(TX_LED_PIN, HIGH);
-    Serial << "\n**********************************************";
+    Serial.println(F("**********************************************"));
 
     // Encode the message in the transmit buffer
     // This is RAM intensive and should be done separately from other subroutines
@@ -308,18 +233,28 @@ void loop()
     if((minute() + 1) % 4 == 0 && second() == 30 && !warmup)
     {
         warmup = true;
-        Serial << "\n- Radio module warm up started! -";
+        Serial.println(F("- Radio module warm up started! -"));
         si5351.set_freq(WSPR_DEFAULT_FREQ * 100, SI5351_CLK0);
         si5351.output_enable(SI5351_CLK0, 1);
     }
 
     if(minute() % 4 == 0 && second() == 0)
     {
-        warmup = false; 
-        Serial << "\n- Start of transmission time: " << currentDateTime() << " -";
-        Serial << "\n- WSPR message: " << WSPR_CALL << " " << WSPR_LOC << " " << WSPR_DBM << " -";
+        warmup = false;
+        Serial.print(F("- Start of transmission time: "));
+        Serial.print(currentDateTime());
+        Serial.println(F(" -"));
+
+        Serial.print(F("- WSPR message: "));
+        Serial.print(WSPR_CALL);
+        Serial.print(F(" "));
+        Serial.print(WSPR_LOC);
+        Serial.print(F(" "));
+        Serial.print(WSPR_DBM);
+        Serial.println(F(" -"));
+
         transmittWsprMessage();
-        setSyncProvider(dateTimeSyncronization);
-        Serial << "\n**********************************************";
+
+        Serial.println(F("\n**********************************************"));
     }
 }
