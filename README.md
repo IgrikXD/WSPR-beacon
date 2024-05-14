@@ -1,18 +1,19 @@
 # wspr-beacon
 
-This program is a revised version of the [ESP WSPR](https://antrak.org.tr/blog/esp-wspr-simple-and-inexpensive-wspr-transmitter/) program.  
+Small hardware device for transmitting WSPR messages.
 
-**Main changes:** added GPS time synchronization (has priority over NTP synchronization, NTP synchronization is used if GPS time synchronization is not available), changed the detail of displaying status information while the program is running, code refactoring.  
+The project has a [schematic](./Schematics) and [GERBER](./Gerbers) files for making a PCB of the finished device based on SMD components and installation in an aluminum case with dimensions 80 x 50 x 20 mm. Based on the submitted files, you can order PCB manufacturing at the factory ([PCBWay], [JLCPCB]). The device has a built-in TCXO to eliminate frequency drift of SI5351, built-in GPS module for operation with active GPS antennas and a simple amplifier based on a single BS170 transistor.
+
+## Current development progress:
+[![Progress](https://img.shields.io/badge/wspr--beacon-not%20tested-red.svg?longCache=true&style=for-the-badge)](https://easyeda.com/IgrikXD/wspr-beacon)&nbsp;[![Progress](https://img.shields.io/badge/firmware%20version-0.1-blue.svg?longCache=true&style=for-the-badge)](./Firmware)&nbsp;[![Progress](https://img.shields.io/badge/pcb%20version-1.0-blue.svg?longCache=true&style=for-the-badge)](./EasyEDA)
+
+The [ESP WSPR](https://antrak.org.tr/blog/esp-wspr-simple-and-inexpensive-wspr-transmitter/) firmware is taken as a reference and adapted for use with the Atmega328P.
+
+**Main changes in the firmware:** NTP synchronization has been replaced by GPS synchronization, changed the detail of displaying status information while the program is running, code refactoring.   
 
 The correct encoding of the transmitted WSPR message was verified by decoding the transmission through the locally located Airspy R2 SDR receiver and the [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) application.
 
 ## How to use?
-
-To use NTP synchronization, change the following parameters to match the actual data of your Wi-Fi network:
-```sh
-#define SSID                      "SSID"
-#define PASSWORD                  "PASSWORD"
-```
 
 Enter your amateur radio call sign, the first 4 characters of your QTH locator and the transmitted power value to generate a correct WSPR message:
 ```sh
@@ -23,26 +24,18 @@ Enter your amateur radio call sign, the first 4 characters of your QTH locator a
 
 ## Firmware instruction
 
-### Set up Additional Board Manager URLs:
-Go to "_File_" -> "_Preferences_." In the "_Additional Boards Manager URLs_" field, add the following URL:
-```sh
-http://arduino.esp8266.com/stable/package_esp8266com_index.json
-```
-Click "_OK_" to save the settings.
-
-### Install ESP8266 Packages:
-Navigate to "_Tools_" -> "_Board_" -> "_Boards Manager._" In the search bar, type "_ESP8266_" and install the "_ESP8266_" package from the ESP8266 community.
-
 ### Select the Board:
-Now, in the "_Tools_" -> "_Board_" menu, choose "_NodeMCU 0.9 (ESP-12 Module)_" or the specific ESP8266 board you are using.
+Now, in the "_Tools_" -> "_Board_" menu, choose "_Arduino Nano_".
 
 ### Choose the Port:
-Connect the ESP8266 to your computer via USB. Then, in the "_Tools_" -> "_Port_" menu, select the corresponding port.
+Connect the device to your computer via USB. Then, in the "_Tools_" -> "_Port_" menu, select the corresponding port.
 
 ### Upload an Firmware:
-Click the "_Upload_" button in the Arduino IDE to compile and upload your program to the ESP8266.
+Click the "_Upload_" button in the Arduino IDE to compile and upload your program to the device.
 
 ## Resources:
 [ESP WSPR – Simple and Inexpensive WSPR Transmitter - Ankara Telsiz ve Radyo Amatörleri Kulübü Derneği](https://antrak.org.tr/blog/esp-wspr-simple-and-inexpensive-wspr-transmitter/)  
 [K1FM-WSPR-TX - GitHub](https://github.com/adecarolis/K1FM-WSPR-TX)  
-[A Little WSPR Beacon (Aren’t They All Little?) – Dave Richards AA7EE](https://aa7ee.wordpress.com/2023/02/26/a-little-wspr-beacon-arent-they-all-little/  )
+[A Little WSPR Beacon (Aren’t They All Little?) – Dave Richards AA7EE](https://aa7ee.wordpress.com/2023/02/26/a-little-wspr-beacon-arent-they-all-little/)
+[PCBWay](https://www.pcbway.com/)
+[JLCPCB](https://jlcpcb.com/)
