@@ -33,6 +33,15 @@ Connect the device to your computer via USB. Then, in the "_Tools_" -> "_Port_" 
 ### Upload an Firmware:
 Click the "_Upload_" button in the Arduino IDE to compile and upload your program to the device.
 
+## Basic characteristics of the WSPR-beacon:
+**RF connectors:** SMA  
+**Feed line:** 50 Ohm coaxial cable  
+**Output power:** XX dBm  
+**er supply voltage:** 5V, USB-B 
+**Used PCB Material:** FR-4  
+**PCB thickness:** 1.6 mm  
+**PCB copper weight:** 1 oz 
+
 ## Resources:
 [ESP WSPR – Simple and Inexpensive WSPR Transmitter - Ankara Telsiz ve Radyo Amatörleri Kulübü Derneği](https://antrak.org.tr/blog/esp-wspr-simple-and-inexpensive-wspr-transmitter/)  
 [K1FM-WSPR-TX - GitHub](https://github.com/adecarolis/K1FM-WSPR-TX)  
