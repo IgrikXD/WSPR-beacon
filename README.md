@@ -15,7 +15,7 @@ The correct encoding of the transmitted WSPR message was verified by decoding th
 **RF connectors:** SMA  
 **Feed line:** 50 Ohm coaxial cable  
 **Output power:** XX dBm  
-**er supply voltage:** 5V, USB-B 
+**Supply voltage:** 5V, USB-B  
 **Used PCB Material:** FR-4  
 **PCB thickness:** 1.6 mm  
 **PCB copper weight:** 1 oz  
