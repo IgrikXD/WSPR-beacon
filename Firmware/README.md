@@ -5,7 +5,7 @@ Open Arduino IDE and modify the _wsp-beacon.ino_ file. Enter your amateur radio 
 ```sh
 #define WSPR_CALL                 "XX0YYY"
 #define WSPR_LOC                  "XX00"
-#define WSPR_DBM                   10
+#define WSPR_DBM                   23
 ```
 
 ## Select the Board:

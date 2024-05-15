@@ -10,7 +10,7 @@ The correct encoding of the transmitted WSPR message was verified by decoding th
 ## Basic characteristics of the WSPR-beacon:
 **RF connectors:** SMA  
 **Feed line:** 50 Ohm coaxial cable  
-**Output power:** XX dBm  
+**Output power:** 23 dBm  
 **Supply voltage:** 5V, USB-B  
 **Used PCB Material:** FR-4  
 **PCB thickness:** 1.6 mm  
