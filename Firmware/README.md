@@ -1,7 +1,7 @@
 # Firmware instruction
 
 ## Add WSPR message data:
-Open and modify the _wsp-beacon.ino_ file. Enter your amateur radio call sign, the first 4 characters of your QTH locator and the transmitted power value to generate a correct WSPR message:
+Open Arduino IDE and modify the _wsp-beacon.ino_ file. Enter your amateur radio call sign, the first 4 characters of your QTH locator and the transmitted power value to generate a correct WSPR message:
 ```sh
 #define WSPR_CALL                 "XX0YYY"
 #define WSPR_LOC                  "XX00"
