@@ -29,3 +29,8 @@ Additionally, you can find information about the [list of required components](.
 [ESP WSPR – Simple and Inexpensive WSPR Transmitter - Ankara Telsiz ve Radyo Amatörleri Kulübü Derneği](https://antrak.org.tr/blog/esp-wspr-simple-and-inexpensive-wspr-transmitter/)  
 [K1FM-WSPR-TX - GitHub](https://github.com/adecarolis/K1FM-WSPR-TX)  
 [A Little WSPR Beacon (Aren’t They All Little?) – Dave Richards AA7EE](https://aa7ee.wordpress.com/2023/02/26/a-little-wspr-beacon-arent-they-all-little/)
+
+## How to contact me?
+- E-mail: igor.nikolaevich.96@gmail.com
+- Telegram: https://t.me/igrikxd
+- LinkedIn: https://www.linkedin.com/in/igor-yatsevich/
