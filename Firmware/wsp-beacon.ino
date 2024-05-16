@@ -2,7 +2,7 @@
 #include <si5351.h>
 #include <TimeLib.h>
 
-#include <TinyGPSPlus.h>
+#include <TinyGPS++.h>
 #include <SoftwareSerial.h>
 
 //******************************************************************
@@ -27,8 +27,9 @@
 
 // WSPR message parameters
 #define WSPR_CALL                 "XX0YYY"
-#define WSPR_LOC                  "XX00"
 #define WSPR_DBM                   23
+
+char WSPR_QTH_LOCATOR[5];
 //******************************************************************
 
 
@@ -62,6 +63,19 @@ SoftwareSerial gpsSerial{GPS_RX_PIN, GPS_TX_PIN};
 
 //******************************************************************
 
+void getQTHLocator(float latitude, float longitude, char* qth_locator) {
+  latitude += 90.0;
+  longitude += 180.0;
+
+  qth_locator[0] = 'A' + (longitude / 20);
+  qth_locator[1] = 'A' + (latitude / 10);
+
+  qth_locator[2] = '0' + (int)(longitude / 2) % 10;
+  qth_locator[3] = '0' + (int)(latitude) % 10;
+
+  qth_locator[4] = '\0';
+}
+
 // Loop through the string, transmitting one character at a time.
 void transmittWsprMessage()
 {
@@ -91,7 +105,7 @@ void setWsprTxBuffer()
     memset(tx_buffer, 0, 255);
     
     JTEncode jtencode;
-    jtencode.wspr_encode(WSPR_CALL, WSPR_LOC, WSPR_DBM, tx_buffer);
+    jtencode.wspr_encode(WSPR_CALL, WSPR_QTH_LOCATOR, WSPR_DBM, tx_buffer);
 }
 
 static void ledInit()
@@ -218,6 +232,7 @@ void setup()
     si5351Init();
 
     dateTimeSyncronization();
+    getQTHLocator(gps.location.lat(), gps.location.lng(), WSPR_QTH_LOCATOR);
 
     Serial.println(F("**********************************************"));
     Serial.println(F("- Entering WSPR TX loop..."));
@@ -249,7 +264,7 @@ void loop()
         Serial.print(F("- WSPR message: "));
         Serial.print(WSPR_CALL);
         Serial.print(F(" "));
-        Serial.print(WSPR_LOC);
+        Serial.print(WSPR_QTH_LOCATOR);
         Serial.print(F(" "));
         Serial.print(WSPR_DBM);
         Serial.println(F(" -"));
