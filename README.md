@@ -17,7 +17,7 @@ The correct encoding of the transmitted WSPR message was verified by decoding th
 **PCB copper weight:** 1 oz  
 
 ## How to use this repository?
-The [Firmware](./Firmware/) folder contains software required for the device operation and firmware instructions. The [Schematics](./Schematics/) directory contains the device schematic file in _.pdf_ format. The [Gerbers](./Gerbers/) directory contains files necessary for ordering PCB fabrication at the factory.
+The [Firmware](./Firmware/) folder contains software required for the device operation and firmware instructions. The [Schematics](./Schematics/) directory contains the device schematic file in _.pdf_ format. The [Gerbers](./Gerbers/) directory contains files necessary for ordering PCB [fabrication at the factory](https://pcbway.com).
 
 Additionally, you can find information about the [list of required components](./Components-list.md), [assembly guide](./Assembly-guide.md), and [operating instructions](./Usage-guide.md).
 
@@ -26,7 +26,13 @@ Additionally, you can find information about the [list of required components](.
 [K1FM-WSPR-TX - GitHub](https://github.com/adecarolis/K1FM-WSPR-TX)  
 [A Little WSPR Beacon (Aren’t They All Little?) – Dave Richards AA7EE](https://aa7ee.wordpress.com/2023/02/26/a-little-wspr-beacon-arent-they-all-little/)
 
+## Who helped me with the development of the project?
+Great thanks to [PCBWay] for manufacturing PCBs for the project implementation.
+![PCBWay-Logo](./Resources/PCBWay-logo.png)
+
 ## How to contact me?
 - E-mail: igor.nikolaevich.96@gmail.com
 - Telegram: https://t.me/igrikxd
 - LinkedIn: https://www.linkedin.com/in/igor-yatsevich/
+
+[PCBWay]: <https://pcbway.com>
