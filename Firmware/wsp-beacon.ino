@@ -46,6 +46,7 @@
 #define GPS_TX_PIN                 4
 #define GPS_BAUDRATE               9600
 #define GPS_STATUS_LED_PIN         9
+#define GPS_TIME_SYNC_ATTEMPTS     10
 //******************************************************************
 
 //******************************************************************
@@ -169,7 +170,7 @@ time_t dateTimeSyncronization()
     Serial.println(F("- Date & time sychronization -"));
     
     uint8_t syncAttemps{0};
-    while (!gpsDateTimeSync() && syncAttemps < 10)
+    while (!gpsDateTimeSync() && syncAttemps < GPS_TIME_SYNC_ATTEMPTS)
     {
         delay(10000);
         ++syncAttemps;
