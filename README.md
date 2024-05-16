@@ -1,6 +1,6 @@
 # wspr-beacon
 
-A small hardware device for transmitting WSPR messages based on the SI5351 IC. The device has a built-in TCXO to eliminate frequency drift of SI5351, built-in GPS module for operation with active GPS antennas and transmission time synchronization and a simple amplifier based on a single BS170 transistor. PCB is made on based on SMD components and adapted for installation in an aluminum enclosure with dimensions 80 x 50 x 20 mm.
+A small hardware device for transmitting WSPR messages based on the SI5351 IC. The device has a built-in TCXO to eliminate SI5351 frequency drift, a built-in GPS module for operation with active GPS antennas, transmission time synchronization and automatic QTH locator calculation, and a simple amplifier based on a single BS170 transistor. PCB is made on based on SMD components and adapted for installation in an aluminum enclosure with dimensions 80 x 50 x 20 mm.
 
 ## Current development progress:
 [![Progress](https://img.shields.io/badge/wspr--beacon%20EasyEDA-not%20tested-red.svg?longCache=true&style=for-the-badge)](https://oshwlab.com/igrikxd/wspr-beacon)&nbsp;[![Progress](https://img.shields.io/badge/firmware%20version-0.1-blue.svg?longCache=true&style=for-the-badge)](./Firmware)&nbsp;[![Progress](https://img.shields.io/badge/pcb%20version-1.0-blue.svg?longCache=true&style=for-the-badge)](./Gerbers)   
