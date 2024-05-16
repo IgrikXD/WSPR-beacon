@@ -167,16 +167,21 @@ static bool gpsDateTimeSync()
     return false; 
 }
 
-String currentDateTime()
+void printCurrentDateTime()
 {
     const auto& currentTime{now()};
 
-    return {String(year(currentTime)) + "-" 
-           + String(month(currentTime)) + "-"
-           + String(day(currentTime)) + " "
-           + String(hour(currentTime)) + ":"
-           + String(minute(currentTime)) + ":" 
-           + String(second(currentTime))};
+    Serial.print(year(currentTime));
+    Serial.print(F("-"));
+    Serial.print(month(currentTime));
+    Serial.print(F("-"));
+    Serial.print(day(currentTime));
+    Serial.print(F(" "));
+    Serial.print(hour(currentTime));
+    Serial.print(F(":"));
+    Serial.print(minute(currentTime));
+    Serial.print(F(":"));
+    Serial.print(second(currentTime));
 }
 
 time_t dateTimeSyncronization()
@@ -193,7 +198,7 @@ time_t dateTimeSyncronization()
     if (timeStatus() == timeSet)
     {
         Serial.print(F("- Date & time synchronized by GPS: "));
-        Serial.print(currentDateTime());
+        printCurrentDateTime();
         Serial.println(F(" -"));
     }
     else
@@ -258,7 +263,7 @@ void loop()
     {
         warmup = false;
         Serial.print(F("- Start of transmission time: "));
-        Serial.print(currentDateTime());
+        printCurrentDateTime();
         Serial.println(F(" -"));
 
         Serial.print(F("- WSPR message: "));
