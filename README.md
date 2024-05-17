@@ -5,12 +5,12 @@ A small hardware device for transmitting WSPR messages based on the SI5351 IC. T
 ## Current development progress:
 [![Progress](https://img.shields.io/badge/wspr--beacon%20EasyEDA-not%20tested-red.svg?longCache=true&style=for-the-badge)](https://oshwlab.com/igrikxd/wspr-beacon)&nbsp;[![Progress](https://img.shields.io/badge/firmware%20version-0.1-blue.svg?longCache=true&style=for-the-badge)](./Firmware)&nbsp;[![Progress](https://img.shields.io/badge/pcb%20version-1.0-blue.svg?longCache=true&style=for-the-badge)](./Gerbers)   
 
-The correct encoding of the transmitted WSPR message was verified by decoding the transmission through the locally located Airspy R2 SDR receiver and the [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) application.
+Correctness of encoding of the transmitted WSPR message was verified by decoding the transmission using a locally located Airspy R2 SDR receiver and the [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) application.
 
 ## Basic characteristics of the WSPR-beacon:
 **RF connectors:** SMA  
 **Feed line:** 50 Ohm coaxial cable  
-**Output power:** 23 dBm  
+**Output power:** ~23 dBm  
 **Supply voltage:** 5V, USB-B  
 **Used PCB Material:** FR-4  
 **PCB thickness:** 1.6 mm  
