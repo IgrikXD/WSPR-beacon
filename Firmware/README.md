@@ -1,7 +1,7 @@
 # Firmware instruction
 
 ## Select the transmission frequency:
-Open Arduino IDE and modify the _wsp-beacon.ino_ file. Uncomment the line with the band on which you want to perform the WSPR message transmission:
+Open Arduino IDE and modify the [_wsp-beacon.ino_](wsp-beacon.ino) file. Uncomment the line with the band on which you want to perform the WSPR message transmission:
 ```cpp
 // WSPR center frequency in Hz
 // #define WSPR_DEFAULT_FREQ       137500UL    // 0.1375 MHz - 2200m
