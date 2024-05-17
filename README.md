@@ -19,12 +19,14 @@ The correct encoding of the transmitted WSPR message was verified by decoding th
 ## How to use this repository?
 The [Firmware](./Firmware/) folder contains software required for the device operation and firmware instructions. The [Schematics](./Schematics/) directory contains the device schematic file in _.pdf_ format. The [Gerbers](./Gerbers/) directory contains files necessary for ordering PCB [fabrication at the factory](https://pcbway.com).
 
-Additionally, you can find information about the [list of required components](./Components-list.md), [assembly guide](./Assembly-guide.md), and [operating instructions](./Usage-guide.md).
+Additionally, you can find information about the [list of required components](./BOMs), [assembly guide](./Assembly-guide.md), and [operating instructions](./Usage-guide.md).
 
 ## Resources:
+[A Little WSPR Beacon (Aren’t They All Little?) – Dave Richards AA7EE](https://aa7ee.wordpress.com/2023/02/26/a-little-wspr-beacon-arent-they-all-little/)  
 [ESP WSPR – Simple and Inexpensive WSPR Transmitter - Ankara Telsiz ve Radyo Amatörleri Kulübü Derneği](https://antrak.org.tr/blog/esp-wspr-simple-and-inexpensive-wspr-transmitter/)  
 [K1FM-WSPR-TX - GitHub](https://github.com/adecarolis/K1FM-WSPR-TX)  
-[A Little WSPR Beacon (Aren’t They All Little?) – Dave Richards AA7EE](https://aa7ee.wordpress.com/2023/02/26/a-little-wspr-beacon-arent-they-all-little/)
+[QRP Labs QRSS/WSPR TX Kit](https://qrp-labs.com/images/ultimate3s/assembly_u3s_r3_lt.pdf)
+[WSPR beacon – Projets radio](https://hamprojects.wordpress.com/2019/06/02/wspr-beacon/)
 
 ## Who helped me with the development of the project?
 Great thanks to [PCBWay] for manufacturing PCBs for the project implementation.
