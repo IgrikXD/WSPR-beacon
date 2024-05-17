@@ -2,7 +2,7 @@
 
 ## Select the transmission frequency:
 Open Arduino IDE and modify the _wsp-beacon.ino_ file. Uncomment the line with the band on which you want to perform the WSPR message transmission:
-```sh
+```cpp
 // WSPR center frequency in Hz
 // #define WSPR_DEFAULT_FREQ       137500UL    // 0.1375 MHz - 2200m
 // #define WSPR_DEFAULT_FREQ       475700UL    // 0.4757 MHz - 600m
@@ -22,7 +22,7 @@ Open Arduino IDE and modify the _wsp-beacon.ino_ file. Uncomment the line with t
 
 ## Add WSPR message data:
 Enter your amateur radio call sign to generate a correct WSPR message:
-```sh
+```cpp
 #define WSPR_CALL                 "XX0YYY"
 ```
 
