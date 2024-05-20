@@ -46,8 +46,8 @@ char WSPR_QTH_LOCATOR[5];
 #define GPS_BAUDRATE               9600
 #define GPS_STATUS_LED_PIN         9
 #define GPS_INIT_MAX_TIME          5000
-#define GPS_TIME_SYNC_ATTEMPTS     10
-#define GPS_TIME_SYNC_DELAY        30000
+#define GPS_SYNC_ATTEMPTS          10
+#define GPS_SYNC_DELAY             30000
 
 //******************************************************************
 //                      Global variables
@@ -67,12 +67,13 @@ void(* resetHardware) (void) = 0;
 void initializeLEDs();
 void initializeGPS();
 void initializeSI5351();
-void synchronizeDateTimeWithGPS();
-bool trySyncDateTime();
+void synchronizeGPSData();
+bool trySyncGPSData();
 void setQTHLocator();
 void encodeWSPRMessage();
 void transmitWSPRMessage();
 void printCurrentDateTime();
+void printCurrentLocation();
 void printTransmissionDetails();
 void printWSPRConfiguration();
 
@@ -131,40 +132,49 @@ void initializeSI5351()
     Serial.println(F("- SI5351 successfully initialized! -"));
 }
 
-void synchronizeDateTimeWithGPS()
+void synchronizeGPSData()
 {
-    Serial.println(F("- Date & time sychronization -"));
+    Serial.println(F("- GPS data sychronization -"));
     
     uint8_t syncAttemps{0};
-    while (!trySyncDateTime() && syncAttemps < GPS_TIME_SYNC_ATTEMPTS)
+    bool dataSynchronized{trySyncGPSData()};
+    while (dataSynchronized == false && syncAttemps < GPS_SYNC_ATTEMPTS)
     {
-        delay(GPS_TIME_SYNC_DELAY);
+        delay(GPS_SYNC_DELAY);
+        dataSynchronized = trySyncGPSData();
         ++syncAttemps;
     }
 
-    if (timeStatus() == timeSet)
+    if (dataSynchronized)
     {
         Serial.print(F("- Date & time synchronized by GPS: "));
         printCurrentDateTime();
         Serial.println(F(" -"));
+        Serial.print(F("- Location synchronized by GPS: "));
+        printCurrentLocation();
+        Serial.println(F(" -"));
+        Serial.print(F("- QTH locator successfully calculated: "));
+        Serial.print(WSPR_QTH_LOCATOR);
+        Serial.println(F(" -"));
     }
     else
     {   
-        Serial.println(F("- GPS time sync not available! -"));
-        Serial.println(F("- Transmitting a WSPR message without time synchronization is impossible! -"));
-        Serial.println(F("- Check your GPS and try again! -"));
+        Serial.println(F("- GPS data synchronization not available! -"));
+        Serial.println(F("- Transmitting a WSPR message without time & location synchronization is impossible! -"));
+        Serial.println(F("- Check your GPS antenna and try again! -"));
         delay(1000);
         resetHardware();
     }
 }
 
-bool trySyncDateTime()
+bool trySyncGPSData()
 { 
     while (gpsSerial.available())
         gps.encode(gpsSerial.read());
 
-    if (gps.time.isValid() && gps.date.isValid()){
+    if (gps.time.isValid() && gps.date.isValid() && gps.location.isValid()){
         setTime(gps.time.hour(), gps.time.minute(), gps.time.second(), gps.date.day(), gps.date.month(), gps.date.year());
+        setQTHLocator();
         digitalWrite(GPS_STATUS_LED_PIN, HIGH);
         return true;
     }
@@ -173,16 +183,16 @@ bool trySyncDateTime()
 }
 
 void setQTHLocator() {
-  float latitude{gps.location.lat() + 90.0};
-  float longitude{gps.location.lng() + 180.0};
+    float latitude{gps.location.lat() + 90.0};
+    float longitude{gps.location.lng() + 180.0};
 
-  WSPR_QTH_LOCATOR[0] = 'A' + (longitude / 20);
-  WSPR_QTH_LOCATOR[1] = 'A' + (latitude / 10);
+    WSPR_QTH_LOCATOR[0] = 'A' + (longitude / 20);
+    WSPR_QTH_LOCATOR[1] = 'A' + (latitude / 10);
 
-  WSPR_QTH_LOCATOR[2] = '0' + (int)(longitude / 2) % 10;
-  WSPR_QTH_LOCATOR[3] = '0' + (int)(latitude) % 10;
+    WSPR_QTH_LOCATOR[2] = '0' + (int)(longitude / 2) % 10;
+    WSPR_QTH_LOCATOR[3] = '0' + (int)(latitude) % 10;
 
-  WSPR_QTH_LOCATOR[4] = '\0';
+    WSPR_QTH_LOCATOR[4] = '\0';
 }
 
 void encodeWSPRMessage()
@@ -230,6 +240,13 @@ void printCurrentDateTime()
     Serial.print(second());
 }
 
+void printCurrentLocation()
+{
+    Serial.print(gps.location.lat());
+    Serial.print(F(", "));
+    Serial.print(gps.location.lng());
+}
+
 void printTransmissionDetails() {
     Serial.print(F("- Start of transmission time: "));
     printCurrentDateTime();
@@ -262,7 +279,7 @@ void setup()
     printWSPRConfiguration();
     initializeSI5351();
     initializeGPS();
-    synchronizeDateTimeWithGPS();
+    synchronizeGPSData();
     setQTHLocator();
 
     Serial.println(F("**********************************************"));
@@ -283,6 +300,6 @@ void loop()
     }
     else if (currentTimeStatus != timeSet)
     {
-        synchronizeDateTimeWithGPS();
+        synchronizeGPSData();
     }
 }
