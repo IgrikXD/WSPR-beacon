@@ -4,6 +4,8 @@
 #include <TinyGPS++.h>
 #include <SoftwareSerial.h>
 
+#define FIRMWARE_VERSION 1.0
+
 //******************************************************************
 //                      WSPR configuration
 //******************************************************************
@@ -263,6 +265,9 @@ void printTransmissionDetails() {
 void printWSPRConfiguration() {
     Serial.println(F("**********************************************"));
     Serial.println(F("[ WSPR BEACON ]"));
+    Serial.print(F("- Firmware version: "));
+    Serial.print(FIRMWARE_VERSION);
+    Serial.println(F(" -"));
     Serial.print(F("- Working frequency: "));
     Serial.print(WSPR_DEFAULT_FREQ / 1000000.0);
     Serial.println(F(" MHz -"));
