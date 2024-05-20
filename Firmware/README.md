@@ -25,6 +25,7 @@ Enter your amateur radio call sign to generate a correct WSPR message:
 ```cpp
 #define WSPR_CALL                 "XX0YYY"
 ```
+There is no need to specify your QTH locator, it will be calculated automatically by _void setQTHLocator()_ function based on actual GPS data.
 
 ## Select the Board:
 Go to "_Tools_" -> "_Board_", then select  "_Arduino Nano_".
