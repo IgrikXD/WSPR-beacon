@@ -12,7 +12,8 @@ Correctness of encoding of the transmitted WSPR message was verified by decoding
 ## Basic characteristics of the WSPR-beacon:
 **RF connectors:** SMA  
 **Feed line:** 50 Ohm coaxial cable  
-**Output power:** ~23 dBm  
+**GPS antenna type:** active, external  
+**Maximum output power:** ~23 dBm  
 **Supply voltage:** 5V, USB-B  
 **Used PCB Material:** FR-4  
 **PCB thickness:** 1.6 mm  
