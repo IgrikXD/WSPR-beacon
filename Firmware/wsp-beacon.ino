@@ -104,7 +104,7 @@ void initializeGPS()
     Serial.print(F("- Getting data from GPS "));
     
     const unsigned long startTime{millis()};
-    while (!gpsSerial.available() && millis() <= startTime + GPS_INIT_MAX_TIME)
+    while (gpsSerial.available() == false && millis() <= startTime + GPS_INIT_MAX_TIME)
     {
         delay(600);
         Serial.print(F("."));
@@ -112,7 +112,6 @@ void initializeGPS()
 
     if (gpsSerial.available())
     {
-        gps.encode(gpsSerial.read());
         Serial.println(F("\n- GPS successfully initialized! -"));
     }
     else
