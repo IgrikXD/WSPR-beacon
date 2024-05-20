@@ -125,9 +125,9 @@ void initializeSI5351()
     Serial.println(F("- SI5351 initialization -"));
     si5351.init(SI5351_CRYSTAL_LOAD_8PF, 0, 0);
     si5351.set_correction(SI5351_CAL_FACTOR, SI5351_PLL_INPUT_XO);
-    // Set CLK0 as WSPR TX output
-    si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_8MA); // Set for max power if desired
-    si5351.output_enable(SI5351_CLK0, 0); // Disable the clock initially
+    // Set CLK0 as WSPR TX OUT
+    si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_6MA);
+    si5351.output_enable(SI5351_CLK0, 0);
     Serial.println(F("- SI5351 successfully initialized! -"));
 }
 
@@ -274,10 +274,15 @@ void setup()
 
 void loop()
 {
-    if(minute() % 2 == 0 && second() == 0)
+    if(const timeStatus_t currentTimeStatus{timeStatus()}; 
+      currentTimeStatus == timeSet && minute() % 2 == 0 && second() == 0)
     {
         printTransmissionDetails();
         transmittWsprMessage();
-        Serial.println(F("\n**********************************************"));
+        Serial.println(F("**********************************************"));
+    }
+    else if (currentTimeStatus != timeSet)
+    {
+        synchronizeDateTimeWithGPS();
     }
 }
