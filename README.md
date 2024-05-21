@@ -33,7 +33,7 @@ Additionally, you can find information about the [list of required components](.
 [WSPR beacon – Projets radio](https://hamprojects.wordpress.com/2019/06/02/wspr-beacon/)  
 
 ## Who helped me with the development of the project?
-Great thanks to [PCBWay] for manufacturing PCBs for the project implementation.
+Great thanks to [PCBWay] for manufacturing the PCBs for the project as a sponsored contribution.
 ![PCBWay-Logo](./Resources/PCBWay-logo.png)
 
 ## How to contact me?
