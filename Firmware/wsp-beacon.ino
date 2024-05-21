@@ -129,7 +129,6 @@ void initializeSI5351()
     si5351.init(SI5351_CRYSTAL_LOAD_8PF, 0, SI5351_CAL_FACTOR);
     // Set CLK0 as WSPR TX OUT
     si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_6MA);
-    si5351.output_enable(SI5351_CLK0, 0);
     Serial.println(F("- SI5351 successfully initialized! -"));
 }
 
