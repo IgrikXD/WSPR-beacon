@@ -301,15 +301,12 @@ void setup()
 
 void loop()
 {
-    if(const timeStatus_t currentTimeStatus{timeStatus()}; 
-      currentTimeStatus == timeSet && minute() % 2 == 0 && second() == 0)
+    if(minute() % 2 == 0 && second() == 0)
     {
         printTransmissionDetails();
         transmittWsprMessage();
         Serial.println(F("**********************************************"));
-    }
-    else if (currentTimeStatus != timeSet)
-    {
         synchronizeGPSData();
+        Serial.println(F("**********************************************"));
     }
 }
