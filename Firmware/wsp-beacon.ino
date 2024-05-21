@@ -76,6 +76,7 @@ void encodeWSPRMessage();
 void transmitWSPRMessage();
 void printCurrentDateTime();
 void printCurrentLocation();
+void printDelimiter();
 void printTransmissionDetails();
 void printWSPRConfiguration();
 
@@ -253,6 +254,11 @@ void printCurrentLocation()
     Serial.print(gps.location.lng());
 }
 
+void printDelimiter()
+{
+    Serial.println(F("**********************************************"));
+}
+
 void printTransmissionDetails() {
     Serial.print(F("- Start of transmission time: "));
     printCurrentDateTime();
@@ -267,7 +273,7 @@ void printTransmissionDetails() {
 }
 
 void printWSPRConfiguration() {
-    Serial.println(F("**********************************************"));
+    printDelimiter();
     Serial.println(F("[ WSPR BEACON ]"));
     Serial.print(F("- Firmware version: "));
     Serial.print(FIRMWARE_VERSION);
@@ -275,7 +281,7 @@ void printWSPRConfiguration() {
     Serial.print(F("- Working frequency: "));
     Serial.print(WSPR_DEFAULT_FREQ / 1000000.0);
     Serial.println(F(" MHz -"));
-    Serial.println(F("**********************************************"));
+    printDelimiter();
 }
 
 void setup()
@@ -291,9 +297,9 @@ void setup()
     synchronizeGPSData();
     setQTHLocator();
 
-    Serial.println(F("**********************************************"));
+    printDelimiter();
     Serial.println(F("- Entering WSPR TX loop..."));
-    Serial.println(F("**********************************************"));
+    printDelimiter();
 
     encodeWSPRMessage();
     randomSeed(millis());
@@ -305,8 +311,8 @@ void loop()
     {
         printTransmissionDetails();
         transmittWsprMessage();
-        Serial.println(F("**********************************************"));
+        printDelimiter();
         synchronizeGPSData();
-        Serial.println(F("**********************************************"));
+        printDelimiter();
     }
 }
