@@ -126,10 +126,20 @@ void initializeGPS()
 void initializeSI5351()
 {
     Serial.println(F("- SI5351 initialization -"));
-    si5351.init(SI5351_CRYSTAL_LOAD_8PF, 0, SI5351_CAL_FACTOR);
-    // Set CLK0 as WSPR TX OUT
-    si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_6MA);
-    Serial.println(F("- SI5351 successfully initialized! -"));
+    if (si5351.init(SI5351_CRYSTAL_LOAD_8PF, 0, SI5351_CAL_FACTOR))
+    {
+        Serial.println(F("- SI5351 successfully initialized! -"));
+        // Set CLK0 as WSPR TX OUT
+        si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_6MA);
+        si5351.output_enable(SI5351_CLK0, 0);
+    }
+    else
+    {
+        Serial.println(F("- SI5351 initialization error! -"));
+        delay(1000);
+        resetHardware();
+    }
+
 }
 
 void synchronizeGPSData()
