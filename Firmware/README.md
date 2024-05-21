@@ -1,7 +1,21 @@
 # Firmware instruction
 
+## Select the board:
+Open [Arduino IDE](https://www.arduino.cc/en/software), go to "_Tools_" -> "_Board_", then select  "_Arduino Nano_".
+
+## Choose the communication port:
+Connect the device to your computer via USB cable. Then, in the "_Tools_" -> "_Port_" menu, select the corresponding COM port.
+
+## SI5351 calibration:
+For correct operation of the device you need to [calibrate](https://github.com/etherkit/Si5351Arduino/tree/master?tab=readme-ov-file#calibration) the SI5351 to calculate the difference between the uncalibrated actual frequency and the nominal output frequency. 
+
+Upload the [sketch](https://github.com/etherkit/Si5351Arduino/blob/master/examples/si5351_calibration/si5351_calibration.ino) into the device and perform the calibration. Calibration is performed once for each pair of SI5351 and TCXO. The resulting calibration value must be changed in the [_wsp-beacon.ino_](wsp-beacon.ino) file: 
+```cpp
+#define SI5351_CAL_FACTOR          92000
+```
+
 ## Select the transmission frequency:
-Open Arduino IDE and modify the [_wsp-beacon.ino_](wsp-beacon.ino) file. Uncomment the line with the band on which you want to perform the WSPR message transmission:
+Uncomment the line with the band on which you want to perform the WSPR message transmission:
 ```cpp
 // WSPR center frequency in Hz
 // #define WSPR_DEFAULT_FREQ       137500UL    // 0.1375 MHz - 2200m
@@ -27,11 +41,5 @@ Enter your amateur radio call sign to generate a correct WSPR message:
 ```
 There is no need to specify your QTH locator, it will be calculated automatically by _void setQTHLocator()_ function based on actual GPS data.
 
-## Select the Board:
-Go to "_Tools_" -> "_Board_", then select  "_Arduino Nano_".
-
-## Choose the Port:
-Connect the device to your computer via USB cable. Then, in the "_Tools_" -> "_Port_" menu, select the corresponding COM port.
-
-## Upload an Firmware:
-Click the "_Upload_" button in the Arduino IDE to compile and upload your program to the device.
+## Upload an firmware:
+Click the "_Upload_" button in the Arduino IDE to compile and upload firmware to the device.
