@@ -304,7 +304,6 @@ void setup()
     initializeSI5351();
     initializeGPS();
     synchronizeGPSData();
-    setQTHLocator();
 
     printDelimiter();
     Serial.println(F("- Entering WSPR TX loop..."));
