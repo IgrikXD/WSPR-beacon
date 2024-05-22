@@ -41,6 +41,7 @@ char WSPR_QTH_LOCATOR[5];
 #define TX_LED_PIN                 8
 #define POWER_ON_LED_PIN           10
 #define SI5351_CAL_FACTOR          92000
+#define SI5351_I2C_ADDRESS         0x60
 #define SERIAL_PORT_BAUDRATE       115200
 
 #define GPS_RX_PIN                 3
@@ -55,7 +56,7 @@ char WSPR_QTH_LOCATOR[5];
 //                      Global variables
 //******************************************************************
 uint8_t tx_buffer[255];
-Si5351 si5351;
+Si5351 si5351(SI5351_I2C_ADDRESS);
 TinyGPSPlus gps;
 
 // Serial connection to the GPS module
@@ -136,6 +137,9 @@ void initializeSI5351()
     else
     {
         Serial.println(F("- SI5351 initialization error! -"));
+        Serial.print(F("- Ensure that the SI5351 has an I2C address 0x"));
+        Serial.print(SI5351_I2C_ADDRESS, HEX);
+        Serial.println(F(" -"));
         delay(1000);
         resetHardware();
     }

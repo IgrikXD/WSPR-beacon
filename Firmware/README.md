@@ -6,6 +6,12 @@ Open [Arduino IDE](https://www.arduino.cc/en/software), go to "_Tools_" -> "_Boa
 ## Choose the communication port:
 Connect the device to your computer via USB cable. Then, in the "_Tools_" -> "_Port_" menu, select the corresponding COM port.
 
+## I2C address of the SI5351:
+By default, the SI5351 uses address **_0x60_** on the I2C bus. If necessary, you can change the I2C address of the SI5351 according to the datasheet of your instance:
+```cpp
+#define SI5351_I2C_ADDRESS         0x60
+```
+
 ## SI5351 calibration:
 For correct operation of the device you need to [calibrate](https://github.com/etherkit/Si5351Arduino/tree/master?tab=readme-ov-file#calibration) the SI5351 to calculate the difference between the uncalibrated actual frequency and the nominal output frequency. 
 
