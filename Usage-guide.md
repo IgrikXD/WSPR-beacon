@@ -13,7 +13,7 @@ The device operates in fully automatic mode. Turn on the device by switching the
 ### Hardware initialization
 Initialization of the hardware is performed in the _void setup()_ function and is executed only once, when the device is started.  
 
-By default, the SI5351 is initialized at I2C address 0x60, if no device can be detected at this address - a reboot is performed. **If you encounter any problems at this stage - make sure that your SI5351 instance really has I2C address 0x60!**
+By default, the SI5351 is initialized at I2C address 0x60, if no device can be detected at this address - a reboot is performed. **If you encounter any problems at this stage - make sure that your SI5351 instance really has I2C address 0x60!** If necessary, you can [change the value of the I2C address of the SI5351](https://github.com/IgrikXD/WSPR-beacon/tree/master/Firmware#i2c-address-of-the-si5351) in the firmware source code.
 
 The GPS module used in the device operates using a software-implemented serial port. Initialization of the GPS module starts with checking if any information is available from the GPS receiver on the virtual serial port. If no data is received within "_GPS_INIT_MAX_TIME_" - the device will be rebooted. If the connection is successfully initialized, time synchronization and calculation of your QTH locator (_WSPR protocol requirement_) is performed based on the data received from the GPS module. The device performs "_GPS_SYNC_ATTEMPTS_" attempts to synchronize GPS data with a delay of "_GPS_SYNC_DELAY_". If all synchronization attempts fail, the device is rebooted.  
 
