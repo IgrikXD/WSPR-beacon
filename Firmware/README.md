@@ -9,7 +9,7 @@ Connect the device to your computer via USB cable. Then, in the "_Tools_" -> "_P
 ## SI5351 calibration:
 For correct operation of the device you need to [calibrate](https://github.com/etherkit/Si5351Arduino/tree/master?tab=readme-ov-file#calibration) the SI5351 to calculate the difference between the uncalibrated actual frequency and the nominal output frequency. 
 
-Upload the [sketch](https://github.com/etherkit/Si5351Arduino/blob/master/examples/si5351_calibration/si5351_calibration.ino) into the device and perform the calibration. Calibration is performed once for each pair of SI5351 and TCXO. The resulting calibration value must be changed in the [_wsp-beacon.ino_](wsp-beacon.ino) file: 
+Upload this [sketch](https://github.com/etherkit/Si5351Arduino/blob/master/examples/si5351_calibration/si5351_calibration.ino) into the device and perform the calibration. Calibration is performed once for each pair of SI5351 and TCXO. The resulting calibration value must be changed in the [_wsp-beacon.ino_](wsp-beacon.ino) file: 
 ```cpp
 #define SI5351_CAL_FACTOR          92000
 ```
