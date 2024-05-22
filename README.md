@@ -20,7 +20,7 @@ Correctness of encoding of the transmitted WSPR message was verified by decoding
 **PCB copper weight:** 1 oz  
 
 ## How to use this repository?
-The [Firmware](./Firmware/) folder contains software required for the device operation and firmware instructions. The [Schematics](./Schematics/) directory contains the device schematic file in _.pdf_ format. The [Gerbers](./Gerbers/) directory contains files necessary for ordering PCB [fabrication at the factory](https://pcbway.com).
+The [Firmware](./Firmware/) folder contains software required for the device operation and firmware instructions. The [Schematics](./Schematics/) directory contains the device schematic file in _.pdf_ format. The [Gerbers](./Gerbers/) directory contains files necessary for ordering PCB [fabrication at the factory](https://pcbway.com). In the [Enclosure-models](./Enclosure-models/) directory you can find files with markup, for milling the side covers of the aluminum enclosure.
 
 Additionally, you can find information about the [list of required components](./BOMs), [assembly guide](./Assembly-guide.md), and [operating instructions](./Usage-guide.md).
 
