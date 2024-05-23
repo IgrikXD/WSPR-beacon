@@ -6,7 +6,7 @@
 >It is recommended to use full-size antennas for a specific transmission range, as their efficiency is significantly superior to that of wideband and compact antennas. Also, it is recommended to use bandpass filters that suppress unwanted signals outside the operating range (the SI5351 emits unwanted harmonics along with the main signal emission at the operating frequency).
 
 ## Device usage
-The device operates in fully automatic mode. Turn on the device by switching the **_SW1_** toggle switch position. After switching on the device the **_green LED3_** should light up, which means that the device is working correctly and the initialization process has started. 
+The device operates in fully automatic mode. Turn on the device by switching the **_SW1_** toggle switch position. After switching on the device the **_green LED (ON)_** should light up, which means that the device is working correctly and the initialization process has started. 
 
 >During the device operation you will have access to logging of all actions performed by the device through the use of "_Tools_" -> "_Serial Monitor_" in Arduino IDE. 
 
@@ -19,7 +19,7 @@ The GPS module used in the device operates using a software-implemented serial p
 
 >The device will not transmit WSPR messages until the time and coordinates are synchronized!  
 
-Successful completion of GPS data synchronization is signaled by the **_green LED2_**, after which the device enters the main cycle of WSPR message transmission. 
+Successful completion of GPS data synchronization is signaled by the **_green LED (GPS)_**, after which the device enters the main cycle of WSPR message transmission. 
 
 ### WSPR message transmission
-Transmission of WSPR messages is performed in an infinite loop _void loop()_ every even minute (_00:00, 00:02, 00:04, ..._). **Each transmission cycle is executed at a randomly selected frequency within the range of +/- 100 Hz from the center operating frequency.** During the WSPR message transmission, the **_red LED1_** lights up and goes out immediately after the transmission is completed. After completion of the transmission cycle, the device re-synchronizes the time and coordinates based on the current GPS data values.
+Transmission of WSPR messages is performed in an infinite loop _void loop()_ every even minute (_00:00, 00:02, 00:04, ..._). **Each transmission cycle is executed at a randomly selected frequency within the range of +/- 100 Hz from the center operating frequency.** During the WSPR message transmission, the **_red LED (TX)_** lights up and goes out immediately after the transmission is completed. After completion of the transmission cycle, the device re-synchronizes the time and coordinates based on the current GPS data values.
