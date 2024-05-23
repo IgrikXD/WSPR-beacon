@@ -28,11 +28,7 @@ Insert the PCB back into the enclosure, screw on the side covers of the aluminum
 
 ![Soldering the toggle switch](./Resources/Enclosure-Soldering-the-toggle-switch.jpg)  
 
-After soldering clean the PCB to remove any flux residues.
-
-![Cleaning the PCB](./Resources/Cleaning-the-PCB.jpg) 
-
-Screw the top cover of the aluminum enclosure. Now the device is ready to work.
+After soldering clean the PCB to remove any flux residues. Screw the top cover of the aluminum enclosure. Now the device is ready to work.
 
 ![Ready-made device](./Resources/Enclosure-Ready-made-device.jpg)  
 
