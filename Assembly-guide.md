@@ -8,6 +8,8 @@ For winding a bifilar transformer, I recommend you use the instructions from [QR
 
 **The only difference lies in the method of soldering the bifilar transformer on the PCB:** you need to solder the end of the primary winding to the beginning of the secondary winding - this will be one of the transformer leads, which is soldered as the central contact of the transformer on the PCB.
 
+![Bifilar transformer soldering](./Resources/Bifilar-transformer-soldering.jpg)  
+
 ## Installing the PCB in the aluminum enclosure
 
 To assemble the device, an aluminum case with dimensions 80 x 50 x 20 mm is used.
@@ -35,6 +37,6 @@ After soldering clean the PCB to remove any flux residues. Screw the top cover o
 ## Adjusting the output amplifier
 To adjust the output amplifier, I recommend you use the instructions from [QRP-Labs: "PA bias set-up"](https://qrp-labs.com/images/ultimate3s/assembly_u3s_r3_lt.pdf).
 
-For additional cooling of the BS170 transistor, you can use an off-the-shelf aluminum heatsink for TO-92 package transistors.
+For additional cooling of the BS170 transistor, you can use an off-the-shelf aluminum heatsink for TO-92 package transistors.  
 
-![Ready-made device](./Resources/TO-92-heatsink.png)  
+![TO-92 heatsink](./Resources/TO-92-heatsink.png)  
