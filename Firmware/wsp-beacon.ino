@@ -49,6 +49,7 @@ char WSPR_QTH_LOCATOR[5];
 #define GPS_BAUDRATE               9600
 #define GPS_STATUS_LED_PIN         9
 #define GPS_INIT_MAX_TIME          5000
+#define GPS_INIT_DELAY             500
 #define GPS_SYNC_ATTEMPTS          10
 #define GPS_SYNC_DELAY             30000
 
@@ -102,23 +103,20 @@ void initializeGPS()
     Serial.println(F("- GPS initialization -"));
     
     gpsSerial.begin(GPS_BAUDRATE);
-
-    Serial.print(F("- Getting data from GPS "));
     
     const unsigned long startTime{millis()};
     while (gpsSerial.available() == false && millis() <= startTime + GPS_INIT_MAX_TIME)
     {
-        delay(600);
-        Serial.print(F("."));
+        delay(GPS_INIT_DELAY);
     }
 
     if (gpsSerial.available())
     {
-        Serial.println(F("\n- GPS successfully initialized! -"));
+        Serial.println(F("- GPS successfully initialized! -"));
     }
     else
     {
-        Serial.println(F("\n- No GPS detected: check wiring! -"));
+        Serial.println(F("- GPS initialization error! -"));
         delay(1000);
         resetHardware();
     }
@@ -150,10 +148,14 @@ void synchronizeGPSData()
 {
     Serial.println(F("- GPS data sychronization -"));
     
-    uint8_t syncAttemps{0};
+    uint8_t syncAttemps{1};
     bool dataSynchronized{trySyncGPSData()};
     while (dataSynchronized == false && syncAttemps < GPS_SYNC_ATTEMPTS)
     {
+        Serial.print(F("- Synchronization attempt "));
+        Serial.print(syncAttemps);
+        Serial.println(F(" failed! -"));
+        Serial.println(F("- Waiting for the next synchronization attempt... -"));
         delay(GPS_SYNC_DELAY);
         dataSynchronized = trySyncGPSData();
         ++syncAttemps;
