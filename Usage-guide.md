@@ -3,6 +3,7 @@
 ## Device preparation
 [Assemble the device](./Assembly-guide.md) and [upload the firmware](./Firmware/). Connect active GPS antenna, antenna for WSPR message transmission and USB-B cable for device power supply.  
 
+> [!NOTE]
 >It is recommended to use full-size antennas for a specific transmission range, as their efficiency is significantly superior to that of wideband and compact antennas. Also, it is recommended to use bandpass filters that suppress unwanted signals outside the operating range (the SI5351 emits unwanted harmonics along with the main signal emission at the operating frequency).
 
 ## Device usage
