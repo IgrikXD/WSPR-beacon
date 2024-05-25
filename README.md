@@ -14,7 +14,7 @@ Correctness of encoding of the transmitted WSPR message was verified by decoding
 **Feed line:** 50 Ohm coaxial cable  
 **GPS antenna type:** active, external  
 **Maximum output power:** ~23 dBm  
-**Supply voltage:** 5V, USB-B  
+**Supply voltage:** 5V, USB-B, fuse-protected  
 **Used PCB Material:** FR-4  
 **PCB thickness:** 1.6 mm  
 **PCB copper weight:** 1 oz  
