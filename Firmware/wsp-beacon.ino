@@ -12,6 +12,7 @@
 // WSPR protocol configuration
 #define WSPR_TONE_SPACING          146
 #define WSPR_DELAY                 683
+#define WSPR_MESSAGE_BUFFER_SIZE   255
 
 // WSPR center frequency in Hz
 // #define WSPR_DEFAULT_FREQ       137500ULL    // 0.1375 MHz - 2200m
@@ -56,7 +57,7 @@ char WSPR_QTH_LOCATOR[5];
 //******************************************************************
 //                      Global variables
 //******************************************************************
-uint8_t tx_buffer[255];
+uint8_t tx_buffer[WSPR_MESSAGE_BUFFER_SIZE];
 Si5351 si5351(SI5351_I2C_ADDRESS);
 TinyGPSPlus gps;
 
@@ -213,7 +214,7 @@ void setQTHLocator() {
 
 void encodeWSPRMessage()
 {
-    memset(tx_buffer, 0, 255);
+    memset(tx_buffer, 0, WSPR_MESSAGE_BUFFER_SIZE);
     
     JTEncode jtencode;
     jtencode.wspr_encode(WSPR_CALL, WSPR_QTH_LOCATOR, WSPR_DBM, tx_buffer);
