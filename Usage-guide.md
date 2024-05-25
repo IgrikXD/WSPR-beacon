@@ -8,6 +8,7 @@
 ## Device usage
 The device operates in fully automatic mode. Turn on the device by switching the **_SW1_** toggle switch position. After switching on the device the **_green LED (ON)_** should light up, which means that the device is working correctly and the initialization process has started. 
 
+> [!NOTE]
 >During the device operation you will have access to logging of all actions performed by the device through the use of "_Tools_" -> "_Serial Monitor_" in Arduino IDE. 
 
 ### Hardware initialization
@@ -17,6 +18,7 @@ By default, the SI5351 is initialized at I2C address 0x60, if no device can be d
 
 The GPS module used in the device operates using a software-implemented serial port. Initialization of the GPS module starts with checking if any information is available from the GPS receiver on the virtual serial port. If no data is received within "_GPS_INIT_MAX_TIME_" - the device will be rebooted. If the connection is successfully initialized, time synchronization and calculation of your QTH locator (_WSPR protocol requirement_) is performed based on the data received from the GPS module. The device performs "_GPS_SYNC_ATTEMPTS_" attempts to synchronize GPS data with a delay of "_GPS_SYNC_DELAY_". If all synchronization attempts fail, the device is rebooted.  
 
+> [!WARNING]
 >The device will not transmit WSPR messages until the time and coordinates are synchronized!  
 
 Successful completion of GPS data synchronization is signaled by the **_green LED (GPS)_**, after which the device enters the main cycle of WSPR message transmission. 
