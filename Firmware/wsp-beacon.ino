@@ -41,10 +41,11 @@ char WSPR_QTH_LOCATOR[5];
 //******************************************************************
 #define TX_LED_PIN                 8
 #define POWER_ON_LED_PIN           10
-#define SI5351_CAL_FACTOR          92000
-#define SI5351_I2C_ADDRESS         0x60
 #define SERIAL_PORT_BAUDRATE       115200
 #define RESET_DELAY                1000
+
+#define SI5351_CAL_FACTOR          92000
+#define SI5351_I2C_ADDRESS         0x60
 
 #define GPS_RX_PIN                 3
 #define GPS_TX_PIN                 4
