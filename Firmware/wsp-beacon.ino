@@ -44,6 +44,7 @@ char WSPR_QTH_LOCATOR[5];
 #define SI5351_CAL_FACTOR          92000
 #define SI5351_I2C_ADDRESS         0x60
 #define SERIAL_PORT_BAUDRATE       115200
+#define RESET_DELAY                1000
 
 #define GPS_RX_PIN                 3
 #define GPS_TX_PIN                 4
@@ -118,7 +119,7 @@ void initializeGPS()
     else
     {
         Serial.println(F("- GPS initialization error! -"));
-        delay(1000);
+        delay(RESET_DELAY);
         resetHardware();
     }
 }
@@ -139,7 +140,7 @@ void initializeSI5351()
         Serial.print(F("- Ensure that the SI5351 has an I2C address 0x"));
         Serial.print(SI5351_I2C_ADDRESS, HEX);
         Serial.println(F(" -"));
-        delay(1000);
+        delay(RESET_DELAY);
         resetHardware();
     }
 
@@ -179,7 +180,7 @@ void synchronizeGPSData()
         Serial.println(F("- GPS data synchronization not available! -"));
         Serial.println(F("- Transmitting a WSPR message without time & location synchronization is impossible! -"));
         Serial.println(F("- Check your GPS antenna and try again! -"));
-        delay(1000);
+        delay(RESET_DELAY);
         resetHardware();
     }
 }
