@@ -34,12 +34,10 @@ Additionally, you can find information about the [list of required components](.
 [WSPR - Signal Identification Wiki](https://www.sigidwiki.com/wiki/WSPR)  
 
 ## Who helped me with the development of the project?
-Great thanks to [PCBWay] for manufacturing the PCBs for the project as a sponsored contribution.
+Great thanks to [PCBWay](https://pcbway.com) for manufacturing the PCBs for the project as a sponsored contribution.
 ![PCBWay-Logo](./Resources/PCBWay-logo.png)
 
 ## How to contact me?
 - E-mail: igor.nikolaevich.96@gmail.com
 - Telegram: https://t.me/igrikxd
 - LinkedIn: https://www.linkedin.com/in/igor-yatsevich/
-
-[PCBWay]: <https://pcbway.com>
