@@ -324,7 +324,7 @@ void setup()
 
 void loop()
 {
-    if(minute() % 2 == 0 && second() == 0)
+    if(second() == 0 && minute() % 2 == 0)
     {
         printTransmissionDetails();
         transmittWsprMessage();
