@@ -149,16 +149,16 @@ void initializeSI5351()
 
 void synchronizeGPSData()
 {
-    Serial.println(F("- GPS data sychronization -"));
+    Serial.println(F("- GPS data sync -"));
     
     uint8_t syncAttemps{1};
     bool dataSynchronized{trySyncGPSData()};
     while (dataSynchronized == false && syncAttemps < GPS_SYNC_ATTEMPTS)
     {
-        Serial.print(F("- Synchronization attempt "));
+        Serial.print(F("- Sync attempt "));
         Serial.print(syncAttemps);
         Serial.println(F(" failed! -"));
-        Serial.println(F("- Waiting for the next synchronization attempt... -"));
+        Serial.println(F("- Waiting for the next sync attempt... -"));
         delay(GPS_SYNC_DELAY);
         dataSynchronized = trySyncGPSData();
         ++syncAttemps;
@@ -178,8 +178,8 @@ void synchronizeGPSData()
     }
     else
     {   
-        Serial.println(F("- GPS data synchronization not available! -"));
-        Serial.println(F("- Transmitting a WSPR message without time & location synchronization is impossible! -"));
+        Serial.println(F("- GPS data sync not available! -"));
+        Serial.println(F("- Transmitting a WSPR message without time & location sync is impossible! -"));
         Serial.println(F("- Check your GPS antenna and try again! -"));
         delay(RESET_DELAY);
         resetHardware();
@@ -208,8 +208,8 @@ void setQTHLocator() {
     WSPR_QTH_LOCATOR[0] = 'A' + (longitude / 20);
     WSPR_QTH_LOCATOR[1] = 'A' + (latitude / 10);
 
-    WSPR_QTH_LOCATOR[2] = '0' + (int)(longitude / 2) % 10;
-    WSPR_QTH_LOCATOR[3] = '0' + (int)(latitude) % 10;
+    WSPR_QTH_LOCATOR[2] = '0' + (uint8_t)(longitude / 2) % 10;
+    WSPR_QTH_LOCATOR[3] = '0' + (uint8_t)(latitude) % 10;
 
     WSPR_QTH_LOCATOR[4] = '\0';
 }
@@ -233,8 +233,8 @@ void transmittWsprMessage()
     const unsigned long transmissionFrequency{WSPR_DEFAULT_FREQ + random(-100, 101)};
 
     Serial.print(F("- Transmisson frequency: "));
-    Serial.print(transmissionFrequency);
-    Serial.println(F(" -"));
+    Serial.print(transmissionFrequency / 1000000.0);
+    Serial.println(F(" MHz -"));
 
     si5351.output_enable(SI5351_CLK0, 1);
 
@@ -274,7 +274,7 @@ void printCurrentLocation()
 
 void printDelimiter()
 {
-    Serial.println(F("**********************************************"));
+    Serial.println(F("********************************************"));
 }
 
 void printTransmissionDetails() {
