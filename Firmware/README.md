@@ -40,6 +40,9 @@ Uncomment the line with the band on which you want to perform the WSPR message t
 // #define WSPR_DEFAULT_FREQ       144490000ULL  // 144.4900 MHz - 2m
 ```
 
+> [!NOTE]
+>At this step you select the center frequency. Each transmission cycle is performed at a randomly selected frequency within a range of +/- 100 Hz from the center frequency.
+
 ## Add WSPR message data:
 Enter your amateur radio call sign to generate a correct WSPR message:
 ```cpp
