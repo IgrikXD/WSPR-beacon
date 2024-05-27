@@ -224,7 +224,7 @@ void encodeWSPRMessage()
 
 void transmittWsprMessage()
 {
-    Serial.println(F("- TX ON - STARTING WSPR MESSAGE TRANSMISSION -"));
+    Serial.println(F("- WSPR TX ON -"));
 
     digitalWrite(TX_LED_PIN, HIGH);
   
@@ -246,7 +246,7 @@ void transmittWsprMessage()
 
     si5351.output_enable(SI5351_CLK0, 0);
 
-    Serial.println(F("- TX OFF - END OF WSPR MESSAGE TRANSMISSION -"));
+    Serial.println(F("- WSPR TX OFF -"));
     digitalWrite(TX_LED_PIN, LOW);
 }
 
