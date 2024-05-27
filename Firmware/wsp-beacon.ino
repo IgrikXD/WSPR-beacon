@@ -297,7 +297,7 @@ void printWSPRConfiguration() {
     Serial.print(FIRMWARE_VERSION);
     Serial.println(F(" -"));
     Serial.print(F("- Working frequency: "));
-    Serial.print(WSPR_DEFAULT_FREQ / 1000000.0, 4);
+    Serial.print(WSPR_DEFAULT_FREQ / 1000000.0, 6);
     Serial.println(F(" MHz -"));
     printDelimiter();
 }
