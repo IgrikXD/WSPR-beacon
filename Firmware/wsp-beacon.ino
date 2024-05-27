@@ -253,9 +253,9 @@ void transmittWsprMessage()
 void printCurrentDateTime()
 {
     Serial.print(year());
-    Serial.print(F("-"));
+    Serial.print(F("."));
     Serial.print(month());
-    Serial.print(F("-"));
+    Serial.print(F("."));
     Serial.print(day());
     Serial.print(F(" "));
     Serial.print(hour());
