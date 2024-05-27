@@ -233,7 +233,7 @@ void transmittWsprMessage()
     const unsigned long transmissionFrequency{WSPR_DEFAULT_FREQ + random(-100, 101)};
 
     Serial.print(F("- Transmisson frequency: "));
-    Serial.print(transmissionFrequency / 1000000.0);
+    Serial.print(transmissionFrequency / 1000000.0, 4);
     Serial.println(F(" MHz -"));
 
     si5351.output_enable(SI5351_CLK0, 1);
@@ -267,9 +267,9 @@ void printCurrentDateTime()
 
 void printCurrentLocation()
 {
-    Serial.print(gps.location.lat());
+    Serial.print(gps.location.lat(), 4);
     Serial.print(F(", "));
-    Serial.print(gps.location.lng());
+    Serial.print(gps.location.lng(), 4);
 }
 
 void printDelimiter()
@@ -297,7 +297,7 @@ void printWSPRConfiguration() {
     Serial.print(FIRMWARE_VERSION);
     Serial.println(F(" -"));
     Serial.print(F("- Working frequency: "));
-    Serial.print(WSPR_DEFAULT_FREQ / 1000000.0);
+    Serial.print(WSPR_DEFAULT_FREQ / 1000000.0, 4);
     Serial.println(F(" MHz -"));
     printDelimiter();
 }
