@@ -167,7 +167,7 @@ void synchronizeGPSData()
 
     if (dataSynchronized)
     {
-        Serial.print(F("- Date & time synchronized by GPS: "));
+        Serial.print(F("- Date & time (GMT) synchronized by GPS: "));
         printCurrentDateTime();
         Serial.println(F(" -"));
         Serial.print(F("- Location synchronized by GPS: "));
@@ -283,7 +283,7 @@ void printDelimiter()
 }
 
 void printTransmissionDetails() {
-    Serial.print(F("- Start of transmission time: "));
+    Serial.print(F("- Start of transmission time (GMT): "));
     printCurrentDateTime();
     Serial.println(F(" -"));
     Serial.print(F("- WSPR message: "));
