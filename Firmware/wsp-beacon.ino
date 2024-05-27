@@ -50,11 +50,12 @@ char WSPR_QTH_LOCATOR[5];
 #define GPS_RX_PIN                 3
 #define GPS_TX_PIN                 4
 #define GPS_BAUDRATE               9600
+#define GPS_SERIAL_READ_DURATION   1000
 #define GPS_STATUS_LED_PIN         9
 #define GPS_INIT_MAX_TIME          5000
 #define GPS_INIT_DELAY             500
 #define GPS_SYNC_ATTEMPTS          10
-#define GPS_SYNC_DELAY             30000
+#define GPS_SYNC_DELAY             10000
 
 //******************************************************************
 //                      Global variables
@@ -188,8 +189,12 @@ void synchronizeGPSData()
 
 bool trySyncGPSData()
 { 
-    while (gpsSerial.available())
-        gps.encode(gpsSerial.read());
+    const unsigned long startTime{millis()};
+    while (millis() - startTime < GPS_SERIAL_READ_DURATION) 
+    {
+        while (gpsSerial.available())
+            gps.encode(gpsSerial.read());
+    }
 
     if (gps.time.isValid() && gps.date.isValid() && gps.location.isValid()){
         setTime(gps.time.hour(), gps.time.minute(), gps.time.second(), gps.date.day(), gps.date.month(), gps.date.year());
