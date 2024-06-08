@@ -9,6 +9,8 @@ A small hardware device for transmitting WSPR messages based on the SI5351 IC. T
 
 Correctness of encoding of the transmitted WSPR message was verified by decoding the transmission using a locally located Airspy R2 SDR receiver and the [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) application.
 
+![WSJT-X report](./Resources/WSJT-X-report.png)
+
 ## Basic characteristics of the WSPR-beacon:
 **RF connectors:** SMA  
 **Feed line:** 50 Ohm coaxial cable  
