@@ -64,16 +64,13 @@ uint8_t tx_buffer[WSPR_MESSAGE_BUFFER_SIZE];
 Si5351 si5351(SI5351_I2C_ADDRESS);
 TinyGPSPlus gps;
 
-// Serial connection to the GPS module
-SoftwareSerial gpsSerial{GPS_RX_PIN, GPS_TX_PIN};
-
 void(* resetHardware) (void) = 0;
 
 //******************************************************************
 //                      Function Prototypes
 //******************************************************************
 void initializeLEDs();
-void initializeGPS();
+void initializeGPSSerialConnection();
 void initializeSI5351();
 void synchronizeGPSData();
 bool trySyncGPSData();
@@ -102,7 +99,7 @@ void initializeLEDs()
     digitalWrite(GPS_STATUS_LED_PIN, LOW);
 }
 
-void initializeGPS()
+void initializeGPSSerialConnection(SoftwareSerial& gpsSerial)
 {
     Serial.println(F("- GPS initialization -"));
     
@@ -132,7 +129,7 @@ void initializeSI5351()
     if (si5351.init(SI5351_CRYSTAL_LOAD_8PF, 0, SI5351_CAL_FACTOR))
     {
         Serial.println(F("- SI5351 successfully initialized! -"));
-        // Set CLK0 as WSPR TX OUT
+        // Set CLK0 as TX OUT
         si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_6MA);
         si5351.output_enable(SI5351_CLK0, 0);
     }
@@ -150,10 +147,14 @@ void initializeSI5351()
 
 void synchronizeGPSData()
 {
+    SoftwareSerial gpsSerial{GPS_RX_PIN, GPS_TX_PIN};
+
+    initializeGPSSerialConnection(gpsSerial);
+
     Serial.println(F("- GPS data sync -"));
     
     uint8_t syncAttemps{1};
-    bool dataSynchronized{trySyncGPSData()};
+    bool dataSynchronized{trySyncGPSData(gpsSerial)};
     while (dataSynchronized == false && syncAttemps < GPS_SYNC_ATTEMPTS)
     {
         Serial.print(F("- Sync attempt "));
@@ -161,7 +162,7 @@ void synchronizeGPSData()
         Serial.println(F(" failed! -"));
         Serial.println(F("- Waiting for the next sync attempt... -"));
         delay(GPS_SYNC_DELAY);
-        dataSynchronized = trySyncGPSData();
+        dataSynchronized = trySyncGPSData(gpsSerial);
         ++syncAttemps;
     }
 
@@ -176,8 +177,6 @@ void synchronizeGPSData()
         Serial.print(F("- QTH locator: "));
         Serial.print(WSPR_QTH_LOCATOR);
         Serial.println(F(" -"));
-        // It is necessary to terminate SoftwareSerial to prevent conflicts during firmware operation
-        gpsSerial.end();
     }
     else
     {   
@@ -189,7 +188,7 @@ void synchronizeGPSData()
     }
 }
 
-bool trySyncGPSData()
+bool trySyncGPSData(SoftwareSerial& gpsSerial)
 { 
     const unsigned long startTime{millis()};
     while (millis() - startTime < GPS_SERIAL_READ_DURATION) 
@@ -318,7 +317,6 @@ void setup()
 
     printWSPRConfiguration();
     initializeSI5351();
-    initializeGPS();
     synchronizeGPSData();
 
     printDelimiter();
@@ -336,7 +334,6 @@ void loop()
         printTransmissionDetails();
         transmittWsprMessage();
         printDelimiter();
-        initializeGPS();
         synchronizeGPSData();
         printDelimiter();
     }
