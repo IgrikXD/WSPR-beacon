@@ -176,6 +176,8 @@ void synchronizeGPSData()
         Serial.print(F("- QTH locator: "));
         Serial.print(WSPR_QTH_LOCATOR);
         Serial.println(F(" -"));
+        // It is necessary to terminate SoftwareSerial to prevent conflicts during firmware operation
+        gpsSerial.end();
     }
     else
     {   
@@ -334,6 +336,7 @@ void loop()
         printTransmissionDetails();
         transmittWsprMessage();
         printDelimiter();
+        initializeGPS();
         synchronizeGPSData();
         printDelimiter();
     }
