@@ -50,7 +50,7 @@ char WSPR_QTH_LOCATOR[5];
 #define GPS_RX_PIN                 4
 #define GPS_TX_PIN                 3
 #define GPS_BAUDRATE               9600
-#define GPS_SERIAL_READ_DURATION   1000
+#define GPS_SERIAL_READ_DURATION   1200
 #define GPS_STATUS_LED_PIN         9
 #define GPS_INIT_MAX_TIME          5000
 #define GPS_INIT_DELAY             500
