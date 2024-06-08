@@ -62,7 +62,6 @@ char WSPR_QTH_LOCATOR[5];
 //******************************************************************
 uint8_t tx_buffer[WSPR_MESSAGE_BUFFER_SIZE];
 Si5351 si5351(SI5351_I2C_ADDRESS);
-TinyGPSPlus gps;
 
 void(* resetHardware) (void) = 0;
 
@@ -70,15 +69,15 @@ void(* resetHardware) (void) = 0;
 //                      Function Prototypes
 //******************************************************************
 void initializeLEDs();
-void initializeGPSSerialConnection();
+void initializeGPSSerialConnection(SoftwareSerial& gpsSerial);
 void initializeSI5351();
 void synchronizeGPSData();
-bool trySyncGPSData();
-void setQTHLocator();
+bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gps);
+void setQTHLocator(const TinyGPSPlus& gps);
 void encodeWSPRMessage();
 void transmitWSPRMessage();
 void printCurrentDateTime();
-void printCurrentLocation();
+void printCurrentLocation(const TinyGPSPlus& gps);
 void printDelimiter();
 void printTransmissionDetails();
 void printWSPRConfiguration();
@@ -100,9 +99,7 @@ void initializeLEDs()
 }
 
 void initializeGPSSerialConnection(SoftwareSerial& gpsSerial)
-{
-    Serial.println(F("- GPS initialization -"));
-    
+{   
     gpsSerial.begin(GPS_BAUDRATE);
     
     const unsigned long startTime{millis()};
@@ -111,13 +108,9 @@ void initializeGPSSerialConnection(SoftwareSerial& gpsSerial)
         delay(GPS_INIT_DELAY);
     }
 
-    if (gpsSerial.available())
+    if (gpsSerial.available() == false)
     {
-        Serial.println(F("- GPS successfully initialized! -"));
-    }
-    else
-    {
-        Serial.println(F("- GPS initialization error! -"));
+        Serial.println(F("- Unable to get data from GPS module! -"));
         delay(RESET_DELAY);
         resetHardware();
     }
@@ -125,7 +118,6 @@ void initializeGPSSerialConnection(SoftwareSerial& gpsSerial)
 
 void initializeSI5351()
 {
-    Serial.println(F("- SI5351 initialization -"));
     if (si5351.init(SI5351_CRYSTAL_LOAD_8PF, 0, SI5351_CAL_FACTOR))
     {
         Serial.println(F("- SI5351 successfully initialized! -"));
@@ -153,8 +145,9 @@ void synchronizeGPSData()
 
     Serial.println(F("- GPS data sync -"));
     
+    TinyGPSPlus gps;
     uint8_t syncAttemps{1};
-    bool dataSynchronized{trySyncGPSData(gpsSerial)};
+    bool dataSynchronized{trySyncGPSData(gpsSerial, gps)};
     while (dataSynchronized == false && syncAttemps < GPS_SYNC_ATTEMPTS)
     {
         Serial.print(F("- Sync attempt "));
@@ -162,7 +155,7 @@ void synchronizeGPSData()
         Serial.println(F(" failed! -"));
         Serial.println(F("- Waiting for the next sync attempt... -"));
         delay(GPS_SYNC_DELAY);
-        dataSynchronized = trySyncGPSData(gpsSerial);
+        dataSynchronized = trySyncGPSData(gpsSerial, gps);
         ++syncAttemps;
     }
 
@@ -172,7 +165,7 @@ void synchronizeGPSData()
         printCurrentDateTime();
         Serial.println(F(" -"));
         Serial.print(F("- Location synchronized by GPS: "));
-        printCurrentLocation();
+        printCurrentLocation(gps);
         Serial.println(F(" -"));
         Serial.print(F("- QTH locator: "));
         Serial.print(WSPR_QTH_LOCATOR);
@@ -188,7 +181,7 @@ void synchronizeGPSData()
     }
 }
 
-bool trySyncGPSData(SoftwareSerial& gpsSerial)
+bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gps)
 { 
     const unsigned long startTime{millis()};
     while (millis() - startTime < GPS_SERIAL_READ_DURATION) 
@@ -199,15 +192,16 @@ bool trySyncGPSData(SoftwareSerial& gpsSerial)
 
     if (gps.time.isValid() && gps.date.isValid() && gps.location.isValid()){
         setTime(gps.time.hour(), gps.time.minute(), gps.time.second(), gps.date.day(), gps.date.month(), gps.date.year());
-        setQTHLocator();
+        setQTHLocator(gps);
         digitalWrite(GPS_STATUS_LED_PIN, HIGH);
         return true;
     }
     
+    digitalWrite(GPS_STATUS_LED_PIN, LOW);
     return false; 
 }
 
-void setQTHLocator() {
+void setQTHLocator(const TinyGPSPlus& gps) {
     float latitude{gps.location.lat() + 90.0};
     float longitude{gps.location.lng() + 180.0};
 
@@ -246,8 +240,8 @@ void transmittWsprMessage()
 
     for(uint8_t i{0}; i < WSPR_SYMBOL_COUNT; ++i)
     {
-      si5351.set_freq(transmissionFrequency * 100ULL + (tx_buffer[i] * WSPR_TONE_SPACING), SI5351_CLK0);
-      delay(WSPR_DELAY);
+        si5351.set_freq(transmissionFrequency * 100ULL + (tx_buffer[i] * WSPR_TONE_SPACING), SI5351_CLK0);
+        delay(WSPR_DELAY);
     }
 
     si5351.output_enable(SI5351_CLK0, 0);
@@ -271,7 +265,7 @@ void printCurrentDateTime()
     Serial.print(second());
 }
 
-void printCurrentLocation()
+void printCurrentLocation(const TinyGPSPlus& gps)
 {
     Serial.print(gps.location.lat(), 4);
     Serial.print(F(", "));
