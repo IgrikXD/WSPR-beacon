@@ -47,8 +47,8 @@ char WSPR_QTH_LOCATOR[5];
 #define SI5351_CAL_FACTOR          92000
 #define SI5351_I2C_ADDRESS         0x60
 
-#define GPS_RX_PIN                 3
-#define GPS_TX_PIN                 4
+#define GPS_RX_PIN                 4
+#define GPS_TX_PIN                 3
 #define GPS_BAUDRATE               9600
 #define GPS_SERIAL_READ_DURATION   1000
 #define GPS_STATUS_LED_PIN         9
