@@ -15,6 +15,9 @@ By default, the SI5351 uses address **_0x60_** on the I2C bus. If necessary, you
 ## SI5351 calibration:
 For correct operation of the device you need to [calibrate](https://github.com/etherkit/Si5351Arduino/tree/master?tab=readme-ov-file#calibration) the SI5351 to calculate the difference between the uncalibrated actual frequency and the nominal output frequency. 
 
+> [!NOTE]
+>By default, the sketch for calibrating the SI5351 is set to operate with an output frequency of 10 MHz. If you do not have equipment that can operate at this frequency, you can use an SDR receiver like RTL-SDR.COM and a modified calibration sketch by changing the operating frequency to 28 MHz.
+
 Upload this [sketch](https://github.com/etherkit/Si5351Arduino/blob/master/examples/si5351_calibration/si5351_calibration.ino) into the device and perform the calibration. Calibration is performed once for each pair of SI5351 and TCXO. The resulting calibration value must be changed in the [_wsp-beacon.ino_](wsp-beacon.ino) file: 
 ```cpp
 #define SI5351_CAL_FACTOR          92000
