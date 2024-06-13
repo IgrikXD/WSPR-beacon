@@ -46,7 +46,7 @@ After soldering clean the PCB to remove any flux residues. Screw the top cover o
 
 ## Adjusting the output amplifier
 > [!NOTE]
-> Only applicable for PCB version 1.0!
+> Only applicable for [PCB version 1.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-1.0)!
 
 To adjust the output amplifier, I recommend you use the instructions from [QRP-Labs: "PA bias set-up"](https://qrp-labs.com/images/ultimate3s/assembly_u3s_r3_lt.pdf).
 
