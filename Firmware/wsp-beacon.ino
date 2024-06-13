@@ -4,7 +4,7 @@
 #include <TinyGPS++.h>
 #include <SoftwareSerial.h>
 
-#define FIRMWARE_VERSION 1.0
+#define FIRMWARE_VERSION 1.1
 
 //******************************************************************
 //                      WSPR configuration
@@ -41,8 +41,6 @@ char WSPR_QTH_LOCATOR[5];
 //******************************************************************
 #define TX_LED_PIN                 8
 #define POWER_ON_LED_PIN           10
-#define SERIAL_PORT_BAUDRATE       115200
-#define RESET_DELAY                1000
 
 #define SI5351_CAL_FACTOR          2000
 #define SI5351_I2C_ADDRESS         0x60
@@ -62,6 +60,7 @@ char WSPR_QTH_LOCATOR[5];
 //******************************************************************
 uint8_t tx_buffer[WSPR_MESSAGE_BUFFER_SIZE];
 Si5351 si5351(SI5351_I2C_ADDRESS);
+unsigned long long transmissionFrequency;
 
 void(* resetHardware) (void) = 0;
 
@@ -71,16 +70,11 @@ void(* resetHardware) (void) = 0;
 void initializeLEDs();
 void initializeGPSSerialConnection(SoftwareSerial& gpsSerial);
 void initializeSI5351();
-void synchronizeGPSData();
+void synchronizeDateTime();
 bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gps);
 void setQTHLocator(const TinyGPSPlus& gps);
 void encodeWSPRMessage();
 void transmitWSPRMessage();
-void printCurrentDateTime();
-void printCurrentLocation(const TinyGPSPlus& gps);
-void printDelimiter();
-void printTransmissionDetails();
-void printWSPRConfiguration();
 
 //******************************************************************
 //                      Function Definitions
@@ -104,81 +98,39 @@ void initializeGPSSerialConnection(SoftwareSerial& gpsSerial)
     
     const unsigned long startTime{millis()};
     while (gpsSerial.available() == false && millis() <= startTime + GPS_INIT_MAX_TIME)
-    {
         delay(GPS_INIT_DELAY);
-    }
 
     if (gpsSerial.available() == false)
-    {
-        Serial.println(F("- Unable to get data from GPS module! -"));
-        delay(RESET_DELAY);
         resetHardware();
-    }
 }
 
 void initializeSI5351()
 {
     if (si5351.init(SI5351_CRYSTAL_LOAD_8PF, 0, SI5351_CAL_FACTOR))
-    {
-        Serial.println(F("- SI5351 successfully initialized! -"));
         // Set CLK0 as TX OUT
         si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_6MA);
-        si5351.output_enable(SI5351_CLK0, 0);
-    }
     else
-    {
-        Serial.println(F("- SI5351 initialization error! -"));
-        Serial.print(F("- Ensure that the SI5351 has an I2C address 0x"));
-        Serial.print(SI5351_I2C_ADDRESS, HEX);
-        Serial.println(F(" -"));
-        delay(RESET_DELAY);
         resetHardware();
-    }
 
 }
 
-void synchronizeGPSData()
+void synchronizeDateTime(TinyGPSPlus& gps)
 {
     SoftwareSerial gpsSerial{GPS_RX_PIN, GPS_TX_PIN};
 
     initializeGPSSerialConnection(gpsSerial);
-
-    Serial.println(F("- GPS data sync -"));
     
-    TinyGPSPlus gps;
     uint8_t syncAttemps{1};
     bool dataSynchronized{trySyncGPSData(gpsSerial, gps)};
     while (dataSynchronized == false && syncAttemps < GPS_SYNC_ATTEMPTS)
     {
-        Serial.print(F("- Sync attempt "));
-        Serial.print(syncAttemps);
-        Serial.println(F(" failed! -"));
-        Serial.println(F("- Waiting for the next sync attempt... -"));
         delay(GPS_SYNC_DELAY);
         dataSynchronized = trySyncGPSData(gpsSerial, gps);
         ++syncAttemps;
     }
 
-    if (dataSynchronized)
-    {
-        Serial.print(F("- Date & time (GMT) synchronized by GPS: "));
-        printCurrentDateTime();
-        Serial.println(F(" -"));
-        Serial.print(F("- Location synchronized by GPS: "));
-        printCurrentLocation(gps);
-        Serial.println(F(" -"));
-        Serial.print(F("- QTH locator: "));
-        Serial.print(WSPR_QTH_LOCATOR);
-        Serial.println(F(" -"));
-    }
-    else
-    {   
-        Serial.println(F("- GPS data sync not available! -"));
-        Serial.println(F("- Transmitting a WSPR message without time & location sync is impossible! -"));
-        Serial.println(F("- Check your GPS antenna and try again! -"));
-        delay(RESET_DELAY);
+    if (dataSynchronized == false)
         resetHardware();
-    }
 }
 
 bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gps)
@@ -192,7 +144,6 @@ bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gps)
 
     if (gps.time.isValid() && gps.date.isValid() && gps.location.isValid()){
         setTime(gps.time.hour(), gps.time.minute(), gps.time.second(), gps.date.day(), gps.date.month(), gps.date.year());
-        setQTHLocator(gps);
         digitalWrite(GPS_STATUS_LED_PIN, HIGH);
         return true;
     }
@@ -202,8 +153,8 @@ bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gps)
 }
 
 void setQTHLocator(const TinyGPSPlus& gps) {
-    float latitude{gps.location.lat() + 90.0};
-    float longitude{gps.location.lng() + 180.0};
+    const float latitude{gps.location.lat() + 90.0};
+    const float longitude{gps.location.lng() + 180.0};
 
     WSPR_QTH_LOCATOR[0] = 'A' + (longitude / 20);
     WSPR_QTH_LOCATOR[1] = 'A' + (latitude / 10);
@@ -222,113 +173,48 @@ void encodeWSPRMessage()
     jtencode.wspr_encode(WSPR_CALL, WSPR_QTH_LOCATOR, WSPR_DBM, tx_buffer);
 }
 
-void transmittWsprMessage()
+void transmitWsprMessage()
 {
-    Serial.println(F("- WSPR TX ON -"));
-
     digitalWrite(TX_LED_PIN, HIGH);
-  
-    // WSPR message transmission at each function call is performed on a randomly selected 
-    // frequency within the range of +/- 100 Hz from the center frequency.
-    const unsigned long transmissionFrequency{WSPR_DEFAULT_FREQ + random(-100, 101)};
-
-    Serial.print(F("- Transmisson frequency: "));
-    Serial.print(transmissionFrequency / 1000000.0, 6);
-    Serial.println(F(" MHz -"));
 
     si5351.output_enable(SI5351_CLK0, 1);
 
     for(uint8_t i{0}; i < WSPR_SYMBOL_COUNT; ++i)
     {
-        si5351.set_freq(transmissionFrequency * 100ULL + (tx_buffer[i] * WSPR_TONE_SPACING), SI5351_CLK0);
+        si5351.set_freq(transmissionFrequency + (tx_buffer[i] * WSPR_TONE_SPACING), SI5351_CLK0);
         delay(WSPR_DELAY);
     }
 
     si5351.output_enable(SI5351_CLK0, 0);
 
-    Serial.println(F("- WSPR TX OFF -"));
     digitalWrite(TX_LED_PIN, LOW);
-}
-
-void printCurrentDateTime()
-{
-    Serial.print(day());
-    Serial.print(F("/"));
-    Serial.print(month());
-    Serial.print(F("/"));
-    Serial.print(year());
-    Serial.print(F(" "));
-    Serial.print(hour());
-    Serial.print(F(":"));
-    Serial.print(minute());
-    Serial.print(F(":"));
-    Serial.print(second());
-}
-
-void printCurrentLocation(const TinyGPSPlus& gps)
-{
-    Serial.print(gps.location.lat(), 4);
-    Serial.print(F(", "));
-    Serial.print(gps.location.lng(), 4);
-}
-
-void printDelimiter()
-{
-    Serial.println(F("********************************************"));
-}
-
-void printTransmissionDetails() {
-    Serial.print(F("- Start of transmission time (GMT): "));
-    printCurrentDateTime();
-    Serial.println(F(" -"));
-    Serial.print(F("- WSPR message: "));
-    Serial.print(WSPR_CALL);
-    Serial.print(F(" "));
-    Serial.print(WSPR_QTH_LOCATOR);
-    Serial.print(F(" "));
-    Serial.print(WSPR_DBM);
-    Serial.println(F(" -"));
-}
-
-void printWSPRConfiguration() {
-    printDelimiter();
-    Serial.println(F("[ WSPR BEACON ]"));
-    Serial.print(F("- Firmware version: "));
-    Serial.print(FIRMWARE_VERSION);
-    Serial.println(F(" -"));
-    Serial.print(F("- Working frequency: "));
-    Serial.print(WSPR_DEFAULT_FREQ / 1000000.0, 6);
-    Serial.println(F(" MHz -"));
-    printDelimiter();
 }
 
 void setup()
 {
     initializeLEDs();
-
-    Serial.begin(SERIAL_PORT_BAUDRATE); 
-    while (!Serial);
-
-    printWSPRConfiguration();
     initializeSI5351();
-    synchronizeGPSData();
 
-    printDelimiter();
-    Serial.println(F("- Entering WSPR TX loop..."));
-    printDelimiter();
+    TinyGPSPlus gps;
+    synchronizeDateTime(gps);
+    setQTHLocator(gps);
 
     encodeWSPRMessage();
+    
     randomSeed(millis());
+    // WSPR message transmission at each transmitWsprMessage() function call is performed on 
+    // a randomly selected frequency within the range of +/- 100 Hz from the center frequency.
+    transmissionFrequency = (WSPR_DEFAULT_FREQ + random(-100, 101)) * 100ULL;
 }
 
 void loop()
 {
     if(second() == 0 && minute() % 2 == 0)
     {
-        printTransmissionDetails();
-        transmittWsprMessage();
-        printDelimiter();
-        synchronizeGPSData();
-        printDelimiter();
+        transmitWsprMessage();
+        TinyGPSPlus gps;
+        synchronizeDateTime(gps);
+        // Set a new, random transmission frequency.
+        transmissionFrequency = (WSPR_DEFAULT_FREQ + random(-100, 101)) * 100ULL;
     }
 }
