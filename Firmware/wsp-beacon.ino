@@ -110,7 +110,6 @@ void initializeSI5351()
         si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_6MA);
     else
         resetHardware();
-
 }
 
 void synchronizeDateTime(TinyGPSPlus& gpsDataObj)
@@ -144,6 +143,7 @@ bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gpsDataObj)
     if (gpsDataObj.time.isValid() && gpsDataObj.date.isValid() && gpsDataObj.location.isValid()){
         setTime(gpsDataObj.time.hour(), gpsDataObj.time.minute(), gpsDataObj.time.second(), 
                 gpsDataObj.date.day(), gpsDataObj.date.month(), gpsDataObj.date.year());
+
         digitalWrite(GPS_STATUS_LED_PIN, HIGH);
         return true;
     }
@@ -213,7 +213,6 @@ void setup()
     
     randomSeed(millis());
     setTransmissionFrequency();
-
 }
 
 void loop()
