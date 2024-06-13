@@ -43,10 +43,3 @@ Insert the PCB back into the enclosure, screw on the side covers of the aluminum
 After soldering clean the PCB to remove any flux residues. Screw the top cover of the aluminum enclosure. Now the device is ready to work.
 
 ![Ready-made device](./Resources/Enclosure-Ready-made-device.jpg)  
-
-## Adjusting the output amplifier
-To adjust the output amplifier, I recommend you use the instructions from [QRP-Labs: "PA bias set-up"](https://qrp-labs.com/images/ultimate3s/assembly_u3s_r3_lt.pdf).
-
-For additional cooling of the BS170 transistor, you can use an off-the-shelf aluminum heatsink for TO-92 package transistors.  
-
-![TO-92 heatsink](./Resources/TO-92-heatsink.png)  
