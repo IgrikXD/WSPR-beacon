@@ -9,9 +9,6 @@
 ## Device usage
 The device operates in fully automatic mode. Turn on the device by switching the **_SW1_** toggle switch position. After switching on the device the **_green LED (ON)_** should light up, which means that the device is working correctly and the initialization process has started. 
 
-> [!NOTE]
->During the device operation you will have access to logging of all actions performed by the device through the use of "_Tools_" -> "_Serial Monitor_" in Arduino IDE. 
-
 ### Hardware initialization
 Initialization of the hardware is performed in the _void setup()_ function and is executed only once, when the device is started.  
 
