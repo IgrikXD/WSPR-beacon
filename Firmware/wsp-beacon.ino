@@ -34,8 +34,6 @@
 #define WSPR_CALL                 "XX0YYY"
 #define WSPR_DBM                   23
 
-char WSPR_QTH_LOCATOR[5];
-
 //******************************************************************
 //                      Hardware defines
 //******************************************************************
@@ -70,10 +68,11 @@ void(* resetHardware) (void) = 0;
 void initializeLEDs();
 void initializeGPSSerialConnection(SoftwareSerial& gpsSerial);
 void initializeSI5351();
-void synchronizeDateTime();
-bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gps);
-void setQTHLocator(const TinyGPSPlus& gps);
-void encodeWSPRMessage();
+void synchronizeDateTime(TinyGPSPlus& gpsDataObj);
+bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gpsDataObj);
+void setQTHLocator(const TinyGPSPlus& gpsDataObj, char qthLocator[]);
+void setTransmissionFrequency();
+void encodeWSPRMessage(const TinyGPSPlus& gpsDataObj);
 void transmitWSPRMessage();
 
 //******************************************************************
@@ -114,18 +113,18 @@ void initializeSI5351()
 
 }
 
-void synchronizeDateTime(TinyGPSPlus& gps)
+void synchronizeDateTime(TinyGPSPlus& gpsDataObj)
 {
     SoftwareSerial gpsSerial{GPS_RX_PIN, GPS_TX_PIN};
 
     initializeGPSSerialConnection(gpsSerial);
     
     uint8_t syncAttemps{1};
-    bool dataSynchronized{trySyncGPSData(gpsSerial, gps)};
+    bool dataSynchronized{trySyncGPSData(gpsSerial, gpsDataObj)};
     while (dataSynchronized == false && syncAttemps < GPS_SYNC_ATTEMPTS)
     {
         delay(GPS_SYNC_DELAY);
-        dataSynchronized = trySyncGPSData(gpsSerial, gps);
+        dataSynchronized = trySyncGPSData(gpsSerial, gpsDataObj);
         ++syncAttemps;
     }
 
@@ -133,17 +132,18 @@ void synchronizeDateTime(TinyGPSPlus& gps)
         resetHardware();
 }
 
-bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gps)
+bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gpsDataObj)
 { 
     const unsigned long startTime{millis()};
     while (millis() - startTime < GPS_SERIAL_READ_DURATION) 
     {
         while (gpsSerial.available())
-            gps.encode(gpsSerial.read());
+            gpsDataObj.encode(gpsSerial.read());
     }
 
-    if (gps.time.isValid() && gps.date.isValid() && gps.location.isValid()){
-        setTime(gps.time.hour(), gps.time.minute(), gps.time.second(), gps.date.day(), gps.date.month(), gps.date.year());
+    if (gpsDataObj.time.isValid() && gpsDataObj.date.isValid() && gpsDataObj.location.isValid()){
+        setTime(gpsDataObj.time.hour(), gpsDataObj.time.minute(), gpsDataObj.time.second(), 
+                gpsDataObj.date.day(), gpsDataObj.date.month(), gpsDataObj.date.year());
         digitalWrite(GPS_STATUS_LED_PIN, HIGH);
         return true;
     }
@@ -152,25 +152,35 @@ bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gps)
     return false; 
 }
 
-void setQTHLocator(const TinyGPSPlus& gps) {
-    const float latitude{gps.location.lat() + 90.0};
-    const float longitude{gps.location.lng() + 180.0};
+void setQTHLocator(const TinyGPSPlus& gpsDataObj, char qthLocator[]) {
+    const float latitude{gpsDataObj.location.lat() + 90.0};
+    const float longitude{gpsDataObj.location.lng() + 180.0};
 
-    WSPR_QTH_LOCATOR[0] = 'A' + (longitude / 20);
-    WSPR_QTH_LOCATOR[1] = 'A' + (latitude / 10);
+    qthLocator[0] = 'A' + (longitude / 20);
+    qthLocator[1] = 'A' + (latitude / 10);
 
-    WSPR_QTH_LOCATOR[2] = '0' + (uint8_t)(longitude / 2) % 10;
-    WSPR_QTH_LOCATOR[3] = '0' + (uint8_t)(latitude) % 10;
+    qthLocator[2] = '0' + (uint8_t)(longitude / 2) % 10;
+    qthLocator[3] = '0' + (uint8_t)(latitude) % 10;
 
-    WSPR_QTH_LOCATOR[4] = '\0';
+    qthLocator[4] = '\0';
 }
 
-void encodeWSPRMessage()
+void setTransmissionFrequency()
+{
+    // WSPR message transmission at each transmitWsprMessage() function call is performed on 
+    // a randomly selected frequency within the range of +/- 100 Hz from the center frequency.
+    transmissionFrequency = (WSPR_DEFAULT_FREQ + random(-100, 101)) * 100ULL;
+}
+
+void encodeWSPRMessage(const TinyGPSPlus& gpsDataObj)
 {
     memset(tx_buffer, 0, WSPR_MESSAGE_BUFFER_SIZE);
     
+    char qthLocator[5];
+    setQTHLocator(gpsDataObj, qthLocator);
+
     JTEncode jtencode;
-    jtencode.wspr_encode(WSPR_CALL, WSPR_QTH_LOCATOR, WSPR_DBM, tx_buffer);
+    jtencode.wspr_encode(WSPR_CALL, qthLocator, WSPR_DBM, tx_buffer);
 }
 
 void transmitWsprMessage()
@@ -195,16 +205,15 @@ void setup()
     initializeLEDs();
     initializeSI5351();
 
-    TinyGPSPlus gps;
-    synchronizeDateTime(gps);
-    setQTHLocator(gps);
+    TinyGPSPlus gpsDataObj;
+    synchronizeDateTime(gpsDataObj);
 
-    encodeWSPRMessage();
+    // RAM-intensive operation, generate WSPR message only once, at device startup.
+    encodeWSPRMessage(gpsDataObj);
     
     randomSeed(millis());
-    // WSPR message transmission at each transmitWsprMessage() function call is performed on 
-    // a randomly selected frequency within the range of +/- 100 Hz from the center frequency.
-    transmissionFrequency = (WSPR_DEFAULT_FREQ + random(-100, 101)) * 100ULL;
+    setTransmissionFrequency();
+
 }
 
 void loop()
@@ -212,9 +221,12 @@ void loop()
     if(second() == 0 && minute() % 2 == 0)
     {
         transmitWsprMessage();
-        TinyGPSPlus gps;
-        synchronizeDateTime(gps);
+        
+        // Time synchronization based on current GPS data for a new transmission cycle.
+        TinyGPSPlus gpsDataObj;
+        synchronizeDateTime(gpsDataObj);
+        
         // Set a new, random transmission frequency.
-        transmissionFrequency = (WSPR_DEFAULT_FREQ + random(-100, 101)) * 100ULL;
+        setTransmissionFrequency();
     }
 }
