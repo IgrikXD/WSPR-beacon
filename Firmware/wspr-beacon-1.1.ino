@@ -63,7 +63,7 @@ uint64_t transmissionFrequency;
 void(* resetHardware) (void) = 0;
 
 //******************************************************************
-//                      Function Prototypes
+//                      Function prototypes
 //******************************************************************
 void encodeWSPRMessage(const TinyGPSPlus& gpsDataObj);
 void errorLEDIndicationAndReboot();
@@ -77,7 +77,7 @@ void transmitWSPRMessage();
 bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gpsDataObj);
 
 //******************************************************************
-//                      Function Definitions
+//                      Function definitions
 //******************************************************************
 void encodeWSPRMessage(const TinyGPSPlus& gpsDataObj)
 {
