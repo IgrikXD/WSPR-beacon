@@ -65,6 +65,7 @@ void(* resetHardware) (void) = 0;
 //******************************************************************
 //                      Function Prototypes
 //******************************************************************
+void errorLEDIndication();
 void initializeLEDs();
 void initializeGPSSerialConnection(SoftwareSerial& gpsSerial);
 void initializeSI5351();
@@ -78,6 +79,21 @@ void transmitWSPRMessage();
 //******************************************************************
 //                      Function Definitions
 //******************************************************************
+
+void errorLEDIndication()
+{
+    digitalWrite(POWER_ON_LED_PIN, LOW);
+    digitalWrite(GPS_STATUS_LED_PIN, LOW);
+
+    for (uint8_t i{0}; i < 3; ++i) {
+        digitalWrite(TX_LED_PIN, HIGH);
+        delay(500);
+        digitalWrite(TX_LED_PIN, LOW);
+        delay(500);
+    }
+
+    resetHardware();
+}
 
 void initializeLEDs()
 {  
@@ -100,7 +116,7 @@ void initializeGPSSerialConnection(SoftwareSerial& gpsSerial)
         delay(GPS_INIT_DELAY);
 
     if (gpsSerial.available() == false)
-        resetHardware();
+        errorLEDIndication();
 }
 
 void initializeSI5351()
@@ -109,7 +125,7 @@ void initializeSI5351()
         // Set CLK0 as TX OUT
         si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_6MA);
     else
-        resetHardware();
+        errorLEDIndication();
 }
 
 void synchronizeDateTime(TinyGPSPlus& gpsDataObj)
@@ -128,7 +144,7 @@ void synchronizeDateTime(TinyGPSPlus& gpsDataObj)
     }
 
     if (dataSynchronized == false)
-        resetHardware();
+        errorLEDIndication();
 }
 
 bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gpsDataObj)
