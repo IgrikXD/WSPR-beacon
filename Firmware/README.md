@@ -16,6 +16,9 @@ This firmware checks the correctness of the SI5351 IC initialization, the correc
 
 To get a report on the hardware functionality, upload the firmware, open the "_Tools_" -> "_Serial Monitor_" in the Arduino IDE, and turn on the device.
 
+An example of an hardware test report:
+![Hardware test](../Resources/Hardware-test.png)
+
 ## I2C address of the SI5351:
 By default, the SI5351 uses address **_0x60_** on the I2C bus. If necessary, you can change the I2C address of the SI5351 according to the datasheet of your instance:
 ```cpp
