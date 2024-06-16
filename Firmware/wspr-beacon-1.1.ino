@@ -58,7 +58,7 @@
 //******************************************************************
 uint8_t tx_buffer[WSPR_MESSAGE_BUFFER_SIZE];
 Si5351 si5351(SI5351_I2C_ADDRESS);
-unsigned long long transmissionFrequency;
+uint64_t transmissionFrequency;
 
 void(* resetHardware) (void) = 0;
 
@@ -95,7 +95,7 @@ void initializeGPSSerialConnection(SoftwareSerial& gpsSerial)
 {   
     gpsSerial.begin(GPS_BAUDRATE);
     
-    const unsigned long startTime{millis()};
+    const uint32_t startTime{millis()};
     while (gpsSerial.available() == false && millis() <= startTime + GPS_INIT_MAX_TIME)
         delay(GPS_INIT_DELAY);
 
@@ -133,7 +133,7 @@ void synchronizeDateTime(TinyGPSPlus& gpsDataObj)
 
 bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gpsDataObj)
 { 
-    const unsigned long startTime{millis()};
+    const uint32_t startTime{millis()};
     while (millis() - startTime < GPS_SERIAL_READ_DURATION) 
     {
         while (gpsSerial.available())
