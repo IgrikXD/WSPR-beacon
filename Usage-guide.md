@@ -16,7 +16,7 @@ By default, the SI5351 is initialized at I2C address 0x60. If no device is detec
 
 The GPS module used in the device operates using a software-implemented serial port. Initialization of the GPS module starts with checking if any information is available from the GPS receiver on the virtual serial port. If no data is received within "_GPS_INIT_MAX_TIME_" - an GPS module initialization error is indicated by the LED (_the **red LED (TX)** blinks three times_) and the device subsequently restarts. 
 
-If the connection is successfully initialized, date and time synchronization is performed based on the data received from the GPS module. The device performs "_GPS_SYNC_ATTEMPTS_" attempts to synchronize GPS data with a delay of "_GPS_SYNC_DELAY_". If all synchronization attempts fail, an data synchronization error is indicated by the LED (_the **red LED (TX)** blinks three times_) and the device is rebooted.  
+If the connection is successfully initialized, date and time synchronization is performed based on the data received from the GPS module. The device performs "_GPS_SYNC_ATTEMPTS_" attempts to synchronize GPS data with a delay of "_GPS_SYNC_DELAY_". If all synchronization attempts fail, an GPS data synchronization error is indicated by the LED (_the **red LED (TX)** blinks three times_) and the device is rebooted.  
 
 > [!WARNING]
 >The device will not transmit WSPR messages until the time and coordinates are synchronized!  

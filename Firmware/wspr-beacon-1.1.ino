@@ -65,20 +65,30 @@ void(* resetHardware) (void) = 0;
 //******************************************************************
 //                      Function Prototypes
 //******************************************************************
+void encodeWSPRMessage(const TinyGPSPlus& gpsDataObj);
 void errorLEDIndicationAndReboot();
-void initializeLEDs();
 void initializeGPSSerialConnection(SoftwareSerial& gpsSerial);
+void initializeLEDs();
 void initializeSI5351();
-void synchronizeDateTime(TinyGPSPlus& gpsDataObj);
-bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gpsDataObj);
 void setQTHLocator(const TinyGPSPlus& gpsDataObj, char qthLocator[]);
 void setTransmissionFrequency();
-void encodeWSPRMessage(const TinyGPSPlus& gpsDataObj);
+void synchronizeDateTime(TinyGPSPlus& gpsDataObj);
 void transmitWSPRMessage();
+bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gpsDataObj);
 
 //******************************************************************
 //                      Function Definitions
 //******************************************************************
+void encodeWSPRMessage(const TinyGPSPlus& gpsDataObj)
+{
+    memset(tx_buffer, 0, WSPR_MESSAGE_BUFFER_SIZE);
+    
+    char qthLocator[5];
+    setQTHLocator(gpsDataObj, qthLocator);
+
+    JTEncode jtencode;
+    jtencode.wspr_encode(WSPR_CALL, qthLocator, WSPR_DBM, tx_buffer);
+}
 
 void errorLEDIndicationAndReboot()
 {
@@ -95,18 +105,6 @@ void errorLEDIndicationAndReboot()
     resetHardware();
 }
 
-void initializeLEDs()
-{  
-    pinMode(TX_LED_PIN, OUTPUT);
-    digitalWrite(TX_LED_PIN, LOW);
-
-    pinMode(POWER_ON_LED_PIN, OUTPUT);
-    digitalWrite(POWER_ON_LED_PIN, HIGH);
-    
-    pinMode(GPS_STATUS_LED_PIN, OUTPUT);
-    digitalWrite(GPS_STATUS_LED_PIN, LOW);
-}
-
 void initializeGPSSerialConnection(SoftwareSerial& gpsSerial)
 {   
     gpsSerial.begin(GPS_BAUDRATE);
@@ -119,6 +117,18 @@ void initializeGPSSerialConnection(SoftwareSerial& gpsSerial)
         errorLEDIndicationAndReboot();
 }
 
+void initializeLEDs()
+{  
+    pinMode(TX_LED_PIN, OUTPUT);
+    digitalWrite(TX_LED_PIN, LOW);
+
+    pinMode(POWER_ON_LED_PIN, OUTPUT);
+    digitalWrite(POWER_ON_LED_PIN, HIGH);
+    
+    pinMode(GPS_STATUS_LED_PIN, OUTPUT);
+    digitalWrite(GPS_STATUS_LED_PIN, LOW);
+}
+
 void initializeSI5351()
 {
     if (si5351.init(SI5351_CRYSTAL_LOAD_8PF, 0, SI5351_CAL_FACTOR))
@@ -126,6 +136,26 @@ void initializeSI5351()
         si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_6MA);
     else
         errorLEDIndicationAndReboot();
+}
+
+void setQTHLocator(const TinyGPSPlus& gpsDataObj, char qthLocator[]) {
+    const float latitude{gpsDataObj.location.lat() + 90.0};
+    const float longitude{gpsDataObj.location.lng() + 180.0};
+
+    qthLocator[0] = 'A' + (longitude / 20);
+    qthLocator[1] = 'A' + (latitude / 10);
+
+    qthLocator[2] = '0' + (uint8_t)(longitude / 2) % 10;
+    qthLocator[3] = '0' + (uint8_t)(latitude) % 10;
+
+    qthLocator[4] = '\0';
+}
+
+void setTransmissionFrequency()
+{
+    // WSPR message transmission at each transmitWsprMessage() function call is performed on 
+    // a randomly selected frequency within the range of +/- 100 Hz from the center frequency.
+    transmissionFrequency = (WSPR_DEFAULT_FREQ + random(-100, 101)) * 100ULL;
 }
 
 void synchronizeDateTime(TinyGPSPlus& gpsDataObj)
@@ -145,6 +175,23 @@ void synchronizeDateTime(TinyGPSPlus& gpsDataObj)
 
     if (dataSynchronized == false)
         errorLEDIndicationAndReboot();
+}
+
+void transmitWsprMessage()
+{
+    digitalWrite(TX_LED_PIN, HIGH);
+
+    si5351.output_enable(SI5351_CLK0, 1);
+
+    for(uint8_t i{0}; i < WSPR_SYMBOL_COUNT; ++i)
+    {
+        si5351.set_freq(transmissionFrequency + (tx_buffer[i] * WSPR_TONE_SPACING), SI5351_CLK0);
+        delay(WSPR_DELAY);
+    }
+
+    si5351.output_enable(SI5351_CLK0, 0);
+
+    digitalWrite(TX_LED_PIN, LOW);
 }
 
 bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gpsDataObj)
@@ -168,54 +215,9 @@ bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gpsDataObj)
     return false; 
 }
 
-void setQTHLocator(const TinyGPSPlus& gpsDataObj, char qthLocator[]) {
-    const float latitude{gpsDataObj.location.lat() + 90.0};
-    const float longitude{gpsDataObj.location.lng() + 180.0};
-
-    qthLocator[0] = 'A' + (longitude / 20);
-    qthLocator[1] = 'A' + (latitude / 10);
-
-    qthLocator[2] = '0' + (uint8_t)(longitude / 2) % 10;
-    qthLocator[3] = '0' + (uint8_t)(latitude) % 10;
-
-    qthLocator[4] = '\0';
-}
-
-void setTransmissionFrequency()
-{
-    // WSPR message transmission at each transmitWsprMessage() function call is performed on 
-    // a randomly selected frequency within the range of +/- 100 Hz from the center frequency.
-    transmissionFrequency = (WSPR_DEFAULT_FREQ + random(-100, 101)) * 100ULL;
-}
-
-void encodeWSPRMessage(const TinyGPSPlus& gpsDataObj)
-{
-    memset(tx_buffer, 0, WSPR_MESSAGE_BUFFER_SIZE);
-    
-    char qthLocator[5];
-    setQTHLocator(gpsDataObj, qthLocator);
-
-    JTEncode jtencode;
-    jtencode.wspr_encode(WSPR_CALL, qthLocator, WSPR_DBM, tx_buffer);
-}
-
-void transmitWsprMessage()
-{
-    digitalWrite(TX_LED_PIN, HIGH);
-
-    si5351.output_enable(SI5351_CLK0, 1);
-
-    for(uint8_t i{0}; i < WSPR_SYMBOL_COUNT; ++i)
-    {
-        si5351.set_freq(transmissionFrequency + (tx_buffer[i] * WSPR_TONE_SPACING), SI5351_CLK0);
-        delay(WSPR_DELAY);
-    }
-
-    si5351.output_enable(SI5351_CLK0, 0);
-
-    digitalWrite(TX_LED_PIN, LOW);
-}
-
+//******************************************************************
+//                      Main firmware code
+//******************************************************************
 void setup()
 {
     initializeLEDs();
