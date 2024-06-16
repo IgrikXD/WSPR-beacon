@@ -1,8 +1,8 @@
 #include <JTEncode.h>
 #include <si5351.h>
+#include <SoftwareSerial.h>
 #include <TimeLib.h>
 #include <TinyGPS++.h>
-#include <SoftwareSerial.h>
 
 #define FIRMWARE_VERSION 1.1
 
