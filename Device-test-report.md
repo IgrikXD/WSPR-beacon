@@ -2,6 +2,9 @@
 
 This section provides information about the device's performance during long distance WSPR message transmission. Data on transmitted and decoded WSPR messages are taken from the [WSPR Rocks!](http://wspr.rocks/)
 
+> [!NOTE]
+>During testing of the device, the antenna used was tuned to the resonant frequency using the NanoVNA vector network analyzer.
+
 ### [PCB version 1.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-1.0) with BS170 field-effect transistor amplifier:
 
 | Firmware version | Transmission frequency | Used antenna   | SNR | Frequency drift | Distance to transmitter |
