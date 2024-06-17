@@ -7,7 +7,7 @@ This section provides information about the device's performance during long dis
 
 ### [PCB version 1.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-1.0) with BS170 field-effect transistor amplifier:
 
-| Firmware version | Transmission frequency | Used antenna   | SNR | Frequency drift | Max distance to receiver | Report for all spots                                                      |
+| Firmware version | Transmission frequency | Used antenna   | SNR | Frequency drift | Max distance to receiver | .kml report for all spots                                                 |
 |------------------|------------------------|----------------|-----|-----------------|--------------------------|---------------------------------------------------------------------------|
 | 1.0              | 5.2887 MHz             | Windcamp Gipsy | 0   | 0               | 0 km                     | [60m report](./Resources/KMLReports/PCB-1.0-Firmware-1.0-60m-report.kml)  |
 | 1.0              | 7.0401 MHz             | Windcamp Gipsy | 0   | 0               | 0 km                     | [40m report](./Resources/KMLReports/PCB-1.0-Firmware-1.0-40m-report.kml)  |
@@ -20,7 +20,7 @@ This section provides information about the device's performance during long dis
 
 ### [PCB version 2.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-2.0) with SN74ACT244PWR buffer amplifier:
 
-| Firmware version | Transmission frequency | Used antenna   | SNR | Frequency drift | Max distance to receiver | Report for all spots                                                      |
+| Firmware version | Transmission frequency | Used antenna   | SNR | Frequency drift | Max distance to receiver | .kml report for all spots                                                 |
 |------------------|------------------------|----------------|-----|-----------------|--------------------------|---------------------------------------------------------------------------|
 | 1.1              | 5.2887 MHz             | Windcamp Gipsy | 0   | 0               | 0 km                     | [60m report](./Resources/KMLReports/PCB-2.0-Firmware-1.1-60m-report.kml)  |
 | 1.1              | 7.0401 MHz             | Windcamp Gipsy | 0   | 0               | 0 km                     | [40m report](./Resources/KMLReports/PCB-2.0-Firmware-1.1-40m-report.kml)  |
