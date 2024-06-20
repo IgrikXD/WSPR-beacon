@@ -228,7 +228,7 @@ void setup()
     TinyGPSPlus gpsDataObj;
     synchronizeDateTime(gpsDataObj);
 
-    // RAM-intensive operation, generate WSPR message only once, at device startup.
+    // RAM-intensive operation, generate WSPR message only once, at device startup
     encodeWSPRMessage(gpsDataObj);
     
     // Initialize the random number generator with a seed based on the current time
