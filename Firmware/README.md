@@ -10,7 +10,7 @@ Connect the device to your computer via USB cable. Then, in the "_Tools_" -> "_P
 After assembling the device, you can upload [firmware for testing the hardware](./wspr-beacon-hardware-test.ino).
 
 > [!NOTE]
->This is an optional step; you can skip it. I recommend using this firmware if you encounter issues with the device's functionality when using the main wspr-beacon firmware.
+>This is an optional step, you can skip it. I recommend using this firmware if you encounter issues with the device's functionality when using the main wspr-beacon firmware.
 
 This firmware checks the correctness of the SI5351 IC initialization, the correctness of the serial connection with the GPS module, and the correctness of GPS data synchronization.
 
