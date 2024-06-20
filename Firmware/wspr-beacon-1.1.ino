@@ -92,9 +92,11 @@ void encodeWSPRMessage(const TinyGPSPlus& gpsDataObj)
 
 void errorLEDIndicationAndReboot()
 {
+    // Turn off all the green LEDs (GPS, ON)
     digitalWrite(POWER_ON_LED_PIN, LOW);
     digitalWrite(GPS_STATUS_LED_PIN, LOW);
 
+    // Flash the red LED (TX) three times
     for (uint8_t i{0}; i < 3; ++i) {
         digitalWrite(TX_LED_PIN, HIGH);
         delay(500);
@@ -153,8 +155,8 @@ void setQTHLocator(const TinyGPSPlus& gpsDataObj, char qthLocator[]) {
 
 void setTransmissionFrequency()
 {
-    // WSPR message transmission at each transmitWsprMessage() function call is performed on 
-    // a randomly selected frequency within the range of +/- 100 Hz from the center frequency.
+    // WSPR message transmission at each transmitWSPRMessage() function call is performed on 
+    // a randomly selected frequency within the range of +/- 100 Hz from the center frequency
     transmissionFrequency = (WSPR_DEFAULT_FREQ + random(-100, 101)) * 100ULL;
 }
 
@@ -177,7 +179,7 @@ void synchronizeDateTime(TinyGPSPlus& gpsDataObj)
         errorLEDIndicationAndReboot();
 }
 
-void transmitWsprMessage()
+void transmitWSPRMessage()
 {
     digitalWrite(TX_LED_PIN, HIGH);
 
@@ -229,21 +231,25 @@ void setup()
     // RAM-intensive operation, generate WSPR message only once, at device startup.
     encodeWSPRMessage(gpsDataObj);
     
+    // Initialize the random number generator with a seed based on the current time
     randomSeed(millis());
+    // Setting the random transmission frequency within the range of +/- 100 Hz from 
+    // the center operating frequency
     setTransmissionFrequency();
 }
 
 void loop()
 {
+    // Transmission of a WSPR message every even minute (00:00, 00:02, 00:04, ...)
     if(second() == 0 && minute() % 2 == 0)
     {
-        transmitWsprMessage();
+        transmitWSPRMessage();
         
-        // Time synchronization based on current GPS data for a new transmission cycle.
+        // Time synchronization based on current GPS data for a new transmission cycle
         TinyGPSPlus gpsDataObj;
         synchronizeDateTime(gpsDataObj);
         
-        // Set a new, random transmission frequency.
+        // Set a new, random transmission frequency
         setTransmissionFrequency();
     }
 }
