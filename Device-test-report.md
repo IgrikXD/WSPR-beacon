@@ -7,6 +7,8 @@ For each transmission range, a visualized report with a list of all spots is ava
 > [!NOTE]
 >During testing of the device, the antenna used was tuned to the resonant frequency using the NanoVNA vector network analyzer.
 
+**Power source used:** Mi Power Bank Pro PLM07ZM
+
 ### [PCB version 1.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-1.0) with BS170 field-effect transistor amplifier:
 
 | Firmware version | Transmission frequency | Used antenna   | SNR | Frequency drift | Max distance to receiver                         |
