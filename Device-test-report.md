@@ -11,7 +11,8 @@ For each transmission range, a visualized report with a list of all spots is ava
 >
 >When testing your instance of WSPR-beacon, you may obtain completely different results, either better or worse, and this is absolutely normal.
 
-**Power source used:** Mi Power Bank Pro PLM07ZM
+**Power source used:** Mi Power Bank Pro PLM07ZM  
+**Coordinates of the antenna installation site:** XX.XXXX, YY.YYYY
 
 ### [PCB version 1.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-1.0) with BS170 field-effect transistor amplifier:
 
