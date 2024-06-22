@@ -6,6 +6,7 @@ For each transmission range, a visualized report with a list of all spots is ava
 
 > [!NOTE]
 >During testing of the device, the antenna used was tuned to the resonant frequency using the NanoVNA vector network analyzer.  
+>
 >**Please note that the efficiency of the antenna largely depends on the conditions of its installation.** In addition to tuning the antenna to the minimum SWR value, the quality of the antenna's performance is influenced by the installation height, orientation, the presence of dense urban buildings, thick forests, and electromagnetic interference.
 
 **Power source used:** Mi Power Bank Pro PLM07ZM
