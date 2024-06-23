@@ -7,7 +7,7 @@ For each transmission range, a visualized report with a list of all spots is ava
 > [!NOTE]
 >During testing of the device, the antenna used was tuned to the resonant frequency using the NanoVNA vector network analyzer.  
 >
->**The efficiency of an antenna's performance largely depends on its installation conditions.** In addition to tuning the antenna to achieve the minimum SWR value, the quality of transmission is also affected by the antenna's installation height, orientation, the presence of dense urban buildings, thick forests that absorb emitted radio waves, and the presence of electromagnetic interference. **Please, when installing the antenna, consider all possible factors that may affect the efficiency of radio transmission to achieve maximum transmission performance!**
+>**The efficiency of an antenna's performance largely depends on its installation conditions!** In addition to tuning the antenna to achieve the minimum SWR value, the quality of transmission is also influenced by: the height of the antenna installation, the orientation of the antenna in space, the presence of dense urban development with a large amount of electromagnetic interference, and the presence of dense forests absorbing emitted radio waves. **Please, when installing the antenna, to achieve maximum performance, consider all possible factors affecting the efficiency of radio transmission!**
 
 **Power source used:** Mi Power Bank Pro PLM07ZM  
 **Coordinates of the antenna installation site:** XX.XXXX, YY.YYYY
