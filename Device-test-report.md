@@ -7,7 +7,7 @@ For each transmission range, a visualized report with a list of all spots is ava
 > [!NOTE]
 >During testing of the device, the antenna used was tuned to the resonant frequency using the NanoVNA vector network analyzer.  
 >
->**Efficiency of the antenna largely depends on the conditions of its installation.** In addition to tuning the antenna to the minimum SWR value, the quality of the antenna's performance is influenced by the installation height, orientation, the presence of dense urban buildings, thick forests, and electromagnetic interference. **When testing your instance of WSPR-beacon, you may obtain completely different results, either better or worse, and this is absolutely normal.**
+>**The efficiency of an antenna's performance largely depends on its installation conditions.** In addition to tuning the antenna to achieve the minimum SWR value, the quality of transmission is also affected by the antenna's installation height, orientation, the presence of dense urban buildings, thick forests that absorb emitted radio waves, and the presence of electromagnetic interference. **Please, when installing the antenna, consider all possible factors that may affect the efficiency of radio transmission to achieve maximum transmission performance!**
 
 **Power source used:** Mi Power Bank Pro PLM07ZM  
 **Coordinates of the antenna installation site:** XX.XXXX, YY.YYYY
