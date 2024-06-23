@@ -28,7 +28,8 @@
 // #define WSPR_DEFAULT_FREQ       24926100ULL  // 24.9261 MHz - 12m
 #define WSPR_DEFAULT_FREQ       28126100ULL  // 28.1261 MHz - 10m
 // #define WSPR_DEFAULT_FREQ       50294500ULL  // 50.2945 MHz - 6m
-// #define WSPR_DEFAULT_FREQ       144490000ULL  // 144.4900 MHz - 2m
+// #define WSPR_DEFAULT_FREQ       70092500ULL  // 70.0925 MHz - 4m
+// #define WSPR_DEFAULT_FREQ       144490500ULL // 144.4905 MHz - 2m
 
 // WSPR message parameters
 #define WSPR_CALL                 "XX0YYY"
