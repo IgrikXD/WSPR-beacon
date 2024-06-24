@@ -154,8 +154,12 @@ bool trySyncGPSData(SoftwareSerial& gpsSerial, TinyGPSPlus& gpsDataObj)
             gpsDataObj.encode(gpsSerial.read());
     }
 
-    if (gpsDataObj.time.isValid() && gpsDataObj.date.isValid() && gpsDataObj.location.isValid())
+    if (gpsDataObj.time.isValid() && gpsDataObj.date.isValid() && gpsDataObj.location.isValid()){
+        setTime(gpsDataObj.time.hour(), gpsDataObj.time.minute(), gpsDataObj.time.second(), 
+                gpsDataObj.date.day(), gpsDataObj.date.month(), gpsDataObj.date.year());
+
         return true;
+    }
     
     return false; 
 }
