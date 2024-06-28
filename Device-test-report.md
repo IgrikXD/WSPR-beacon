@@ -14,24 +14,24 @@ For each transmission range, a visualized report with a list of all spots is ava
 
 ### [PCB version 1.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-1.0) with BS170 field-effect transistor amplifier:
 
-| Firmware version | Transmission frequency | PA bias | Used antenna     | SNR | Frequency drift | Max distance to receiver                         |
-|------------------|------------------------|---------|------------------|-----|-----------------|--------------------------------------------------|
-| 1.0              | 5.2887 MHz             | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
-| 1.0              | 7.0401 MHz             | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
-| 1.0              | 10.1402 MHz            | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
-| 1.0              | 14.0971 MHz            | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
-| 1.1              | 5.2887 MHz             | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
-| 1.1              | 7.0401 MHz             | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
-| 1.1              | 10.1402 MHz            | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
-| 1.1              | 14.0971 MHz            | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
+| Firmware version | TX frequency | PA bias | Used antenna     | SNR | Frequency drift | Max distance to receiver                         |
+|------------------|--------------|---------|------------------|-----|-----------------|--------------------------------------------------|
+| 1.0              | 5.2887 MHz   | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
+| 1.0              | 7.0401 MHz   | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
+| 1.0              | 10.1402 MHz  | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
+| 1.0              | 14.0971 MHz  | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
+| 1.1              | 5.2887 MHz   | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
+| 1.1              | 7.0401 MHz   | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
+| 1.1              | 10.1402 MHz  | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
+| 1.1              | 14.0971 MHz  | 0.0V    | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
 
 ### [PCB version 2.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-2.0) with SN74ACT244PWR buffer amplifier:
 
-| Firmware version | Transmission frequency | Used antenna     | SNR | Frequency drift | Max distance to receiver                         |
-|------------------|------------------------|------------------|-----|-----------------|--------------------------------------------------|
-| 1.1              | 5.2887 MHz             | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
-| 1.1              | 7.0401 MHz             | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
-| 1.1              | 10.1402 MHz            | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
-| 1.1              | 14.0971 MHz            | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
+| Firmware version | TX frequency | Used antenna     | SNR | Frequency drift | Max distance to receiver                         |
+|------------------|--------------|------------------|-----|-----------------|--------------------------------------------------|
+| 1.1              | 5.2887 MHz   | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
+| 1.1              | 7.0401 MHz   | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
+| 1.1              | 10.1402 MHz  | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
+| 1.1              | 14.0971 MHz  | [Windcamp Gipsy] | 0   | 0               | [0 km](                                        ) |
 
 [Windcamp Gipsy]: https://www.windcamp.cn/productinfo/372468.html
