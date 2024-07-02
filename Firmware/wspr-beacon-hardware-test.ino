@@ -6,6 +6,10 @@
 //******************************************************************
 //                      Hardware defines
 //******************************************************************
+#define TX_LED_PIN                 8
+#define GPS_STATUS_LED_PIN         9
+#define POWER_ON_LED_PIN           10
+
 #define SERIAL_PORT_BAUDRATE       115200
 
 #define SI5351_I2C_ADDRESS         0x60
@@ -23,6 +27,7 @@
 //                      Function Prototypes
 //******************************************************************
 bool initializeGPSSerialConnection(SoftwareSerial& gpsSerial);
+void initializeLEDs();
 void printCurrentDateTime();
 void printDelimiter();
 bool tryInitSI5351();
@@ -53,6 +58,28 @@ bool initializeGPSSerialConnection(SoftwareSerial& gpsSerial)
     Serial.println(F("- Check the pinout of the GPS module used! -"));
     printDelimiter();
     return false;
+}
+
+void initializeLEDs()
+{  
+    pinMode(POWER_ON_LED_PIN, OUTPUT);
+    digitalWrite(POWER_ON_LED_PIN, HIGH);
+    delay(500);
+    
+    pinMode(GPS_STATUS_LED_PIN, OUTPUT);
+    digitalWrite(GPS_STATUS_LED_PIN, HIGH);
+    delay(500);
+
+    pinMode(TX_LED_PIN, OUTPUT);
+    digitalWrite(TX_LED_PIN, HIGH);
+    delay(500);
+
+    digitalWrite(POWER_ON_LED_PIN, LOW);
+    digitalWrite(GPS_STATUS_LED_PIN, LOW);
+    digitalWrite(TX_LED_PIN, LOW);
+
+    Serial.println(F("- LEDs initialized! -"));
+    printDelimiter();
 }
 
 void printCurrentDateTime()
@@ -176,10 +203,18 @@ void setup()
     Serial.println(F("[ WSPR BEACON HARDWARE TEST ]: Starting ..."));
     printDelimiter();
 
+    initializeLEDs();
+
     if (tryInitSI5351() && trySyncDateTimeByGPS())
+    {
         Serial.println(F("[ WSPR BEACON HARDWARE TEST ]: Success!"));
+        digitalWrite(POWER_ON_LED_PIN, HIGH);
+    }   
     else
+    {
         Serial.println(F("[ WSPR BEACON HARDWARE TEST ]: Fail!"));
+        digitalWrite(TX_LED_PIN, HIGH);
+    }
     printDelimiter();
 }
 
