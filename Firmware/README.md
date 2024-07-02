@@ -12,7 +12,7 @@ After assembling the device, you can upload [firmware for testing the hardware](
 > [!NOTE]
 >This is an optional step, you can skip it. I recommend using this firmware if you encounter issues with the device's functionality when using the main wspr-beacon firmware.
 
-This firmware checks the correctness of the SI5351 IC initialization, the correctness of the serial connection with the GPS module, and the correctness of GPS data synchronization.
+This firmware checks the correctness of the LEDs initialization (_visual inspection_), SI5351 IC initialization, the correctness of the serial connection with the GPS module, and GPS data synchronization.
 
 To get a report on the hardware functionality, upload the firmware, open the "_Tools_" -> "_Serial Monitor_" in the Arduino IDE, and turn on the device.
 
