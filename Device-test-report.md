@@ -10,28 +10,28 @@ For each transmission range, a visualized report with a list of all spots is ava
 >**The efficiency of an antenna's performance largely depends on its installation conditions!** In addition to tuning the antenna to achieve the minimum SWR value, the quality of transmission is also influenced by: the height of the antenna installation, the orientation of the antenna in space, the presence of dense urban development with a large amount of electromagnetic interference, and the presence of dense forests absorbing emitted radio waves. **Please, when installing the antenna, to achieve maximum performance, consider all possible factors affecting the efficiency of radio transmission!**
 
 **Power source used:** Mi Power Bank Pro PLM07ZM  
-**Coordinates of the antenna installation site:** XX.XXXX, YY.YYYY
+**Coordinates of the antenna installation site:** [52.1958, 20.7581](https://maps.app.goo.gl/dVwvhpxdYiYVqSht5)
 
 ### [PCB version 1.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-1.0) with BS170 field-effect transistor amplifier:
 
-| Firmware version | TX frequency | TX time (CET) | PA bias | Used antenna     | SNR | Drift | Max distance to receiver                         |
-|------------------|--------------|---------------|---------|------------------|-----|-------|--------------------------------------------------|
-| 1.0              | 5.2887 MHz   | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | [0 km](                                        ) |
-| 1.0              | 7.0401 MHz   | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | [0 km](                                        ) |
-| 1.0              | 10.1402 MHz  | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | [0 km](                                        ) |
-| 1.0              | 14.0971 MHz  | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | [0 km](                                        ) |
-| 1.1              | 5.2887 MHz   | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | [0 km](                                        ) |
-| 1.1              | 7.0401 MHz   | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | [0 km](                                        ) |
-| 1.1              | 10.1402 MHz  | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | [0 km](                                        ) |
-| 1.1              | 14.0971 MHz  | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | [0 km](                                        ) |
+| Firmware version | TX frequency | TX time (CET) | PA bias | Used antenna     | SNR | Drift | Max distance to receiver |
+|------------------|--------------|---------------|---------|------------------|-----|-------|--------------------------|
+| 1.0              | 5.2887 MHz   | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | 0 km                     |
+| 1.0              | 7.0401 MHz   | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | 0 km                     |
+| 1.0              | 10.1402 MHz  | 17:32 - 18:02 | 2.508V  | [Windcamp Gipsy] | -4  | 0     | 2849 km                  |
+| 1.0              | 14.0971 MHz  | 15:10 - 15:40 | 2.508V  | [Windcamp Gipsy] | -26 | 0     | 1797 km                  |
+| 1.1              | 5.2887 MHz   | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | 0 km                     |
+| 1.1              | 7.0401 MHz   | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | 0 km                     |
+| 1.1              | 10.1402 MHz  | 16:56 - 17:26 | 2.508V  | [Windcamp Gipsy] | -4  | 0     | 2849 km                  |
+| 1.1              | 14.0971 MHz  | 14:34 - 15:02 | 2.508V  | [Windcamp Gipsy] | -6  | 0     | 1721 km                  |
 
 ### [PCB version 2.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-2.0) with SN74ACT244PWR buffer amplifier:
 
-| Firmware version | TX frequency | TX time (CET) | Used antenna     | SNR | Drift | Max distance to receiver                         |
-|------------------|--------------|---------------|------------------|-----|-------|--------------------------------------------------|
-| 1.1              | 5.2887 MHz   | 00:00 - 00:30 | [Windcamp Gipsy] | 0   | 0     | [0 km](                                        ) |
-| 1.1              | 7.0401 MHz   | 00:00 - 00:30 | [Windcamp Gipsy] | 0   | 0     | [0 km](                                        ) |
-| 1.1              | 10.1402 MHz  | 00:00 - 00:30 | [Windcamp Gipsy] | 0   | 0     | [0 km](                                        ) |
-| 1.1              | 14.0971 MHz  | 00:00 - 00:30 | [Windcamp Gipsy] | 0   | 0     | [0 km](                                        ) |
+| Firmware version | TX frequency | TX time (CET) | Used antenna     | SNR | Drift | Max distance to receiver                            |
+|------------------|--------------|---------------|------------------|-----|-------|-----------------------------------------------------|
+| 1.1              | 5.2887 MHz   | 00:00 - 00:30 | [Windcamp Gipsy] | 0   | 0     | [0 km](                                           ) |
+| 1.1              | 7.0401 MHz   | 00:00 - 00:30 | [Windcamp Gipsy] | 0   | 0     | [0 km](                                           ) |
+| 1.1              | 10.1402 MHz  | 16:16 - 16:46 | [Windcamp Gipsy] | -6  | 0     | [2849 km](https://kmzview.com/oxZQNGHUcbKiORljG38z) |
+| 1.1              | 14.0971 MHz  | 13:40 - 14:10 | [Windcamp Gipsy] | -19 | 0     | [3898 km](https://kmzview.com/sHu8uqWiTvDA2ghHyNwx) |
 
 [Windcamp Gipsy]: https://www.windcamp.cn/productinfo/372468.html
