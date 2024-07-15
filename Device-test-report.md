@@ -14,23 +14,23 @@ For each transmission range, a visualized report with a list of all spots is ava
 
 ### [PCB version 1.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-1.0) with BS170 field-effect transistor amplifier:
 
-| Firmware version | TX frequency | TX time (CET) | PA bias | Used antenna     | SNR | Drift | Max distance to receiver |
-|------------------|--------------|---------------|---------|------------------|-----|-------|--------------------------|
-| 1.0              | 5.2887 MHz   | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | 0 km                     |
-| 1.0              | 7.0401 MHz   | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | 0 km                     |
-| 1.0              | 10.1402 MHz  | 17:32 - 18:02 | 2.508V  | [Windcamp Gipsy] | -4  | 0     | 2849 km                  |
-| 1.0              | 14.0971 MHz  | 15:10 - 15:40 | 2.508V  | [Windcamp Gipsy] | -26 | 0     | 1797 km                  |
-| 1.1              | 5.2887 MHz   | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | 0 km                     |
-| 1.1              | 7.0401 MHz   | 00:00 - 00:30 | 0.0V    | [Windcamp Gipsy] | 0   | 0     | 0 km                     |
-| 1.1              | 10.1402 MHz  | 16:56 - 17:26 | 2.508V  | [Windcamp Gipsy] | -4  | 0     | 2849 km                  |
-| 1.1              | 14.0971 MHz  | 14:34 - 15:02 | 2.508V  | [Windcamp Gipsy] | -6  | 0     | 1721 km                  |
+| Firmware version | TX frequency | TX time (CET) | PA bias | Used antenna     | SNR | Drift | Max distance to receiver                            |
+|------------------|--------------|---------------|---------|------------------|-----|-------|-----------------------------------------------------|
+| 1.0              | 5.2887 MHz   | 21:02 - 21:32 | 2.508V  | [Windcamp Gipsy] | -22 | 0     | [3898 km](https://kmzview.com/oLjDi97JSwUt4asd76AU) |
+| 1.0              | 7.0401 MHz   | 19:04 - 19:34 | 2.508V  | [Windcamp Gipsy] | -16 | 0     | [2849 km](https://kmzview.com/QG6PJxd4n7pIKje1FPqJ) |
+| 1.0              | 10.1402 MHz  | 17:32 - 18:02 | 2.508V  | [Windcamp Gipsy] | -4  | 0     | 2849 km                                             |
+| 1.0              | 14.0971 MHz  | 15:10 - 15:40 | 2.508V  | [Windcamp Gipsy] | -26 | 0     | 1797 km                                             |
+| 1.1              | 5.2887 MHz   | 21:36 - 22:06 | 2.508V  | [Windcamp Gipsy] | -23 | 0     | [3898 km](https://kmzview.com/xUuaNxEI2ygnvwKXAeCg) |
+| 1.1              | 7.0401 MHz   | 19:38 - 20:08 | 2.508V  | [Windcamp Gipsy] | -21 | 0     | [2043 km](https://kmzview.com/ISVBaADCSzKYEnMFMueG) |
+| 1.1              | 10.1402 MHz  | 16:56 - 17:26 | 2.508V  | [Windcamp Gipsy] | -4  | 0     | 2849 km                                             |
+| 1.1              | 14.0971 MHz  | 14:34 - 15:02 | 2.508V  | [Windcamp Gipsy] | -6  | 0     | 1721 km                                             |
 
 ### [PCB version 2.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-2.0) with SN74ACT244PWR buffer amplifier:
 
 | Firmware version | TX frequency | TX time (CET) | Used antenna     | SNR | Drift | Max distance to receiver                            |
 |------------------|--------------|---------------|------------------|-----|-------|-----------------------------------------------------|
-| 1.1              | 5.2887 MHz   | 00:00 - 00:30 | [Windcamp Gipsy] | 0   | 0     | [0 km](                                           ) |
-| 1.1              | 7.0401 MHz   | 00:00 - 00:30 | [Windcamp Gipsy] | 0   | 0     | [0 km](                                           ) |
+| 1.1              | 5.2887 MHz   | 22:10 - 22:40 | [Windcamp Gipsy] | -19 | 0     | [3898 km](https://kmzview.com/C4Vx5jR3cHyAeCuntnj1) |
+| 1.1              | 7.0401 MHz   | 20:14 - 20:44 | [Windcamp Gipsy] | -13 | 0     | [2849 km](https://kmzview.com/xsiJUzFLm3NW8JmR7vqk) |
 | 1.1              | 10.1402 MHz  | 16:16 - 16:46 | [Windcamp Gipsy] | -6  | 0     | [2849 km](https://kmzview.com/oxZQNGHUcbKiORljG38z) |
 | 1.1              | 14.0971 MHz  | 13:40 - 14:10 | [Windcamp Gipsy] | -19 | 0     | [3898 km](https://kmzview.com/sHu8uqWiTvDA2ghHyNwx) |
 
