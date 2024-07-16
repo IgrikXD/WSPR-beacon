@@ -7,7 +7,7 @@ A small hardware device for transmitting WSPR messages based on the SI5351 IC. T
 ## Current development progress:
 [![Progress](https://img.shields.io/badge/wspr--beacon%20EasyEDA-tested-green.svg?longCache=true&style=for-the-badge)](https://oshwlab.com/igrikxd/wspr-beacon)&nbsp;[![Progress](https://img.shields.io/badge/firmware%20version-1.1-blue.svg?longCache=true&style=for-the-badge)](./Firmware)&nbsp;[![Progress](https://img.shields.io/badge/pcb%20version-2.0-blue.svg?longCache=true&style=for-the-badge)](./Gerbers)   
 
-Correctness of encoding of the transmitted WSPR message was verified by decoding the transmission using a locally located Airspy R2 SDR receiver and the [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) application.
+The transmitted WSPR message's correctness was verified by decoding the transmission using a locally located Airspy R2 SDR receiver and the [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) application. Also, you can see the [results of testing the device during long-distance WSPR message transmission](./Device-test-report.md).
 
 ![WSJT-X report](./Resources/WSJT-X-report.png)
 
@@ -24,7 +24,7 @@ Correctness of encoding of the transmitted WSPR message was verified by decoding
 ## How to use this repository?
 The [Firmware](./Firmware/) folder contains software required for the device operation and [firmware instructions](./Firmware/README.md). The [Schematics](./Schematics/) directory contains the device schematic file in _.pdf_ format. The [Gerbers](./Gerbers/) directory contains files necessary for ordering PCB and side covers [fabrication at the factory](https://www.pcbway.com/project/shareproject/WSPR_beacon_f64d290a.html).  
 
-Additionally, you can find information about the [list of required components](./BOMs), [assembly guide](./Assembly-guide.md), and [operating instructions](./Usage-guide.md).
+Additionally, you can find information about the [list of required components](./BOMs), [assembly guide](./Assembly-guide.md) and [operating instructions](./Usage-guide.md).
 
 ## Resources:
 [A Little WSPR Beacon (Aren’t They All Little?) – Dave Richards AA7EE](https://aa7ee.wordpress.com/2023/02/26/a-little-wspr-beacon-arent-they-all-little/)  
