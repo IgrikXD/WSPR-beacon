@@ -1,6 +1,6 @@
 # WSPR-beacon device test report
 
-This section provides information about the device's performance during long distance WSPR message transmission. Data on transmitted and decoded WSPR messages are taken from the [WSPR Rocks!](http://wspr.rocks/)
+This section provides information about the device's performance during long-distance WSPR message transmission. Data on transmitted and decoded WSPR messages are taken from the [WSPR Rocks!](http://wspr.rocks/)
 
 For each transmission range, a visualized report with a list of all spots is available. To view the visualization, click on the distance in the "_Max distance to receiver_" column.
 
