@@ -38,9 +38,9 @@ For each transmission range, a visualized report with a list of all spots is ava
 
 ### [PCB version 1.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-1.0) with BS170 field-effect transistor amplifier:
 
-| Reporter | Firmware version | TX frequency | PA bias | Used antenna                 | SNR | Drift | Max distance to receiver  |
-|----------|------------------|--------------|---------|------------------------------|-----|-------|---------------------------|
-| KD9MXZ   | 1.1              | 14.0971 MHz  | 2.610V  | [PackTenna Mini Random Wire] | -6  | 0     | 4618 km                   |                          |
+| Reporter                       | Firmware version | TX frequency | PA bias | Used antenna                 | SNR | Drift | Max distance to receiver  |
+|--------------------------------|------------------|--------------|---------|------------------------------|-----|-------|---------------------------|
+| [KD9MXZ](mailto:e.moe@rcn.com) | 1.1              | 14.0971 MHz  | 2.610V  | [PackTenna Mini Random Wire] | -6  | 0     | 4618 km                   |                          |
 
 
 [Windcamp Gipsy]: https://www.windcamp.cn/productinfo/372468.html
