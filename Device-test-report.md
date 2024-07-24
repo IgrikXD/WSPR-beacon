@@ -34,4 +34,22 @@ For each transmission range, a visualized report with a list of all spots is ava
 | 1.1              | 10.1402 MHz  | 16:16 - 16:46 | [Windcamp Gipsy] | -6  | 0     | [2849 km](https://kmzview.com/oxZQNGHUcbKiORljG38z) |
 | 1.1              | 14.0971 MHz  | 13:40 - 14:10 | [Windcamp Gipsy] | -19 | 0     | [3898 km](https://kmzview.com/sHu8uqWiTvDA2ghHyNwx) |
 
+## Device testing reports from users
+
+This section provides information about the device's performance during long-distance WSPR message transmission based on real user feedback.
+
+### [PCB version 1.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-1.0) with BS170 field-effect transistor amplifier:
+
+| Reporter                       | Firmware version | TX frequency | PA bias | Used antenna                 | SNR | Drift | Max distance to receiver  |
+|--------------------------------|------------------|--------------|---------|------------------------------|-----|-------|---------------------------|
+| [KD9MXZ](mailto:e.moe@rcn.com) | 1.1              | 14.0971 MHz  | 2.610V  | [PackTenna Mini Random Wire] | -28 | 0     | 4618 km                   |                          |
+
+If you would like to add the results of testing your WSPR beacon to this section, please send the following information to igor.nikolaevich.96@gmail.com:
+- Version of the PCB used;
+- Bias voltage of the BS170 transistor (_only for PCB version 1.0_);
+- Version of the firmware used;
+- Antenna used;
+- List of spot information in .csv format;
+
 [Windcamp Gipsy]: https://www.windcamp.cn/productinfo/372468.html
+[PackTenna Mini Random Wire]: https://www.packtenna.com/store/p1/PackTenna_Mini_Random_Wire_Antenna_%289%3A1_UNUN%29.html#/
