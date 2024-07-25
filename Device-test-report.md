@@ -40,9 +40,9 @@ This section provides information about the device's performance during long-dis
 
 ### [PCB version 1.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-1.0) with BS170 field-effect transistor amplifier:
 
-| Reporter                       | Firmware version | TX frequency | PA bias | Used antenna                 | SNR | Drift | Max distance to receiver  |
-|--------------------------------|------------------|--------------|---------|------------------------------|-----|-------|---------------------------|
-| [KD9MXZ](mailto:e.moe@rcn.com) | 1.1              | 14.0971 MHz  | 2.610V  | [PackTenna Mini Random Wire] | -28 | 0     | 4618 km                   |                          |
+| Reporter                                | Firmware version | TX frequency | PA bias | Used antenna                 | SNR | Drift | Max distance to receiver  |
+|-----------------------------------------|------------------|--------------|---------|------------------------------|-----|-------|---------------------------|
+| [KD9MXZ](https://www.qrz.com/db/kd9mxz) | 1.1              | 14.0971 MHz  | 2.610V  | [PackTenna Mini Random Wire] | -28 | 0     | 4618 km                   |                          |
 
 If you would like to add the results of testing your WSPR beacon to this section, please send the following information to igor.nikolaevich.96@gmail.com:
 - Version of the PCB used;
