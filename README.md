@@ -46,3 +46,5 @@ Great thanks to [PCBWay](https://pcbway.com) for manufacturing the PCBs for the 
 - E-mail: igor.nikolaevich.96@gmail.com
 - Telegram: https://t.me/igrikxd
 - LinkedIn: https://www.linkedin.com/in/igor-yatsevich/
+
+**You can also [contact me](https://t.me/igrikxd) to purchase preassembled devices.**
