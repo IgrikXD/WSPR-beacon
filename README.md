@@ -17,7 +17,7 @@ The transmitted WSPR message's correctness was verified by decoding the transmis
 **GPS antenna type:** active, external  
 **Maximum output power:** ~23 dBm  
 **Supply voltage:** 5V, USB-B, fuse-protected  
-**Current consumption:** 65 mA (_active GPS antenna not connected_) / 80 mA (_active GPS antenna connected_) / 92 mA (_TX mode_)  
+**Current consumption:** 65 mA (_GPS antenna not connected_) / 80 mA (_GPS antenna connected_) / 92 mA (_TX mode_)  
 **Used PCB Material:** FR-4  
 **PCB thickness:** 1.6 mm  
 **PCB copper weight:** 1 oz  
