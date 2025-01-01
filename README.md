@@ -50,6 +50,6 @@ Great thanks to [PCBWay](https://pcbway.com) for manufacturing the PCBs for the 
 **You can also [contact me](https://t.me/igrikxd) to purchase preassembled devices.**
 
 ## Contribution
-You can support my project and other developments by making a donation via [PayPal](https://www.paypal.com/donate/?hosted_button_id=Q8PRFPXKKSDA) or BTC (_1HF6HGR2c4Dz6YBksuuTLGoCMW4bKa2ddS_). Your support will help me continue working on open-source projects like [WSPR-beacon](#WSPR-beacon) and [Easy-SDR](https://github.com/IgrikXD/Easy-SDR), as well as create new useful tools for the community.
+You can support my project and other developments by making a donation via [PayPal](https://www.paypal.com/donate/?hosted_button_id=Q8PRFPXKKSDAQ) or BTC (_1HF6HGR2c4Dz6YBksuuTLGoCMW4bKa2ddS_). Your support will help me continue working on open-source projects like [WSPR-beacon](#WSPR-beacon) and [Easy-SDR](https://github.com/IgrikXD/Easy-SDR), as well as create new useful tools for the community.
 
 [![Donate with PayPal](./Resources/PayPal-donate-button.png)](https://www.paypal.com/donate/?hosted_button_id=Q8PRFPXKKSDAQ)
