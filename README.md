@@ -23,7 +23,7 @@ The transmitted WSPR message's correctness was verified by decoding the transmis
 **PCB copper weight:** 1 oz  
 
 ## How to use this repository?
-The [Firmware](./Firmware/) folder contains software required for the device operation and [firmware instructions](./Firmware/README.md). The [Schematics](./Schematics/) directory contains the device schematic file in _.pdf_ format. The [Gerbers](./Gerbers/) directory contains files necessary for ordering PCB and side covers [fabrication at the factory](https://www.pcbway.com/project/shareproject/WSPR_beacon_f64d290a.html).  
+The [Firmware](./Firmware/) folder contains software required for the device operation and [firmware instructions](./Firmware/README.md). The [Schematics](./Schematics/) directory contains the device schematic file in _.pdf_ format. The [Gerbers](./Gerbers/) directory contains files necessary for ordering PCB and side covers [fabrication at the factory](https://www.pcbway.com/project/shareproject/WSPR_beacon_2_0_472264d9.html).  
 
 Additionally, you can find information about the [list of required components](./BOMs), [assembly guide](./Assembly-guide.md) and [operating instructions](./Usage-guide.md).
 
@@ -48,3 +48,8 @@ Great thanks to [PCBWay](https://pcbway.com) for manufacturing the PCBs for the 
 - LinkedIn: https://www.linkedin.com/in/igor-yatsevich/
 
 **You can also [contact me](https://t.me/igrikxd) to purchase preassembled devices.**
+
+## Contribution
+You can support my project and other developments by making a donation via PayPal. Your support will help me continue working on open-source projects like [WSPR-beacon](#WSPR-beacon) and [Easy-SDR](https://github.com/IgrikXD/Easy-SDR), as well as create new useful tools for the community.
+
+[![Donate with PayPal](./Resources/PayPal-donate-button.png)](https://www.paypal.com/donate/?hosted_button_id=Q8PRFPXKKSDAQ)
