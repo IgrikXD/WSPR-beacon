@@ -1,0 +1,1 @@
+pyinstaller --noconsole --onefile --icon=beaconapp/resources/beacon-app-logo.ico --add-data "beaconapp/resources/*;resources" beaconapp/main.py
