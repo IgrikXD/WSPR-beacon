@@ -9,6 +9,7 @@ on:
     branches: [ "master" ]
     paths:
       - 'App/**'
+  workflow_dispatch:
 
 jobs:
   build-windows:
