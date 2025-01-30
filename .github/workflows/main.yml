@@ -1,4 +1,4 @@
-name: Build BEACON.App with PyInstaller on Windows
+name: Build app
 
 on:
   push:
