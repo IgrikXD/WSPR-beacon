@@ -1,7 +1,7 @@
 import json
 import os
 
-CONFIG_FILE_NAME = "config.json"
+CONFIG_FILE_NAME = "config1.json"
 
 class Config:
     DEFAULT_CONFIG = {
