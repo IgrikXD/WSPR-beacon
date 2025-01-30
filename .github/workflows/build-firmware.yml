@@ -1,0 +1,46 @@
+name: Build WSPR-beacon firmware
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'Firmware/**/*.ino'
+  pull_request:
+    branches: [ "master" ]
+    paths:
+      - 'Firmware/**/*.ino'
+
+jobs:
+  build-firmware:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Arduino CLI
+        uses: arduino/setup-arduino-cli@v1
+        with:
+          version: 'latest'
+
+      - name: Install core
+        run: |
+          # Update the index of available cores
+          arduino-cli core update-index
+          # Install Arduino AVR core which includes support for Arduino Nano (Atmega328)
+          arduino-cli core install arduino:avr
+
+      - name: Compile firmware
+        run: |
+          for f in Firmware/*.ino; do
+            echo "Compiling $f"
+            arduino-cli compile --fqbn arduino:avr:nano:cpu=atmega328 $f
+          done
+
+      - name: Upload hex artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: compiled-firmware
+          path: |
+            **/*.hex
+            **/*.elf
