@@ -7,7 +7,7 @@ Open [Arduino IDE](https://www.arduino.cc/en/software), go to "_Tools_" -> "_Boa
 Connect the device to your computer via USB cable. Then, in the "_Tools_" -> "_Port_" menu, select the corresponding COM port.
 
 ## Verification of hardware operability after device assembly
-After assembling the device, you can upload [firmware for testing the hardware](./wspr-beacon-hardware-test.ino).
+After assembling the device, you can upload [firmware for testing the hardware](./wspr-beacon-hardware-test/wspr-beacon-hardware-test.ino).
 
 > [!NOTE]
 >This is an optional step, you can skip it. I recommend using this firmware if you encounter issues with the device's functionality when using the main wspr-beacon firmware.
@@ -31,7 +31,7 @@ For correct operation of the device you need to [calibrate](https://github.com/e
 > [!NOTE]
 >By default, the sketch for calibrating the SI5351 is set to operate with an output frequency of 10 MHz. If you do not have equipment that can operate at this frequency, you can use an SDR receiver like RTL-SDR.COM and a modified calibration sketch by changing the operating frequency to 28 MHz.
 
-Upload this [sketch](https://github.com/etherkit/Si5351Arduino/blob/master/examples/si5351_calibration/si5351_calibration.ino) into the device and perform the calibration. Calibration is performed once for each pair of SI5351 and TCXO. The resulting calibration value must be changed in the [_wspr-beacon-1.1.ino_](wspr-beacon-1.1.ino) file: 
+Upload this [sketch](https://github.com/etherkit/Si5351Arduino/blob/master/examples/si5351_calibration/si5351_calibration.ino) into the device and perform the calibration. Calibration is performed once for each pair of SI5351 and TCXO. The resulting calibration value must be changed in the [_wspr-beacon-1.1.ino_](./wspr-beacon-1.1/wspr-beacon-1.1.ino) file: 
 ```cpp
 #define SI5351_CAL_FACTOR          2000
 ```
