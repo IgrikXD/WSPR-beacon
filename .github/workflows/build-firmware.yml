@@ -36,9 +36,9 @@ jobs:
 
       - name: Compile firmware
         run: |
-          for f in Firmware/*.ino; do
-            echo "Compiling $f"
-            arduino-cli compile --fqbn arduino:avr:nano:cpu=atmega328 $f
+          for d in Firmware/*/; do
+            echo "Compiling $d"
+            arduino-cli compile --fqbn arduino:avr:nano:cpu=atmega328 "$d"
           done
 
       - name: Upload artifacts
