@@ -1,0 +1,43 @@
+name: Build app
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'App/**'
+  pull_request:
+    branches: [ "master" ]
+    paths:
+      - 'App/**'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r App/requirements.txt
+
+      - name: Build executable
+        run: |
+          pyinstaller --noconsole --onefile --icon=App/beaconapp/ui/resources/beacon-app-logo.ico \
+                      --add-data "App/beaconapp/ui/resources/*;ui/resources" \
+                      --name BeaconApp \
+                      App/beaconapp/main.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beaconapp
+          path: dist/BeaconApp.exe
