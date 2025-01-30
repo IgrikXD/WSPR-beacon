@@ -9,6 +9,7 @@ on:
     branches: [ "master" ]
     paths:
       - 'Firmware/**/*.ino'
+  workflow_dispatch:
 
 jobs:
   build-firmware:
