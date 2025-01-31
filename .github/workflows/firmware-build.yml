@@ -1,4 +1,4 @@
-name: Build firmware
+name: Firmware build
 
 on:
   push:
@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-firmware:
+  firmware-build:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,7 +24,7 @@ jobs:
       - name: Set up Arduino CLI
         uses: arduino/setup-arduino-cli@v2
 
-      - name: Build firmware
+      - name: Firmware build
         run: |
           for d in Firmware/*/; do
             echo "Compiling $d"
