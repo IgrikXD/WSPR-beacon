@@ -18,9 +18,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Python Linter
-        uses: sunnysid3up/python-linter@v0.1-beta.7
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -31,6 +28,10 @@ jobs:
           pip install --upgrade pip
           pip install pyinstaller
           pip install -r App/requirements.txt
+
+      - name: Lint code
+        run: |
+          flake8 App --statistics --count
 
       - name: Build executable
         run: |
