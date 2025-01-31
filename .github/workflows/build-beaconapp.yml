@@ -1,4 +1,4 @@
-name: Build app
+name: App build
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
       - 'App/**'
 
 jobs:
-  build-windows:
+  app-build:
     runs-on: windows-latest
 
     steps:
