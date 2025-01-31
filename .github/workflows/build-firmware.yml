@@ -5,10 +5,12 @@ on:
     branches: [ "master" ]
     paths:
       - 'Firmware/**/*.ino'
+      - 'Firmware/**/*.yml'
   pull_request:
     branches: [ "master" ]
     paths:
       - 'Firmware/**/*.ino'
+      - 'Firmware/**/*.yml'
   workflow_dispatch:
 
 jobs:
@@ -21,25 +23,12 @@ jobs:
 
       - name: Set up Arduino CLI
         uses: arduino/setup-arduino-cli@v2
- 
-      - name: Install core
-        run: |
-          arduino-cli core update-index
-          arduino-cli core install arduino:avr
 
-      - name: Install libraries
-        run: |
-          arduino-cli lib install "Etherkit JTEncode@1.3.1"
-          arduino-cli lib install "Etherkit Si5351@2.1.4"
-          arduino-cli lib install "Time@1.6.1"
-          arduino-cli lib install "TinyGPSPlus@1.0.3"
-
-      - name: Compile firmware
+      - name: Build firmware
         run: |
           for d in Firmware/*/; do
             echo "Compiling $d"
             arduino-cli compile \
-              --fqbn arduino:avr:nano:cpu=atmega328 \
               --export-binaries \
               "$d"
           done
