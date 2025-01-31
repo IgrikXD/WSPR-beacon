@@ -30,8 +30,7 @@ jobs:
           pip install -r App/requirements.txt
 
       - name: Lint code
-        run: |
-          flake8 App --statistics --count
+        uses: py-actions/flake8@v2
 
       - name: Build executable
         run: |
