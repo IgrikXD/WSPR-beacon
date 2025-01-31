@@ -55,7 +55,7 @@ Great thanks to [PCBWay](https://pcbway.com) for manufacturing the PCBs for the 
 
 You can also [contact me](https://t.me/igrikxd) to purchase preassembled devices.
 
-[Firmware-build-badge]: https://img.shields.io/github/actions/workflow/status/IgrikXD/WSPR-beacon/build-firmware.yml?&longCache=true&style=for-the-badge&label=Firmware%20build&logo=githubactions
+[Firmware-build-badge]: https://img.shields.io/github/actions/workflow/status/IgrikXD/WSPR-beacon/build-firmware.yml?&longCache=true&style=for-the-badge&label=Firmware%20build&logo=arduino
 
 [EasyEDA-badge]: https://img.shields.io/badge/EasyEDA%20WSPR--beacon-tested-greeen.svg?logo=easyeda&style=for-the-badge
 [BTC-badge]: https://img.shields.io/badge/BTC-Make%20a%20donation-orange.svg?logo=bitcoin&style=for-the-badge
