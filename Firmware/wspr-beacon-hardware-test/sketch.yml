@@ -1,0 +1,11 @@
+profiles:
+  build:
+    fqbn: arduino:avr:nano:cpu=atmega328
+    platforms:
+      - platform: arduino:avr (1.8.6)
+    libraries:
+      - Etherkit Si5351 (2.1.4)
+      - Time (1.6.1)
+      - TinyGPSPlus (1.0.3)
+
+default_profile: build
