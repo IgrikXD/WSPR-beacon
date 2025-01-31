@@ -31,15 +31,16 @@ jobs:
 
       - name: Lint code
         run: |
-          flake8 App \
-          --max-line-length 120
+          flake8 App `
+            --max-line-length 120
 
       - name: Build executable
         run: |
-          pyinstaller --noconsole --onefile --icon=App/beaconapp/ui/resources/beacon-app-logo.ico \
-                      --add-data "App/beaconapp/ui/resources/*;ui/resources" \
-                      --name BeaconApp \
-                      App/beaconapp/main.py
+          pyinstaller --noconsole --onefile `
+            --icon=App/beaconapp/ui/resources/beacon-app-logo.ico `
+            --add-data "App/beaconapp/ui/resources/*;ui/resources" `
+            --name BeaconApp `
+            App/beaconapp/main.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
