@@ -4,7 +4,7 @@
 Open [Arduino IDE](https://www.arduino.cc/en/software), go to "_Tools_" -> "_Board_", then select  "_Arduino Nano_".
 
 ## Choose the communication port:
-Connect the device to your computer via USB cable. Then, in the "_Tools_" -> "_Port_" menu, select the corresponding COM port.
+Connect the device to your computer via USB cable. Then, in the "_Tools_" -> "_Port_" menu, select the target COM port.
 
 ## Verification of hardware operability after device assembly
 After assembling the device, you can upload [firmware for testing the hardware](./wspr-beacon-hardware-test/wspr-beacon-hardware-test.ino).
@@ -14,7 +14,7 @@ After assembling the device, you can upload [firmware for testing the hardware](
 
 This firmware checks the correctness of the LEDs initialization (_visual inspection_), SI5351 IC initialization, the correctness of the serial connection with the GPS module, and GPS data synchronization.
 
-To get a report on the hardware functionality, upload the firmware, open the "_Tools_" -> "_Serial Monitor_" in the Arduino IDE, and turn on the device.
+To get a report on the hardware functionality, [builld and upload](#firmware-compilation) the [wspr-beacon-hardware-test](./wspr-beacon-hardware-test/wspr-beacon-hardware-test.ino) firmware, open the "_Tools_" -> "_Serial Monitor_" in the Arduino IDE, and turn on the device.
 
 **An example of an hardware test report:**
 ![Hardware test](../Resources/Hardware-test.png)
@@ -66,5 +66,16 @@ Enter your amateur radio call sign to generate a correct WSPR message:
 ```
 There is no need to specify your QTH locator, it will be calculated automatically by _void setQTHLocator()_ function based on actual GPS data.
 
+## Firmware compilation:
+Before compiling the firmware using Arduino IDE, you **need to install all the required dependencies**. You can automatically install all the necessary dependencies for firmware compilation using Arduino CLI. Download and extract the [latest version of Arduino CLI](https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Windows_64bit.zip) into the directory containing the firmware you want to build. Run the following command to automatically download dependencies and compile the firmware:
+```powershell
+./arduino-cli compile --export-binaries
+```
+
 ## Upload an firmware:
 Click the "_Upload_" button in the Arduino IDE to compile and upload firmware to the device.
+
+Alternatively, you can upload the precompiled _.hex_ file (_located in the build/arduino.avr.nano directory_) directly to the device using Arduino CLI:
+```powershell
+./arduino-cli upload --input-file build/arduino.avr.nano/<FIRMWARE_NAME>.hex --port <TARGET_PORT> --verify
+```
