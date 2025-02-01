@@ -3,7 +3,6 @@ name: App build
 on:
   workflow_run:
     workflows: ["App lint"]
-    branches: [ "master" ]
     types:
       - completed
   workflow_dispatch:
