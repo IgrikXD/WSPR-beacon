@@ -1,18 +1,16 @@
-name: Build app
+name: App build
 
 on:
-  push:
+  workflow_run:
+    workflows: ["App lint"]
     branches: [ "master" ]
-    paths:
-      - 'App/**'
-  pull_request:
-    branches: [ "master" ]
-    paths:
-      - 'App/**'
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
-  build-windows:
+  app-build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: windows-latest
 
     steps:
@@ -27,15 +25,16 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install pyinstaller
+          pip install pyinstaller==6.11.1
           pip install -r App/requirements.txt
 
       - name: Build executable
         run: |
-          pyinstaller --noconsole --onefile --icon=App/beaconapp/ui/resources/beacon-app-logo.ico \
-                      --add-data "App/beaconapp/ui/resources/*;ui/resources" \
-                      --name BeaconApp \
-                      App/beaconapp/main.py
+          pyinstaller --noconsole --onefile `
+            --icon=App/beaconapp/ui/resources/beacon-app-logo.ico `
+            --add-data "App/beaconapp/ui/resources/*;ui/resources" `
+            --name BeaconApp `
+            App/beaconapp/main.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
