@@ -11,7 +11,7 @@ setup(
     packages=find_packages(),
     package_data={
         'beaconapp': [
-            'resources/*.png',
+            'resources/*.png ',
             'resources/*.ico',
         ]
     },
