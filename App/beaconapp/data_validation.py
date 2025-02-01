@@ -1,5 +1,6 @@
 import re
 
+
 class DataValidation:
     @staticmethod
     def validate_tx_call_input(value):
