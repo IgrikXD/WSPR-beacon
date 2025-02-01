@@ -12,6 +12,7 @@ Your support helps me continue developing open-source projects like [WSPR-beacon
 ## Current development progress
 [![Progress][EasyEDA-badge]](https://oshwlab.com/igrikxd/wspr-beacon)&nbsp;[![Progress](https://img.shields.io/badge/latest%20pcb%20version-2.0-blue.svg?longCache=true&style=for-the-badge)](./Gerbers)  
 [![GitHub Actions: Firmware build status][Firmware-build-badge]](https://github.com/IgrikXD/WSPR-beacon/actions/workflows/firmware-build.yml)&nbsp;[![Progress](https://img.shields.io/badge/latest%20firmware%20version-1.1-blue.svg?longCache=true&style=for-the-badge)](./Firmware)  
+[![GitHub Actions: App build status][App-build-badge]](https://github.com/IgrikXD/WSPR-beacon/actions/workflows/app-build.yml)&nbsp;[![Progress](https://img.shields.io/badge/latest%20app%20version-1.0-blue.svg?longCache=true&style=for-the-badge)](./App) 
 
 The transmitted WSPR message's correctness was verified by decoding the transmission using a locally located Airspy R2 SDR receiver and the [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) application. Also, you can see the [results of testing the device during long-distance WSPR message transmission](./Device-test-report.md).
 
@@ -60,3 +61,4 @@ You can also [contact me](https://t.me/igrikxd) to purchase preassembled devices
 [Revolut-badge]: https://img.shields.io/badge/Revolut-Make%20a%20donation-black.svg?logo=data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+UmV2b2x1dDwvdGl0bGU+PHBhdGggZD0iTTIwLjkxMzMgNi45NTY2QzIwLjkxMzMgMy4xMjA4IDE3Ljc4OTggMCAxMy45NTAzIDBIMi40MjR2My44NjA1aDEwLjk3ODJjMS43Mzc2IDAgMy4xNzcgMS4zNjUxIDMuMjA4NyAzLjA0My4wMTYuODQtLjI5OTQgMS42MzMtLjg4NzggMi4yMzI0LS41ODg2LjU5OTgtMS4zNzUuOTMwMy0yLjIxNDQuOTMwM0g5LjIzMjJhLjI3NTYuMjc1NiAwIDAgMC0uMjc1NS4yNzUydjMuNDMxYzAgLjA1ODUuMDE4LjExNDIuMDUyLjE2MTJMMTYuMjY0NiAyNGg1LjMxMTRsLTcuMjcyNy0xMC4wOTRjMy42NjI1LS4xODM4IDYuNjEtMy4yNjEyIDYuNjEtNi45NDk0ek02Ljg5NDMgNS45MjI5SDIuNDI0VjI0aDQuNDcwNHoiLz48L3N2Zz4=&style=for-the-badge
 [EasyEDA-badge]: https://img.shields.io/badge/EasyEDA%20WSPR--beacon-tested-greeen.svg?logo=easyeda&style=for-the-badge
 [Firmware-build-badge]: https://img.shields.io/github/actions/workflow/status/IgrikXD/WSPR-beacon/firmware-build.yml?&longCache=true&style=for-the-badge&label=Firmware%20build&logo=arduino
+[App-build-badge]: https://img.shields.io/github/actions/workflow/status/IgrikXD/WSPR-beacon/app-build.yml?&longCache=true&style=for-the-badge&label=App%20build&logo=python
