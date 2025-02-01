@@ -5,10 +5,14 @@ on:
     branches: [ "master" ]
     paths:
       - 'App/**'
+    paths-ignore:
+      - '**/*.md'
   pull_request:
     branches: [ "master" ]
     paths:
       - 'App/**'
+    paths-ignore:
+      - '**/*.md'
   workflow_dispatch:
 
 jobs:
@@ -27,7 +31,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install flake8==7.1.1 pyinstaller==6.11.1
+          pip install flake8==7.1.1
 
       - name: Lint code
         run: |

@@ -5,16 +5,6 @@
 ## Building
 Download and install the [latest version of Python for Windows](https://www.python.org/ftp/python/3.13.1/python-3.13.1-amd64.exe).
 
-### pipx
-```sh
-git clone https://github.com/IgrikXD/WSPR-beacon.git
-cd WSPR-beacon/App
-pip install pipx
-pipx ensurepath
-pipx install .
-beacon-app
-```
-
 ### Building the executable File
 ```sh
 git clone https://github.com/IgrikXD/WSPR-beacon.git

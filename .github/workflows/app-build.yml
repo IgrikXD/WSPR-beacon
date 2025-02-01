@@ -3,10 +3,14 @@ name: App build
 on:
   workflow_run:
     workflows: ["App lint"]
+    branches: [ "master" ]
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
   app-build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: windows-latest
 
     steps:
@@ -21,6 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
+          pip install pyinstaller==6.11.1
           pip install -r App/requirements.txt
 
       - name: Build executable
