@@ -33,4 +33,3 @@ jobs:
         run: |
           flake8 App `
             --max-line-length 120
-        continue-on-error: true
