@@ -5,14 +5,10 @@ on:
     branches: [ "master" ]
     paths:
       - 'App/**'
-    paths-ignore:
-      - '**/*.md'
   pull_request:
     branches: [ "master" ]
     paths:
       - 'App/**'
-    paths-ignore:
-      - '**/*.md'
   workflow_dispatch:
 
 jobs:
@@ -35,5 +31,4 @@ jobs:
 
       - name: Lint code
         run: |
-          flake8 App `
-            --max-line-length 120
+          flake8 App --max-line-length 120
