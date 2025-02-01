@@ -1,0 +1,35 @@
+name: App lint
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'App/**'
+  pull_request:
+    branches: [ "master" ]
+    paths:
+      - 'App/**'
+  workflow_dispatch:
+
+jobs:
+  app-build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install flake8==7.1.1 pyinstaller==6.11.1
+
+      - name: Lint code
+        run: |
+          flake8 App `
+            --max-line-length 120

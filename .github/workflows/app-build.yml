@@ -1,14 +1,11 @@
 name: App build
 
 on:
-  push:
+  workflow_run:
+    workflows: ["App lint"]
     branches: [ "master" ]
-    paths:
-      - 'App/**'
-  pull_request:
-    branches: [ "master" ]
-    paths:
-      - 'App/**'
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
@@ -27,13 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install flake8==7.1.1 pyinstaller==6.11.1
           pip install -r App/requirements.txt
-
-      - name: Lint code
-        run: |
-          flake8 App `
-            --max-line-length 120
 
       - name: Build executable
         run: |
