@@ -3,8 +3,6 @@ name: App build
 on:
   workflow_run:
     workflows: ["App lint"]
-    types:
-      - completed
   workflow_dispatch:
 
 jobs:
