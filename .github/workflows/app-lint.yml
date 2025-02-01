@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  app-build:
+  app-lint:
     runs-on: windows-latest
 
     steps:
