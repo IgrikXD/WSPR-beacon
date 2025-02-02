@@ -35,6 +35,7 @@ jobs:
           pyinstaller --noconsole --onefile `
             --icon=App/beaconapp/ui/resources/beacon-app-logo.ico `
             --add-data "App/beaconapp/ui/resources/*;ui/resources" `
+            --exclude-module beaconapp.tests `
             --name BeaconApp `
             App/beaconapp/main.py
 
