@@ -1,5 +1,5 @@
 # BeaconApp
-A Windows GUI application for working with a WSPR beacon based on an ESP32 MCU. 
+A Windows GUI application for working with a [WSPR beacon](https://github.com/IgrikXD/WSPR-beacon?tab=readme-ov-file#wspr-beacon) based on an ESP32 MCU. 
 It uses communication with the device via a serial port to configure transmission parameters, hardware self-check, and set up the device (_calibration, Wi-Fi connection_).
 ![BeaconApp](../Resources/BeaconApp-Transmission-frame.png)
 
@@ -18,7 +18,10 @@ There are two possible ways to use the application: [creating a monolithic execu
 ```powershell
 pip install --upgrade pip
 pip install pyinstaller==6.11.1
-pyinstaller --noconsole --onefile --icon=beaconapp/ui/resources/beacon-app-logo.ico --add-data "beaconapp/ui/resources/*;ui/resources" --name BeaconApp beaconapp/main.py
+pyinstaller --noconsole --onefile `
+    --icon=beaconapp/ui/resources/beacon-app-logo.ico `
+    --add-data "beaconapp/ui/resources/*;ui/resources" `
+    --name BeaconApp beaconapp/main.py
 ```
 
 ### Launching the application without building the executable file
