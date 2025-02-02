@@ -6,21 +6,23 @@ It uses communication with the device via a serial port to configure transmissio
 ## Building
 Download and install the [latest version of Python for Windows](https://www.python.org/ftp/python/3.13.1/python-3.13.1-amd64.exe).
 
-### Clone repository
+### Clone repository & install dependency
 ```powershell
 git clone https://github.com/IgrikXD/WSPR-beacon.git
 cd WSPR-beacon/App
+pip install --upgrade pip
+pip install -r App/requirements.txt
 ```
 
 There are two possible ways to use the application: [creating a monolithic executable file](#building-the-executable-file) (_recommended_) and [running the application from the source code](#launching-the-application-without-building-the-executable-file) without prior build.
 
 ### Building the executable file
 ```powershell
-pip install --upgrade pip
 pip install pyinstaller==6.11.1
 pyinstaller --noconsole --onefile `
     --icon=beaconapp/ui/resources/beacon-app-logo.ico `
     --add-data "beaconapp/ui/resources/*;ui/resources" `
+    --exclude-module beaconapp.tests `
     --name BeaconApp beaconapp/main.py
 ```
 
