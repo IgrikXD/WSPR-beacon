@@ -25,6 +25,7 @@ pyinstaller --noconsole --onefile `
     --exclude-module beaconapp.tests `
     --name BeaconApp beaconapp/main.py
 ```
+After the build is complete, you can run the executable file located in the `dist` directory.
 
 ### Launching the application without building the executable file
 ```powershell
