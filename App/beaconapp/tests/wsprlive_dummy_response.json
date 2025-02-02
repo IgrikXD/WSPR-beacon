@@ -1,0 +1,320 @@
+{
+        "meta":
+        [
+                {
+                        "name": "id",
+                        "type": "UInt64"
+                },
+                {
+                        "name": "time",
+                        "type": "DateTime"
+                },
+                {
+                        "name": "band",
+                        "type": "Int16"
+                },
+                {
+                        "name": "rx_sign",
+                        "type": "LowCardinality(String)"
+                },
+                {
+                        "name": "rx_lat",
+                        "type": "Float32"
+                },
+                {
+                        "name": "rx_lon",
+                        "type": "Float32"
+                },
+                {
+                        "name": "rx_loc",
+                        "type": "LowCardinality(String)"
+                },
+                {
+                        "name": "tx_sign",
+                        "type": "LowCardinality(String)"
+                },
+                {
+                        "name": "tx_lat",
+                        "type": "Float32"
+                },
+                {
+                        "name": "tx_lon",
+                        "type": "Float32"
+                },
+                {
+                        "name": "tx_loc",
+                        "type": "LowCardinality(String)"
+                },
+                {
+                        "name": "distance",
+                        "type": "UInt16"
+                },
+                {
+                        "name": "azimuth",
+                        "type": "UInt16"
+                },
+                {
+                        "name": "rx_azimuth",
+                        "type": "UInt16"
+                },
+                {
+                        "name": "frequency",
+                        "type": "UInt32"
+                },
+                {
+                        "name": "power",
+                        "type": "Int8"
+                },
+                {
+                        "name": "snr",
+                        "type": "Int8"
+                },
+                {
+                        "name": "drift",
+                        "type": "Int8"
+                },
+                {
+                        "name": "version",
+                        "type": "LowCardinality(String)"
+                },
+                {
+                        "name": "code",
+                        "type": "Int8"
+                }
+        ],
+
+        "data":
+        [
+                {
+                        "id": "8005340295",
+                        "time": "2024-07-14 20:20:00",
+                        "band": 144,
+                        "rx_sign": "TF4M",
+                        "rx_lat": 65.646,
+                        "rx_lon": -23.542,
+                        "rx_loc": "HP85fp",
+                        "tx_sign": "N0CALL",
+                        "tx_lat": 55.479,
+                        "tx_lon": 22.958,
+                        "tx_loc": "XX00",
+                        "distance": 2849,
+                        "azimuth": 318,
+                        "rx_azimuth": 99,
+                        "frequency": 14439997,
+                        "power": 23,
+                        "snr": -13,
+                        "drift": 0,
+                        "version": "1.4A Kiwi",
+                        "code": 1
+                },
+                {
+                        "id": "8005333375",
+                        "time": "2024-07-14 20:20:00",
+                        "band": 144,
+                        "rx_sign": "TF4M",
+                        "rx_lat": 65.646,
+                        "rx_lon": -23.542,
+                        "rx_loc": "HP85fp",
+                        "tx_sign": "N0CALL",
+                        "tx_lat": 55.479,
+                        "tx_lon": 22.958,
+                        "tx_loc": "XX00",
+                        "distance": 2849,
+                        "azimuth": 318,
+                        "rx_azimuth": 99,
+                        "frequency": 14440065,
+                        "power": 23,
+                        "snr": -15,
+                        "drift": 0,
+                        "version": "1.4A Kiwi",
+                        "code": 1
+                },
+                {
+                        "id": "8005383740",
+                        "time": "2024-07-14 20:20:00",
+                        "band": 144,
+                        "rx_sign": "TF4M",
+                        "rx_lat": 65.646,
+                        "rx_lon": -23.542,
+                        "rx_loc": "HP85fp",
+                        "tx_sign": "N0CALL",
+                        "tx_lat": 55.479,
+                        "tx_lon": 22.958,
+                        "tx_loc": "XX00",
+                        "distance": 2849,
+                        "azimuth": 318,
+                        "rx_azimuth": 99,
+                        "frequency": 14440132,
+                        "power": 23,
+                        "snr": -14,
+                        "drift": 0,
+                        "version": "1.4A Kiwi",
+                        "code": 1
+                },
+                {
+                        "id": "8005304582",
+                        "time": "2024-07-14 20:10:00",
+                        "band": 144,
+                        "rx_sign": "LA5OUA",
+                        "rx_lat": 70.146,
+                        "rx_lon": 28.542,
+                        "rx_loc": "KQ40gd",
+                        "tx_sign": "N0CALL",
+                        "tx_lat": 55.479,
+                        "tx_lon": 22.958,
+                        "tx_loc": "XX00",
+                        "distance": 2002,
+                        "azimuth": 8,
+                        "rx_azimuth": 195,
+                        "frequency": 14440071,
+                        "power": 23,
+                        "snr": -23,
+                        "drift": 0,
+                        "version": "2.2.158",
+                        "code": 1
+                },
+                {
+                        "id": "8005377050",
+                        "time": "2024-07-14 20:10:00",
+                        "band": 144,
+                        "rx_sign": "LA5OUA",
+                        "rx_lat": 70.146,
+                        "rx_lon": 28.542,
+                        "rx_loc": "KQ40gd",
+                        "tx_sign": "N0CALL",
+                        "tx_lat": 55.479,
+                        "tx_lon": 22.958,
+                        "tx_loc": "XX00",
+                        "distance": 2002,
+                        "azimuth": 8,
+                        "rx_azimuth": 195,
+                        "frequency": 14440140,
+                        "power": 23,
+                        "snr": -22,
+                        "drift": 0,
+                        "version": "2.2.158",
+                        "code": 1
+                },
+                {
+                        "id": "8005347684",
+                        "time": "2024-07-14 20:10:00",
+                        "band": 144,
+                        "rx_sign": "LA5OUA",
+                        "rx_lat": 70.146,
+                        "rx_lon": 28.542,
+                        "rx_loc": "KQ40gd",
+                        "tx_sign": "N0CALL",
+                        "tx_lat": 55.479,
+                        "tx_lon": 22.958,
+                        "tx_loc": "XX00",
+                        "distance": 2002,
+                        "azimuth": 8,
+                        "rx_azimuth": 195,
+                        "frequency": 14440178,
+                        "power": 23,
+                        "snr": -22,
+                        "drift": 0,
+                        "version": "2.2.158",
+                        "code": 1
+                },
+                {
+                        "id": "8005411407",
+                        "time": "2024-07-14 20:00:00",
+                        "band": 144,
+                        "rx_sign": "LA5OUA",
+                        "rx_lat": 70.146,
+                        "rx_lon": 28.542,
+                        "rx_loc": "KQ40gd",
+                        "tx_sign": "N0CALL",
+                        "tx_lat": 55.479,
+                        "tx_lon": 22.958,
+                        "tx_loc": "XX00",
+                        "distance": 2002,
+                        "azimuth": 8,
+                        "rx_azimuth": 195,
+                        "frequency": 14440126,
+                        "power": 23,
+                        "snr": -22,
+                        "drift": 0,
+                        "version": "2.2.158",
+                        "code": 1
+                },
+                {
+                        "id": "8005312966",
+                        "time": "2024-07-14 20:00:00",
+                        "band": 144,
+                        "rx_sign": "SV8FET",
+                        "rx_lat": 37.396,
+                        "rx_lon": 24.958,
+                        "rx_loc": "KM27lj",
+                        "tx_sign": "N0CALL",
+                        "tx_lat": 55.479,
+                        "tx_lon": 22.958,
+                        "tx_loc": "XX00",
+                        "distance": 1706,
+                        "azimuth": 168,
+                        "rx_azimuth": 350,
+                        "frequency": 14440087,
+                        "power": 23,
+                        "snr": -19,
+                        "drift": 0,
+                        "version": "2.1.2",
+                        "code": 1
+                },
+                {
+                        "id": "8005334896",
+                        "time": "2024-07-14 20:00:00",
+                        "band": 144,
+                        "rx_sign": "SV8FET",
+                        "rx_lat": 37.396,
+                        "rx_lon": 24.958,
+                        "rx_loc": "KM27lj",
+                        "tx_sign": "N0CALL",
+                        "tx_lat": 55.479,
+                        "tx_lon": 22.958,
+                        "tx_loc": "XX00",
+                        "distance": 1706,
+                        "azimuth": 168,
+                        "rx_azimuth": 350,
+                        "frequency": 14440004,
+                        "power": 23,
+                        "snr": -21,
+                        "drift": 0,
+                        "version": "2.1.2",
+                        "code": 1
+                },
+                {
+                        "id": "8005348950",
+                        "time": "2024-07-14 20:00:00",
+                        "band": 144,
+                        "rx_sign": "SV8FET",
+                        "rx_lat": 37.396,
+                        "rx_lon": 24.958,
+                        "rx_loc": "KM27lj",
+                        "tx_sign": "N0CALL",
+                        "tx_lat": 55.479,
+                        "tx_lon": 22.958,
+                        "tx_loc": "XX00",
+                        "distance": 1706,
+                        "azimuth": 168,
+                        "rx_azimuth": 350,
+                        "frequency": 14440177,
+                        "power": 23,
+                        "snr": -22,
+                        "drift": 0,
+                        "version": "2.1.2",
+                        "code": 1
+                }
+        ],
+
+        "rows": 10,
+
+        "rows_before_limit_at_least": 1179,
+
+        "statistics":
+        {
+                "elapsed": 1.70730678,
+                "rows_read": 2943609217,
+                "bytes_read": 5887370555
+        }
+}
