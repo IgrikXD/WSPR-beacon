@@ -123,7 +123,7 @@ class Device:
                 self.get_device_info()
                 threading.Thread(target=self._handle_device_disconnect, daemon=True).start()
                 break
-    
+
     def _handle_device_disconnect(self):
         while True:
             device_found = False
@@ -131,11 +131,12 @@ class Device:
                 if self.device_name in port.description:
                     device_found = True
                     break
-            
+
             self.device_connected = device_found
 
             if not self.device_connected:
-                self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CONNECTION_STATUS, Device.ConnectionStatus.NOT_CONNECTED))
+                self.rx_queue.put(DeviceMessage(
+                    Device.IncomingMessageType.CONNECTION_STATUS, Device.ConnectionStatus.NOT_CONNECTED))
                 threading.Thread(target=self._establish_connection, daemon=True).start()
                 break
 

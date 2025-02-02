@@ -64,10 +64,10 @@ class BeaconApp(customtkinter.CTk):
                                                                 "disabled" if connection is
                                                                 Device.ConnectionStatus.NOT_CONNECTED else "normal"),
                                                             lambda connection: self_check_frame.change_state(
-                                                                "disabled" if connection is 
+                                                                "disabled" if connection is
                                                                 Device.ConnectionStatus.NOT_CONNECTED else "normal"),
                                                             lambda connection: settings_frame.change_state(
-                                                                "disabled" if connection is 
+                                                                "disabled" if connection is
                                                                 Device.ConnectionStatus.NOT_CONNECTED else "normal")],
             Device.IncomingMessageType.CAL_VALUE:          [settings_frame.set_calibration_value],
             Device.IncomingMessageType.CAL_FREQ_GENERATED: [settings_frame.set_calibration_freq_status,

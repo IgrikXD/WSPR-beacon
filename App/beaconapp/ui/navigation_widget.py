@@ -89,10 +89,10 @@ class NavigationWidget:
                 - If the value is Device.ConnectionStatus.NOT_CONNECTED, the label displays "Not connected!".
                 - Otherwise, the label displays "Connected (STATUS)", where STATUS is the name of the connection type.
         """
-        text=f"Not connected!"
+        text = "Not connected!"
 
         if connection_status is not Device.ConnectionStatus.NOT_CONNECTED:
-            text=f"Connected ({connection_status.name})"
+            text = f"Connected ({connection_status.name})"
 
         self.device_connection_status.after(0, lambda: self.device_connection_status.configure(text=text))
 
