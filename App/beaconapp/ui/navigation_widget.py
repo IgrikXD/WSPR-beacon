@@ -80,17 +80,21 @@ class NavigationWidget:
         """
         self.frames = {name: frame.general_frame for name, frame in frames.items()}
 
-    def set_connection_status(self, connection_type: Device.ConnectionType):
+    def set_connection_status(self, connection_status: Device.ConnectionStatus):
         """
         Updates the device connection status label to reflect the current connection type.
 
         Args:
-            connection_type (Device.ConnectionType): The type of connection to display (e.g., USB, WIFI).
+            connection_status (Device.ConnectionStatus): The current connection status of the device.
+                - If the value is Device.ConnectionStatus.NOT_CONNECTED, the label displays "Not connected!".
+                - Otherwise, the label displays "Connected (STATUS)", where STATUS is the name of the connection type.
         """
-        self.device_connection_status.after(
-            0,
-            lambda: self.device_connection_status.configure(text=f"Connected ({connection_type.name})")
-        )
+        text=f"Not connected!"
+
+        if connection_status is not Device.ConnectionStatus.NOT_CONNECTED:
+            text=f"Connected ({connection_status.name})"
+
+        self.device_connection_status.after(0, lambda: self.device_connection_status.configure(text=text))
 
     def select_frame_by_name(self, name):
         """

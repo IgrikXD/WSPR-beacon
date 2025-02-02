@@ -25,9 +25,10 @@ class Device:
         AUTO = 1
         MANUAL = 2
 
-    class ConnectionType(Enum):
-        USB = 1
-        WIFI = 2
+    class ConnectionStatus(Enum):
+        NOT_CONNECTED = 1
+        USB = 2
+        WIFI = 3
 
     class IncomingMessageType(Enum):
         # TX related messages
@@ -45,7 +46,7 @@ class Device:
         # Settings related messages
         CAL_VALUE = 11
         CAL_FREQ_GENERATED = 12
-        CONNECTION_TYPE = 13
+        CONNECTION_STATUS = 13
         WIFI_STATUS = 14
 
     class OutgoingMessageType(Enum):
@@ -66,7 +67,7 @@ class Device:
         self.tx_queue = queue.Queue()
         self.rx_queue = queue.Queue()
 
-        self.device_connected = True
+        self.device_connected = False
         self.device_name = device_name
 
         threading.Thread(target=self._handle_device_response, daemon=True).start()
@@ -120,6 +121,22 @@ class Device:
 
             if self.device_connected:
                 self.get_device_info()
+                threading.Thread(target=self._handle_device_disconnect, daemon=True).start()
+                break
+    
+    def _handle_device_disconnect(self):
+        while True:
+            device_found = False
+            for port in serial.tools.list_ports.comports():
+                if self.device_name in port.description:
+                    device_found = True
+                    break
+            
+            self.device_connected = device_found
+
+            if not self.device_connected:
+                self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CONNECTION_STATUS, Device.ConnectionStatus.NOT_CONNECTED))
+                threading.Thread(target=self._establish_connection, daemon=True).start()
                 break
 
     def _handle_device_response(self):
@@ -246,7 +263,7 @@ class Device:
         # self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.ACTIVE_TX_MODE, copy.deepcopy(active_tx_mode)))
         # self.mode_queue.put(copy.deepcopy(active_tx_mode))
         self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.ACTIVE_TX_MODE, ActiveTXMode()))
-        self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CONNECTION_TYPE, Device.ConnectionType.USB))
+        self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CONNECTION_STATUS, Device.ConnectionStatus.USB))
         self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.HARDWARE_INFO, "3.0"))
         self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.FIRMWARE_INFO, "2.0"))
         self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CAL_STATUS, True))
@@ -261,7 +278,7 @@ class Device:
               f"{wifi_credentials.wifi_access_point_password}")
         time.sleep(3)
         self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.WIFI_STATUS, False))
-        # self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CONNECTION_TYPE, ConnectionType.WIFI))
+        # self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CONNECTION_STATUS, ConnectionStatus.WIFI))
 
     def SIM_genCalFrequency(self, frequency):
         if frequency:
