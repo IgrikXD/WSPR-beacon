@@ -37,6 +37,7 @@ class TransmissionWidget:
             state="disabled",
             tabs=["WSPR"]
         )
+        self.mode_selection_view.set(self.active_tx_mode.transmission_mode.name)
 
         # WSPR mode frame
         wspr_mode_frame = Widgets.create_background_frame(self.mode_selection_view.tab("WSPR"), row=1, padx=10)
@@ -338,7 +339,7 @@ class TransmissionWidget:
         self.reset_mode_button.configure(state="disabled")
 
         # Update active TX mode info
-        self.active_tx_mode.set(
+        self.active_tx_mode = ActiveTXMode(
             TransmissionMode.WSPR,
             self.wspr_tx_call_entry.get(),
             self.wspr_qth_locator_entry.get(),
