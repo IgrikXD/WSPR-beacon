@@ -471,3 +471,30 @@ class Widgets:
         label.grid(row=5, column=0, padx=20, pady=20, sticky="s")
 
         return label
+    
+    @staticmethod
+    def create_button_with_action_status(parent, text, button_text, button_command):
+        background_frame = Widgets.create_background_frame(
+            parent,
+            row=1,
+            text=text
+        )
+
+        action_label = customtkinter.CTkLabel(
+            background_frame,
+            width=160,
+            text="",
+            anchor="w"
+        )
+        action_label.grid(row=0, column=0, padx=(80, 0), pady=5, sticky="w")
+
+        button = customtkinter.CTkButton(
+            background_frame,
+            width=160,
+            text=button_text,
+            state="disabled",
+            command=button_command
+        )
+        button.grid(row=0, column=1, padx=(0, 10), pady=5)
+
+        return action_label, button

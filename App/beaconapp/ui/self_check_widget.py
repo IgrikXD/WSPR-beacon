@@ -19,30 +19,13 @@ class SelfCheckWidget:
         # Hardware test label
         Widgets.create_block_label(self.general_frame, row=0, text="Hardware test")
 
-        self.self_check_background_frame = Widgets.create_background_frame(
+        # Self-check -> Hardware test -> Self-check
+        self.self_check_action_label, self.run_checks_button = Widgets.create_button_with_action_status(
             self.general_frame,
-            row=1,
-            text="Self-check:"
+            text="Self-check:",
+            button_text="Run checks",
+            button_command=self._run_checks_button_pressed
         )
-
-        # Self-check -> Hardware test -> Self-check action status label
-        self.self_check_action_label = customtkinter.CTkLabel(
-            self.self_check_background_frame,
-            width=160,
-            text="",
-            anchor="w"
-        )
-        self.self_check_action_label.grid(row=0, column=0, padx=(80, 0), pady=5, sticky="w")
-
-        # Self-check -> Hardware test -> Run checks
-        self.run_checks_button = customtkinter.CTkButton(
-            self.self_check_background_frame,
-            width=160,
-            text="Run checks",
-            state="disabled",
-            command=self._run_checks_button_pressed
-        )
-        self.run_checks_button.grid(row=0, column=1, padx=(0, 10), pady=5)
 
         # Self-check -> Hardware test -> Hardware version
         self.hardware_version_entry = Widgets.create_entry_with_background_frame(
