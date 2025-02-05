@@ -5,38 +5,67 @@ from PIL import Image
 class Widgets:
     @staticmethod
     def _apply_validation(entry, validation):
-        """Apply validation to an entry widget."""
+        """
+        Applies validation to an entry widget, if a validation function is provided.
+
+        Args:
+            entry (CTkEntry): The entry widget to which validation will be applied.
+            validation (callable): The validation function that should be called on key events.
+        """
         if validation:
+            # register() wraps the validation function so Tkinter can use it
             validate_cmd = entry.register(validation)
+            # validate="key": triggers validation on each keypress
+            # "%P": current text in the entry if the edit is allowed
             entry.configure(validate="key", validatecommand=(validate_cmd, "%P"))
 
     @staticmethod
     def _apply_binding(widget, bind_actions):
         """
         Applies event bindings to a widget.
+
+        Args:
+            widget (widget): The widget to bind events to.
+            bind_actions (tuple or list of tuples): Single tuple (event, callback) or list of tuples.
         """
         if bind_actions:
-            # If the first element of bind_actions is a string,
-            # it means we only have one event-callback pair.
+            # If the first element of bind_actions is a string, treat it as a single event/callback pair
             if isinstance(bind_actions[0], str):
                 widget.bind(*bind_actions)
             else:
-                # Otherwise, we assume bind_actions is a list of event-callback pairs.
+                # Otherwise, assume it's a list of event/callback pairs
                 for action in bind_actions:
                     widget.bind(*action)
 
     @staticmethod
     def _set_default_value(entry, default_value):
-        """Set a default value in an entry widget."""
-        if default_value is not None:
+        """
+        Inserts a default value into an entry widget if provided.
+
+        Args:
+            entry (CTkEntry): The entry widget to set the default value in.
+            default_value (str): The default text to insert.
+        """
+        if default_value:
             entry.insert(0, default_value)
 
     @staticmethod
     def create_background_frame(parent, row, padx=20, text=None, optimize_for_scrollable=False):
         """
-        Creates a customizable frame with an optional label text.
+        Creates a reusable background frame with optional label text. 
+        If 'optimize_for_scrollable' is True, adjusts padding for scrollability.
+
+        Args:
+            parent (widget): Parent widget in which to place the frame.
+            row (int): The row index for the grid layout.
+            padx (int or tuple): Horizontal padding. Can be a single int or a (left, right) tuple.
+            text (str): Optional text for a label placed at the top-left of the frame.
+            optimize_for_scrollable (bool): If True, adjusts padding for scrollable areas.
+
+        Returns:
+            CTkFrame: The created frame widget.
         """
-        # Adjust padding if it is intended for scrollable content
+        # Adjust padding for scrollable frame usage
         padx = (20, 5) if optimize_for_scrollable else padx
 
         frame = customtkinter.CTkFrame(parent)
@@ -55,10 +84,17 @@ class Widgets:
     @staticmethod
     def create_navigation_background_frame(parent):
         """
-        Creates a navigation frame with a specific layout.
+        Creates a navigation frame with a specific layout used as sidebar.
+
+        Args:
+            parent (widget): Parent widget in which to place the frame.
+
+        Returns:
+            CTkFrame: The created navigation frame widget.
         """
         frame = customtkinter.CTkFrame(parent, corner_radius=0)
         frame.grid(row=0, column=0, sticky="nsew")
+        # This ensures row 5 stretches to fill available space
         frame.grid_rowconfigure(5, weight=1)
 
         return frame
@@ -67,6 +103,14 @@ class Widgets:
     def create_block_label(parent, row, text):
         """
         Creates a bold label with specific styling.
+
+        Args:
+            parent (widget): Parent widget in which to place the label.
+            row (int): The row index for the grid layout.
+            text (str): The text to display in the label.
+
+        Returns:
+            CTkLabel: The created label widget.
         """
         label = customtkinter.CTkLabel(
             parent,
@@ -76,6 +120,7 @@ class Widgets:
             anchor="w"
         )
         label.grid(row=row, column=0, padx=20, pady=(20, 5), sticky="nsew")
+
         return label
 
     @staticmethod
@@ -94,6 +139,22 @@ class Widgets:
     ):
         """
         Creates a background frame with a label, an entry field, and two control buttons.
+
+        Args:
+            parent (widget): Parent widget in which to place the elements.
+            row (int): The row index for the grid layout.
+            text (str): The label text.
+            state (str): The state of the entry and buttons (e.g., "normal" or "disabled").
+            bind_action (tuple or list): Event binding(s) for the entry.
+            validation (callable): Validation function for the entry.
+            first_button_text (str): Text for the first button.
+            first_button_command (callable): Callback function for the first button.
+            second_button_text (str): Text for the second button.
+            second_button_command (callable): Callback function for the second button.
+            optimize_for_scrollable (bool): If True, adjusts padding for scrollable areas.
+
+        Returns:
+            tuple: (CTkEntry, CTkButton, CTkButton)
         """
         background_frame = Widgets.create_background_frame(
             parent,
@@ -102,13 +163,12 @@ class Widgets:
             optimize_for_scrollable=optimize_for_scrollable
         )
 
-        # Create the entry widget
         entry = customtkinter.CTkEntry(background_frame, width=160, state=state)
         entry.grid(row=0, column=3, padx=(0, 10), pady=5)
+
         Widgets._apply_binding(entry, bind_action)
         Widgets._apply_validation(entry, validation)
 
-        # First control button
         first_control_button = customtkinter.CTkButton(
             background_frame,
             width=25,
@@ -118,7 +178,6 @@ class Widgets:
         )
         first_control_button.grid(row=0, column=2, padx=(0, 5), pady=5)
 
-        # Second control button
         second_control_button = customtkinter.CTkButton(
             background_frame,
             width=25,
@@ -142,7 +201,20 @@ class Widgets:
         optimize_for_scrollable=False
     ):
         """
-        Creates a background frame with a label and an entry widget.
+        Creates a background frame with a label and a single entry widget.
+
+        Args:
+            parent (widget): Parent widget to contain the frame and entry.
+            row (int): The row in the grid layout.
+            text (str): Text for the label placed in the frame.
+            placeholder_text (str): Placeholder text for the entry.
+            state (str): The entry state (e.g., "normal", "disabled").
+            bind_action (tuple or list): Event binding(s) for the entry.
+            validation (callable): Validation function for the entry.
+            optimize_for_scrollable (bool): If True, adjusts padding for scrollable areas.
+
+        Returns:
+            CTkEntry: The created entry widget.
         """
         frame = Widgets.create_background_frame(
             parent,
@@ -150,6 +222,7 @@ class Widgets:
             text=text,
             optimize_for_scrollable=optimize_for_scrollable
         )
+
         entry = customtkinter.CTkEntry(
             frame,
             placeholder_text=placeholder_text,
@@ -166,11 +239,18 @@ class Widgets:
     @staticmethod
     def create_logo_label(parent, text, image_path):
         """
-        Creates and places the application logo label.
+        Creates and places a logo label, with an image and text side-by-side.
+
+        Args:
+            parent (widget): The parent widget in which to place the logo label.
+            text (str): The text to display beside the logo.
+            image_path (str): The file path to the logo image.
         """
+        # Load and resize the image
         logo_image = customtkinter.CTkImage(
             Image.open(image_path), size=(45, 45)
         )
+
         logo_label = customtkinter.CTkLabel(
             parent,
             text=f"  {text}",
@@ -193,6 +273,19 @@ class Widgets:
     ):
         """
         Creates a background frame with a label and an option menu.
+
+        Args:
+            parent (widget): Parent widget to contain the frame and option menu.
+            row (int): The row in the grid layout.
+            text (str): The label text.
+            values (list): List of option values to display.
+            command (callable): Callback when an option is selected.
+            default_value (str): The default selected value.
+            state (str): The state of the option menu (e.g., "normal", "disabled").
+            optimize_for_scrollable (bool): If True, adjusts padding for scrollable areas.
+
+        Returns:
+            CTkOptionMenu: The created option menu widget.
         """
         frame = Widgets.create_background_frame(
             parent,
@@ -200,6 +293,7 @@ class Widgets:
             text=text,
             optimize_for_scrollable=optimize_for_scrollable
         )
+
         option_menu = customtkinter.CTkOptionMenu(
             frame,
             values=values,
@@ -210,9 +304,7 @@ class Widgets:
             dynamic_resizing=False
         )
         option_menu.grid(row=0, column=1, padx=(0, 10), sticky="w")
-
-        if default_value:
-            option_menu.set(default_value)
+        option_menu.set(default_value)
 
         return option_menu
 
@@ -231,7 +323,23 @@ class Widgets:
         optimize_for_scrollable=False
     ):
         """
-        Creates a background frame with a label, an option menu, and a button.
+        Creates a background frame with a label, an option menu, and a button in one row.
+
+        Args:
+            parent (widget): Parent widget.
+            row (int): The row in the grid layout.
+            text (str): Label text for the frame.
+            options (list): The list of options for the option menu.
+            option_command (callable): Callback for when an option is selected.
+            button_text (str): The text displayed on the button.
+            button_command (callable): The function called when the button is clicked.
+            option_state (str): The state of the option menu (e.g., "normal", "disabled").
+            option_default_value (str): Default value for the option menu.
+            button_state (str): The state of the button (e.g., "normal", "disabled").
+            optimize_for_scrollable (bool): If True, adjusts padding for scrollable areas.
+
+        Returns:
+            tuple: (CTkButton, CTkOptionMenu)
         """
         frame = Widgets.create_background_frame(
             parent,
@@ -250,9 +358,7 @@ class Widgets:
             dynamic_resizing=False
         )
         option_menu.grid(row=0, column=1, padx=(0, 10), sticky="w")
-
-        if option_default_value:
-            option_menu.set(option_default_value)
+        option_menu.set(option_default_value)
 
         button = customtkinter.CTkButton(
             frame,
@@ -280,7 +386,23 @@ class Widgets:
         optimize_for_scrollable=False
     ):
         """
-        Creates a background frame with a label, an entry, and a button.
+        Creates a background frame with a label, an entry, and a button in one row.
+
+        Args:
+            parent (widget): Parent widget.
+            row (int): The row in the grid layout.
+            text (str): Label text in the frame.
+            button_text (str): Text displayed on the button.
+            button_state (str): The state of the button (e.g., "normal", "disabled").
+            button_command (callable): The callback function for the button.
+            entry_state (str): The state of the entry (e.g., "normal", "disabled").
+            entry_validation (callable): Validation function for the entry.
+            entry_bind_action (tuple or list): Event binding(s) for the entry.
+            entry_default_value (str): Default text inserted into the entry.
+            optimize_for_scrollable (bool): If True, adjusts padding for scrollable areas.
+
+        Returns:
+            tuple: (CTkButton, CTkEntry)
         """
         frame = Widgets.create_background_frame(
             parent,
@@ -293,11 +415,11 @@ class Widgets:
         entry.grid(row=0, column=1, padx=(0, 10), pady=5, sticky="w")
 
         Widgets._set_default_value(entry, entry_default_value)
-        if entry_state:
-            entry.configure(state=entry_state)
-
         Widgets._apply_validation(entry, entry_validation)
         Widgets._apply_binding(entry, entry_bind_action)
+
+        if entry_state:
+            entry.configure(state=entry_state)
 
         button = customtkinter.CTkButton(
             frame,
@@ -321,7 +443,19 @@ class Widgets:
         bind_action=None
     ):
         """
-        Creates a label and an entry widget in a single row.
+        Creates a label and an entry widget side-by-side in a single row.
+
+        Args:
+            parent (widget): Parent widget.
+            row (int): The row in the grid layout.
+            text (str): The text for the label.
+            default_value (str): Default text inserted into the entry.
+            state (str): The state of the entry (e.g., "normal", "disabled").
+            validation (callable): Validation function for the entry.
+            bind_action (tuple or list): Event binding(s) for the entry.
+
+        Returns:
+            CTkEntry: The created entry widget.
         """
         customtkinter.CTkLabel(
             parent,
@@ -352,7 +486,19 @@ class Widgets:
         command=None
     ):
         """
-        Creates a label and an option menu widget in a single row.
+        Creates a label and an option menu widget side-by-side in a single row.
+
+        Args:
+            parent (widget): Parent widget.
+            row (int): The row in the grid layout.
+            text (str): The label text.
+            values (list): List of values for the option menu.
+            default_value (str): Default selected value for the option menu.
+            state (str): The state of the option menu (e.g., "normal" or "disabled").
+            command (callable): Callback function invoked when an option is selected.
+
+        Returns:
+            CTkOptionMenu: The created option menu widget.
         """
         customtkinter.CTkLabel(parent, text=text, anchor="w").grid(row=row, column=0, pady=2, sticky="w")
 
@@ -364,18 +510,26 @@ class Widgets:
             state=state
         )
         option_menu.grid(row=row, column=1, sticky="w")
-
-        if default_value:
-            option_menu.set(default_value)
+        option_menu.set(default_value)
 
         return option_menu
 
     @staticmethod
     def create_general_frame(parent, row=0, scrollable=False):
         """
-        Creates a general-purpose frame, which can be either scrollable or static.
+        Creates a general-purpose frame, which can be scrollable or static.
+
+        Args:
+            parent (widget): Parent widget.
+            row (int): The row in the grid layout where this frame will be placed.
+            scrollable (bool): If True, uses CTkScrollableFrame; otherwise, CTkFrame.
+
+        Returns:
+            CTkFrame or CTkScrollableFrame: The created frame widget.
         """
+        # Use scrollable frame if requested, otherwise a regular frame
         frame_class = customtkinter.CTkScrollableFrame if scrollable else customtkinter.CTkFrame
+
         frame = frame_class(
             parent,
             corner_radius=0,
@@ -390,24 +544,25 @@ class Widgets:
     @staticmethod
     def create_navigation_button(parent, row, text, light_image, dark_image, command):
         """
-        Creates a navigation button with dynamic images for light and dark themes.
+        Creates a navigation button with light/dark theme icons.
 
         Args:
-            parent: The parent widget where the button will be placed.
-            row: The row in the parent's grid layout to place the button.
-            text: The text to display on the button.
-            light_image: The image path for light theme.
-            dark_image: The image path for dark theme.
-            command: The function to call when the button is pressed.
+            parent (widget): Parent widget in which to place the button.
+            row (int): Grid row to place the button in.
+            text (str): Text displayed on the button.
+            light_image (str): File path to the icon for light theme.
+            dark_image (str): File path to the icon for dark theme.
+            command (callable): Callback function when the button is clicked.
 
         Returns:
-            The created navigation button.
+            CTkButton: The created navigation button.
         """
         image = customtkinter.CTkImage(
             light_image=Image.open(light_image),
             dark_image=Image.open(dark_image),
             size=(20, 20)
         )
+
         button = customtkinter.CTkButton(
             parent,
             corner_radius=0,
@@ -428,11 +583,21 @@ class Widgets:
     @staticmethod
     def create_tab_view(parent, row, tabs, state=None):
         """
-        Creates a tab view widget and adds the specified tabs.
+        Creates a tab view and adds the specified tabs.
+
+        Args:
+            parent (widget): Parent widget.
+            row (int): The row in the grid layout.
+            tabs (list): List of tab names to add.
+            state (str): State of the tab view (e.g., "normal" or "disabled").
+
+        Returns:
+            CTkTabview: The created tab view widget.
         """
         tab_view = customtkinter.CTkTabview(parent)
         tab_view.grid(row=row, column=0, padx=20, sticky="nsew")
 
+        # Add each tab and configure
         for tab_name in tabs:
             tab_view.add(tab_name)
             tab_view.tab(tab_name).grid_columnconfigure(0, weight=1)
@@ -445,7 +610,16 @@ class Widgets:
     @staticmethod
     def create_status_label(parent, text, column, padx):
         """
-        Creates a small status label.
+        Creates a small status label in the specified column.
+
+        Args:
+            parent (widget): Parent widget.
+            text (str): Text to display in the label.
+            column (int): The column in the grid layout.
+            padx (int or tuple): Horizontal padding.
+
+        Returns:
+            CTkLabel: The created status label widget.
         """
         label = customtkinter.CTkLabel(
             parent,
@@ -456,10 +630,20 @@ class Widgets:
             text_color=["#DCE4EE", "#DCE4EE"]
         )
         label.grid(row=0, column=column, padx=padx, sticky="w")
+
         return label
 
     @staticmethod
     def create_connection_status_label(parent):
+        """
+        Creates a connection status label that displays "Not connected!" by default.
+
+        Args:
+            parent (widget): Parent widget.
+
+        Returns:
+            CTkLabel: The created connection status label widget.
+        """
         label = customtkinter.CTkLabel(
             parent,
             text="Not connected!",
@@ -471,9 +655,21 @@ class Widgets:
         label.grid(row=5, column=0, padx=20, pady=20, sticky="s")
 
         return label
-    
+
     @staticmethod
     def create_button_with_action_status(parent, text, button_text, button_command):
+        """
+        Creates a background frame with a label for action status and a button.
+
+        Args:
+            parent (widget): Parent widget.
+            text (str): Label text for the frame.
+            button_text (str): The text on the button.
+            button_command (callable): The function called when the button is clicked.
+
+        Returns:
+            tuple: (CTkLabel, CTkButton) - The action status label and the button widget.
+        """
         background_frame = Widgets.create_background_frame(
             parent,
             row=1,
