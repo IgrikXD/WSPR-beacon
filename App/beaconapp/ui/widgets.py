@@ -52,7 +52,7 @@ class Widgets:
     @staticmethod
     def create_background_frame(parent, row, padx=20, text=None, optimize_for_scrollable=False):
         """
-        Creates a reusable background frame with optional label text. 
+        Creates a reusable background frame with optional label text.
         If 'optimize_for_scrollable' is True, adjusts padding for scrollability.
 
         Args:

@@ -1,8 +1,6 @@
 from beaconapp.device import Device
 from beaconapp.ui.widgets import Widgets
 
-import customtkinter
-
 
 class SelfCheckWidget:
     def __init__(self, parent, device: Device):
