@@ -5,7 +5,6 @@ import copy
 import queue
 import serial
 import serial.tools.list_ports
-import time
 import threading
 
 
