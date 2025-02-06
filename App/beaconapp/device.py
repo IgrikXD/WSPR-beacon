@@ -3,6 +3,7 @@ from beaconapp.tx_mode import ActiveTXMode
 
 import copy
 import queue
+import serial
 import serial.tools.list_ports
 import time
 import threading
@@ -67,10 +68,10 @@ class Device:
         self.tx_queue = queue.Queue()
         self.rx_queue = queue.Queue()
 
+        self.device = None
         self.device_connected = False
         self.device_name = device_name
 
-        threading.Thread(target=self._handle_device_response, daemon=True).start()
         threading.Thread(target=self._handle_device_requests, daemon=True).start()
 
     def connect(self):
@@ -117,12 +118,16 @@ class Device:
             for port in serial.tools.list_ports.comports():
                 if self.device_name in port.description:
                     self.device_connected = True
+                    self.device = port.device
+                    self.ser = serial.Serial(self.device, 115200, timeout=1)
                     break
 
             if self.device_connected:
                 self.get_device_info()
                 threading.Thread(target=self._handle_device_disconnect, daemon=True).start()
                 break
+        
+        threading.Thread(target=self._handle_device_response, daemon=True).start()
 
     def _handle_device_disconnect(self):
         while True:
@@ -143,6 +148,9 @@ class Device:
     def _handle_device_response(self):
         while (True):
             try:
+                if self.ser.in_waiting > 0:
+                    data = self.ser.readline().decode('utf-8', errors='ignore').strip()
+                    self.dataDecoder(data)
                 received = self.get()
                 if received.message_type.name == Device.IncomingMessageType.ACTIVE_TX_MODE.name:
                     print(f"RX: <{received.message_type.name}>: {received.data.transmission_mode}")
@@ -154,12 +162,37 @@ class Device:
             except queue.Empty:
                 continue
 
+    def dataDecoder(self, data):
+        tokens = data.split()
+        if Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.ACTIVE_TX_MODE:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ActiveTXMode())
+        elif Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.CONNECTION_STATUS:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], Device.ConnectionStatus[tokens[1]])
+        elif Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.SELF_CHECK_ACTION:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ' '.join(tokens[1:]))
+        elif Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.SELF_CHECK_STATUS:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], bool(tokens[1]))
+        elif Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.SELF_CHECK_ACTIVE:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], bool(tokens[1]))
+        elif Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.CAL_STATUS:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], bool(tokens[1]))
+        elif Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.CAL_VALUE:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], int(tokens[1]))
+        else:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1])
+        if message.message_type.name == Device.IncomingMessageType.ACTIVE_TX_MODE.name:
+            print(f"RESTORED: <{message.message_type.name}>: {message.data.transmission_mode}")
+        else:
+            print(f"RESTORED: <{message.message_type.name}>: {message.data}")
+        return message
+
     def _handle_device_requests(self):
         self.mode_queue = queue.Queue()
         threading.Thread(target=self.SIM_runTransmission, daemon=True).start()
         while (True):
             try:
                 received = self.tx_queue.get()
+                self.ser.write((f"{str(received.message_type.name)} {str(received.data)} {'\n'}").encode('utf-8'))
                 if received.message_type == Device.OutgoingMessageType.RUN_SELF_CHECK:
                     self.SIM_runSelfCheck()
                 if received.message_type == Device.OutgoingMessageType.SET_ACTIVE_TX_MODE:
