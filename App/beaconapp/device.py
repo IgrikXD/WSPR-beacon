@@ -1,5 +1,5 @@
 from enum import Enum
-from beaconapp.tx_mode import ActiveTXMode
+from beaconapp.tx_mode import ActiveTXMode, TransmissionMode
 
 import copy
 import queue
@@ -171,16 +171,32 @@ class Device:
     def dataDecoder(self, data):
         tokens = data.split()
         if tokens[0] == Device.IncomingMessageType.ACTIVE_TX_MODE.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ActiveTXMode())
+            if tokens[1] == "None":
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ActiveTXMode())
+            else:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], 
+                                        ActiveTXMode(
+                                            TransmissionMode[tokens[1]],
+                                            tokens[2],
+                                            tokens[3],
+                                            int(tokens[4]),
+                                            f"{tokens[5]} {tokens[6]}",
+                                            tokens[7]))
         elif tokens[0] == Device.IncomingMessageType.CONNECTION_STATUS.name:
             message = DeviceMessage(Device.IncomingMessageType[tokens[0]], Device.ConnectionStatus[tokens[1]])
         elif tokens[0] == Device.IncomingMessageType.SELF_CHECK_ACTION.name:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ' '.join(tokens[1:]))
+        elif tokens[0] == Device.IncomingMessageType.TX_ACTION_STATUS.name:
             message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ' '.join(tokens[1:]))
         elif tokens[0] == Device.IncomingMessageType.SELF_CHECK_STATUS.name:
             message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
         elif tokens[0] == Device.IncomingMessageType.SELF_CHECK_ACTIVE.name:
             message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
         elif tokens[0] == Device.IncomingMessageType.CAL_STATUS.name:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
+        elif tokens[0] == Device.IncomingMessageType.TX_STATUS.name:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
+        elif tokens[0] == Device.IncomingMessageType.GPS_STATUS.name:
             message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
         elif tokens[0] == Device.IncomingMessageType.CAL_VALUE.name:
             message = DeviceMessage(Device.IncomingMessageType[tokens[0]], int(tokens[1]))
@@ -204,17 +220,19 @@ class Device:
             try:
                 received = self.tx_queue.get()
                 print(f"TX: <{str(received.message_type.name)}> {str(received.data)}")
-                self.ser.write((f"{str(received.message_type.name)} {str(received.data)} {'\n'}").encode('utf-8'))
                 if received.message_type == Device.OutgoingMessageType.SET_ACTIVE_TX_MODE:
                     self.SIM_setActiveTxMode(received.data)
+                    if received.data.transmission_mode is not None:
+                        self.ser.write((f"{str(received.message_type.name)} {received.data.transmission_mode.name} {received.data.tx_call} {received.data.qth_locator} {received.data.output_power} {received.data.transmit_every} {received.data.active_band}{'\n'}").encode('utf-8'))
+                    else:
+                        self.ser.write((f"{str(received.message_type.name)} {None} {'\n'}").encode('utf-8'))
+                else:
+                    self.ser.write((f"{str(received.message_type.name)} {str(received.data)} {'\n'}").encode('utf-8'))
             except queue.Empty:
                 continue
 
     # Dummy functions, just for simulation
     def SIM_setActiveTxMode(self, new_tx_mode):
-        print(f"TX: <SET_ACTIVE_TX_MODE> {new_tx_mode.transmission_mode}")
-        # if (new_tx_mode.transmission_mode):
-        #     self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.ACTIVE_TX_MODE, copy.deepcopy(new_tx_mode)))
         self.mode_queue.put(copy.deepcopy(new_tx_mode))
 
     def SIM_runTransmission(self):
@@ -248,6 +266,4 @@ class Device:
                 self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.TX_STATUS, False))
                 time.sleep(1)
             else:
-                # self.rx_queue.put(DeviceMessage(
-                #   Device.IncomingMessageType.ACTIVE_TX_MODE, copy.deepcopy(ActiveTXMode())))
                 self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.TX_ACTION_STATUS, "- No active mode -"))
