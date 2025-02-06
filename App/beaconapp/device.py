@@ -49,6 +49,7 @@ class Device:
         CAL_FREQ_GENERATED = 12
         CONNECTION_STATUS = 13
         WIFI_STATUS = 14
+        OTHER = 15
 
     class OutgoingMessageType(Enum):
         # General messages
@@ -123,6 +124,10 @@ class Device:
                     break
 
             if self.device_connected:
+                for handler in self.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
+                    handler(Device.ConnectionStatus.USB)
+                self.ser.reset_input_buffer()
+                self.ser.reset_output_buffer()
                 self.get_device_info()
                 threading.Thread(target=self._handle_device_disconnect, daemon=True).start()
                 break
@@ -140,8 +145,8 @@ class Device:
             self.device_connected = device_found
 
             if not self.device_connected:
-                self.rx_queue.put(DeviceMessage(
-                    Device.IncomingMessageType.CONNECTION_STATUS, Device.ConnectionStatus.NOT_CONNECTED))
+                for handler in self.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
+                    handler(Device.ConnectionStatus.NOT_CONNECTED)
                 threading.Thread(target=self._establish_connection, daemon=True).start()
                 break
 
@@ -150,40 +155,46 @@ class Device:
             try:
                 if self.ser.in_waiting > 0:
                     data = self.ser.readline().decode('utf-8', errors='ignore').strip()
-                    self.dataDecoder(data)
-                received = self.get()
-                if received.message_type.name == Device.IncomingMessageType.ACTIVE_TX_MODE.name:
-                    print(f"RX: <{received.message_type.name}>: {received.data.transmission_mode}")
-                else:
-                    print(f"RX: <{received.message_type.name}>: {received.data}")
-                handlers = self.mapped_callbacks.get(received.message_type, [])
-                for handler in handlers:
-                    handler(received.data)
+                    received = self.dataDecoder(data)
+                    if received.message_type.name == Device.IncomingMessageType.ACTIVE_TX_MODE.name:
+                        print(f"RX: <{received.message_type.name}>: {received.data.transmission_mode}")
+                    else:
+                        print(f"RX: <{received.message_type.name}>: {received.data}")
+                    handlers = self.mapped_callbacks.get(received.message_type, [])
+                    for handler in handlers:
+                        handler(received.data)
             except queue.Empty:
                 continue
+            except serial.serialutil.SerialException:
+                break
 
     def dataDecoder(self, data):
         tokens = data.split()
-        if Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.ACTIVE_TX_MODE:
+        if tokens[0] == Device.IncomingMessageType.ACTIVE_TX_MODE.name:
             message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ActiveTXMode())
-        elif Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.CONNECTION_STATUS:
+        elif tokens[0] == Device.IncomingMessageType.CONNECTION_STATUS.name:
             message = DeviceMessage(Device.IncomingMessageType[tokens[0]], Device.ConnectionStatus[tokens[1]])
-        elif Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.SELF_CHECK_ACTION:
+        elif tokens[0] == Device.IncomingMessageType.SELF_CHECK_ACTION.name:
             message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ' '.join(tokens[1:]))
-        elif Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.SELF_CHECK_STATUS:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], bool(tokens[1]))
-        elif Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.SELF_CHECK_ACTIVE:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], bool(tokens[1]))
-        elif Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.CAL_STATUS:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], bool(tokens[1]))
-        elif Device.IncomingMessageType[tokens[0]] == Device.IncomingMessageType.CAL_VALUE:
+        elif tokens[0] == Device.IncomingMessageType.SELF_CHECK_STATUS.name:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
+        elif tokens[0] == Device.IncomingMessageType.SELF_CHECK_ACTIVE.name:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
+        elif tokens[0] == Device.IncomingMessageType.CAL_STATUS.name:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
+        elif tokens[0] == Device.IncomingMessageType.CAL_VALUE.name:
             message = DeviceMessage(Device.IncomingMessageType[tokens[0]], int(tokens[1]))
-        else:
+        elif tokens[0] == Device.IncomingMessageType.CAL_FREQ_GENERATED.name:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
+        elif tokens[0] == Device.IncomingMessageType.HARDWARE_INFO.name:
             message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1])
-        if message.message_type.name == Device.IncomingMessageType.ACTIVE_TX_MODE.name:
-            print(f"RESTORED: <{message.message_type.name}>: {message.data.transmission_mode}")
+        elif tokens[0] == Device.IncomingMessageType.FIRMWARE_INFO.name:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1])
+        elif tokens[0] == Device.IncomingMessageType.WIFI_STATUS.name:
+            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
         else:
-            print(f"RESTORED: <{message.message_type.name}>: {message.data}")
+            message = DeviceMessage(Device.IncomingMessageType.OTHER, data)
+
         return message
 
     def _handle_device_requests(self):
@@ -192,23 +203,10 @@ class Device:
         while (True):
             try:
                 received = self.tx_queue.get()
+                print(f"TX: <{str(received.message_type.name)}> {str(received.data)}")
                 self.ser.write((f"{str(received.message_type.name)} {str(received.data)} {'\n'}").encode('utf-8'))
-                if received.message_type == Device.OutgoingMessageType.RUN_SELF_CHECK:
-                    self.SIM_runSelfCheck()
                 if received.message_type == Device.OutgoingMessageType.SET_ACTIVE_TX_MODE:
                     self.SIM_setActiveTxMode(received.data)
-                if received.message_type == Device.OutgoingMessageType.SET_CAL_METHOD:
-                    self.SIM_setCalMethod(received.data)
-                if received.message_type == Device.OutgoingMessageType.SET_CAL_VALUE:
-                    self.SIM_setCalValue(received.data)
-                if received.message_type == Device.OutgoingMessageType.GEN_CAL_FREQUENCY:
-                    self.SIM_genCalFrequency(received.data)
-                if received.message_type == Device.OutgoingMessageType.ALLOW_WIFI_CONNECTION:
-                    self.SIM_allowWifiConnection(received.data)
-                if received.message_type == Device.OutgoingMessageType.RUN_WIFI_CONNECTION:
-                    self.SIM_wifiConnection(received.data)
-                if received.message_type == Device.OutgoingMessageType.GET_DEVICE_INFO:
-                    self.SIM_getDeviceInfo()
             except queue.Empty:
                 continue
 
@@ -253,77 +251,3 @@ class Device:
                 # self.rx_queue.put(DeviceMessage(
                 #   Device.IncomingMessageType.ACTIVE_TX_MODE, copy.deepcopy(ActiveTXMode())))
                 self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.TX_ACTION_STATUS, "- No active mode -"))
-
-    def SIM_runSelfCheck(self):
-        print("TX: <RUN_SELF_CHECK>")
-        self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.SELF_CHECK_ACTIVE, True))
-        self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.SELF_CHECK_ACTION, "- LEDs initialized! -"))
-        time.sleep(1)
-        self.rx_queue.put(DeviceMessage(
-            Device.IncomingMessageType.SELF_CHECK_ACTION,
-            "- SI5351 successfully initialized at address 0x60 -"))
-        time.sleep(1)
-        self.rx_queue.put(DeviceMessage(
-            Device.IncomingMessageType.SELF_CHECK_ACTION,
-            "- Establishing a serial connection to the GPS module ... -"))
-        time.sleep(1)
-        self.rx_queue.put(DeviceMessage(
-            Device.IncomingMessageType.SELF_CHECK_ACTION,
-            "- Serial connection to GPS module successfully established! -"))
-        time.sleep(1)
-        self.rx_queue.put(DeviceMessage(
-            Device.IncomingMessageType.SELF_CHECK_ACTION,
-            "- SI5351 successfully initialized at address 0x60 -"))
-        time.sleep(1)
-        self.rx_queue.put(DeviceMessage(
-            Device.IncomingMessageType.SELF_CHECK_ACTION,
-            "- GPS data synchronization test ... -"))
-        time.sleep(1)
-        self.rx_queue.put(DeviceMessage(
-            Device.IncomingMessageType.SELF_CHECK_ACTION,
-            "- Date & time (GMT) synchronized by GPS: 2/7/2024 17:17:44 -"))
-        time.sleep(1)
-        self.rx_queue.put(DeviceMessage(
-            Device.IncomingMessageType.SELF_CHECK_ACTION,
-            "- Location synchronized by GPS: 52.2285, 20.9324 -"))
-        time.sleep(1)
-        self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.SELF_CHECK_STATUS, True))
-        self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.SELF_CHECK_ACTIVE, False))
-        # self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.SELF_CHECK_STATUS, False))
-
-    def SIM_getDeviceInfo(self):
-        print("TX: <GET_DEVICE_INFO>")
-        # active_tx_mode = ActiveTXMode(TransmissionMode.WSPR, "HUITA2", "ZZ55", 23, "10 minutes", "20m")
-        # self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.ACTIVE_TX_MODE, copy.deepcopy(active_tx_mode)))
-        # self.mode_queue.put(copy.deepcopy(active_tx_mode))
-        self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.ACTIVE_TX_MODE, ActiveTXMode()))
-        self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CONNECTION_STATUS, Device.ConnectionStatus.USB))
-        self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.HARDWARE_INFO, "3.0"))
-        self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.FIRMWARE_INFO, "2.0"))
-        self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CAL_STATUS, True))
-        self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CAL_VALUE, 2000))
-
-    def SIM_allowWifiConnection(self, is_allowed):
-        print(f"TX: <ALLOW_WIFI_CONNECTION>: {is_allowed}")
-
-    def SIM_wifiConnection(self, wifi_credentials):
-        print(f"TX: <RUN_WIFI_CONNECTION> "
-              f"{wifi_credentials.wifi_access_point_name} "
-              f"{wifi_credentials.wifi_access_point_password}")
-        time.sleep(3)
-        self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.WIFI_STATUS, False))
-        # self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CONNECTION_STATUS, ConnectionStatus.WIFI))
-
-    def SIM_genCalFrequency(self, frequency):
-        if frequency:
-            print(f"TX: <GEN_CAL_FREQUENCY>: {frequency}")
-            self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CAL_FREQ_GENERATED, True))
-        else:
-            print("TX: <GEN_CAL_FREQUENCY>: False")
-            self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CAL_FREQ_GENERATED, False))
-
-    def SIM_setCalMethod(self, method):
-        print(f"TX: <SET_CAL_METHOD>: {method.name}")
-
-    def SIM_setCalValue(self, value):
-        print(f"TX: <SET_CAL_VALUE>: {value}")
