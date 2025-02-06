@@ -154,17 +154,10 @@ class Device:
         while (True):
             try:
                 if self.ser.in_waiting > 0:
-                    data = self.ser.readline().decode('utf-8', errors='ignore').strip()
-                    received = self.dataDecoder(data)
-                    if received.message_type.name == Device.IncomingMessageType.ACTIVE_TX_MODE.name:
-                        print(f"RX: <{received.message_type.name}>: {received.data.transmission_mode}")
-                    else:
-                        print(f"RX: <{received.message_type.name}>: {received.data}")
-                    handlers = self.mapped_callbacks.get(received.message_type, [])
-                    for handler in handlers:
+                    received = self.dataDecoder(self.ser.readline().decode('utf-8', errors='ignore').strip())
+                    print(f"RX: <{received.message_type.name}>: {received.data}")
+                    for handler in self.mapped_callbacks.get(received.message_type, []):
                         handler(received.data)
-            except queue.Empty:
-                continue
             except serial.serialutil.SerialException:
                 break
 
@@ -214,14 +207,11 @@ class Device:
         return message
 
     def _handle_device_requests(self):
-        self.mode_queue = queue.Queue()
-        threading.Thread(target=self.SIM_runTransmission, daemon=True).start()
         while (True):
             try:
                 received = self.tx_queue.get()
                 print(f"TX: <{str(received.message_type.name)}> {str(received.data)}")
                 if received.message_type == Device.OutgoingMessageType.SET_ACTIVE_TX_MODE:
-                    self.SIM_setActiveTxMode(received.data)
                     if received.data.transmission_mode is not None:
                         self.ser.write((f"{str(received.message_type.name)} {received.data.transmission_mode.name} {received.data.tx_call} {received.data.qth_locator} {received.data.output_power} {received.data.transmit_every} {received.data.active_band}{'\n'}").encode('utf-8'))
                     else:
@@ -230,40 +220,3 @@ class Device:
                     self.ser.write((f"{str(received.message_type.name)} {str(received.data)} {'\n'}").encode('utf-8'))
             except queue.Empty:
                 continue
-
-    # Dummy functions, just for simulation
-    def SIM_setActiveTxMode(self, new_tx_mode):
-        self.mode_queue.put(copy.deepcopy(new_tx_mode))
-
-    def SIM_runTransmission(self):
-        last_message = None
-        while (True):
-            try:
-                message = self.mode_queue.get(timeout=1)
-                last_message = message
-                self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.ACTIVE_TX_MODE, copy.deepcopy(message)))
-            except queue.Empty:
-                if (last_message is None) or (message.transmission_mode is None):
-                    continue
-                message = last_message
-
-            if (message.transmission_mode):
-                self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.GPS_STATUS, True))
-                self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.CAL_STATUS, True))
-                self.rx_queue.put(DeviceMessage(
-                    Device.IncomingMessageType.TX_ACTION_STATUS, "- Waiting for next transmission window... -"))
-                time.sleep(3)
-                self.rx_queue.put(DeviceMessage(
-                    Device.IncomingMessageType.TX_STATUS, True))
-                self.rx_queue.put(DeviceMessage(
-                    Device.IncomingMessageType.TX_ACTION_STATUS,
-                    f"- WSPR transmission {message.tx_call} "
-                    f"{message.qth_locator} {message.output_power} at {message.active_band} band -"))
-                time.sleep(5)
-                self.rx_queue.put(DeviceMessage(
-                    Device.IncomingMessageType.TX_ACTION_STATUS,
-                    "- WSPR transmission finished! -"))
-                self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.TX_STATUS, False))
-                time.sleep(1)
-            else:
-                self.rx_queue.put(DeviceMessage(Device.IncomingMessageType.TX_ACTION_STATUS, "- No active mode -"))
