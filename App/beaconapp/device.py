@@ -135,7 +135,7 @@ class Device:
                 self.get_device_info()
                 threading.Thread(target=self._handle_device_disconnect, daemon=True).start()
                 break
-        
+
         threading.Thread(target=self._handle_device_response, daemon=True).start()
 
     def _handle_device_disconnect(self):
@@ -171,7 +171,7 @@ class Device:
             if tokens[1] == "None":
                 message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ActiveTXMode())
             else:
-                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], 
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]],
                                         ActiveTXMode(
                                             TransmissionMode[tokens[1]],
                                             tokens[2],
@@ -217,7 +217,16 @@ class Device:
                 print(f"TX: <{str(received.message_type.name)}> {str(received.data)}")
                 if received.message_type == Device.OutgoingMessageType.SET_ACTIVE_TX_MODE:
                     if received.data.transmission_mode is not None:
-                        self.ser.write((f"{str(received.message_type.name)} {received.data.transmission_mode.name} {received.data.tx_call} {received.data.qth_locator} {received.data.output_power} {received.data.transmit_every} {received.data.active_band}{'\n'}").encode('utf-8'))
+                        message = (
+                            f"{received.message_type.name} "
+                            f"{received.data.transmission_mode.name} "
+                            f"{received.data.tx_call} "
+                            f"{received.data.qth_locator} "
+                            f"{received.data.output_power} "
+                            f"{received.data.transmit_every} "
+                            f"{received.data.active_band}\n"
+                        )
+                        self.ser.write(message.encode('utf-8'))
                     else:
                         self.ser.write((f"{str(received.message_type.name)} {None} {'\n'}").encode('utf-8'))
                 else:
