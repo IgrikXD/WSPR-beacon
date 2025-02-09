@@ -5,6 +5,7 @@ import copy
 import queue
 import serial
 import serial.tools.list_ports
+import time
 import threading
 
 
@@ -21,6 +22,9 @@ class WiFiCredentials:
 
 
 class Device:
+    VID_ESPRESSIF = 0x303A
+    PID_ESP32_C3 = 0x1001
+
     class CalibrationType(Enum):
         AUTO = 1
         MANUAL = 2
@@ -64,13 +68,12 @@ class Device:
         RUN_WIFI_CONNECTION = 7
         ALLOW_WIFI_CONNECTION = 8
 
-    def __init__(self, device_name):
+    def __init__(self):
         self.tx_queue = queue.Queue()
         self.rx_queue = queue.Queue()
 
         self.device = None
         self.device_connected = False
-        self.device_name = device_name
 
         threading.Thread(target=self._handle_device_requests, daemon=True).start()
 
@@ -116,9 +119,11 @@ class Device:
     def _establish_connection(self):
         while True:
             for port in serial.tools.list_ports.comports():
-                if self.device_name in port.description:
+                # if self.device_name in port.description:
+                if port.vid == Device.VID_ESPRESSIF and port.pid == Device.PID_ESP32_C3:
                     self.device_connected = True
                     self.device = port.device
+                    time.sleep(0.5)
                     self.ser = serial.Serial(self.device, 115200, timeout=1)
                     break
 
@@ -137,7 +142,7 @@ class Device:
         while True:
             device_found = False
             for port in serial.tools.list_ports.comports():
-                if self.device_name in port.description:
+                if port.vid == Device.VID_ESPRESSIF and port.pid == Device.PID_ESP32_C3:
                     device_found = True
                     break
 

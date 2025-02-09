@@ -14,8 +14,8 @@ class BeaconApp(customtkinter.CTk):
     def __init__(self):
         super().__init__()
 
-        # Create a device instance with the name programmed into the CP2104 UART controller
-        device = Device("USB-SERIAL CH340")
+        # Create a device instance
+        device = Device()
         # Load the default configuration from a file
         config = Config("config.json")
         self.app_configuration(config)
