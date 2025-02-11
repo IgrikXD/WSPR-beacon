@@ -1,5 +1,5 @@
 # BeaconApp
-A Windows GUI application for working with a [WSPR beacon](https://github.com/IgrikXD/WSPR-beacon?tab=readme-ov-file#wspr-beacon) based on an ESP32 MCU. 
+A Windows GUI application for working with a [WSPR beacon](https://github.com/IgrikXD/WSPR-beacon?tab=readme-ov-file#wspr-beacon) based on an ESP32 MCU ([_PCB version 3.1_](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-3.1)). 
 It uses communication with the device via a serial port or Wi-Fi to configure transmission parameters, hardware self-check, and set up the device (_calibration, Wi-Fi connection_).
 ![BeaconApp](../Resources/BeaconApp-Transmission-frame.png)
 
