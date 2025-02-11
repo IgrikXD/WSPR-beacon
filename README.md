@@ -17,17 +17,6 @@ The transmitted WSPR message's correctness was verified by decoding the transmis
 
 ![WSJT-X report](./Resources/WSJT-X-report.png)
 
-## Basic characteristics of the WSPR-beacon
-**RF connectors:** SMA  
-**Feed line:** 50 Ohm coaxial cable  
-**GPS antenna type:** active, external  
-**Maximum output power:** ~23 dBm  
-**Supply voltage:** 5V, USB-B, fuse-protected  
-**Current consumption:** 65 mA (_GPS antenna not connected_) / 80 mA (_GPS antenna connected_) / 92 mA (_TX mode_)  
-**Used PCB Material:** FR-4  
-**PCB thickness:** 1.6 mm  
-**PCB copper weight:** 1 oz  
-
 ## How to use this repository?
 The [Firmware](./Firmware/) folder contains software required for the device operation and [firmware instructions](./Firmware/README.md). The [Schematics](./Schematics/) directory contains the device schematic file in _.pdf_ format. The [Gerbers](./Gerbers/) directory contains files necessary for ordering PCB and side covers [fabrication at the factory](https://www.pcbway.com/project/shareproject/WSPR_beacon_2_0_472264d9.html).  
 
