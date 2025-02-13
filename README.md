@@ -16,7 +16,7 @@ Your support helps me continue developing open-source projects like [WSPR-beacon
 
 The transmitted WSPR message's correctness was verified by decoding the transmission using a locally located Airspy R2 SDR receiver and the [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) application. Also, you can see the [results of testing the device during long-distance WSPR message transmission](./Device-test-report.md).
 
-![WSJT-X report](./Resources/WSJT-X-report.png)
+![BeaconApp](./Resources/BeaconApp-Transmission-frame.png)
 
 ## Basic characteristics of the WSPR-beacon
 **RF connectors:** SMA  
