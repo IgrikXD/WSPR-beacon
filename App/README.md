@@ -1,20 +1,20 @@
 # BeaconApp
-A Windows GUI application for working with a [WSPR beacon](https://github.com/IgrikXD/WSPR-beacon?tab=readme-ov-file#wspr-beacon) based on an ESP32 MCU ([_PCB version 3.1_](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-3.1)). 
-It uses communication with the device via a serial port or Wi-Fi to configure transmission parameters, hardware self-check, and set up the device (_calibration, Wi-Fi connection_).
+A Windows GUI application for working with a [WSPR beacon](https://github.com/IgrikXD/WSPR-beacon?tab=readme-ov-file#wspr-beacon) based on an ESP32 SoC ([_PCB version 3.1_](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-3.1)). 
+It uses communication with the device via a USB or Wi-Fi to configure transmission parameters, hardware self-check, and set up the device (_calibration, Wi-Fi connection_).
 ![BeaconApp](../Resources/BeaconApp-Transmission-frame.png)
 
 ## Building
-Download and install the [latest version of Python for Windows](https://www.python.org/ftp/python/3.13.1/python-3.13.1-amd64.exe).
+Download and install the [latest version of Python for Windows](https://www.python.org/downloads/).
 
 ### Clone the repository & install dependencies
 ```powershell
 git clone https://github.com/IgrikXD/WSPR-beacon.git
 cd WSPR-beacon/App
 pip install --upgrade pip
-pip install -r App/requirements.txt
+pip install -r requirements.txt
 ```
 
-There are two possible ways to use the application: [creating a monolithic executable file](#building-the-executable-file) (_recommended_) and [running the application from the source code](#launching-the-application-without-building-the-executable-file) without prior build.
+There are two possible ways to use the application: [creating a monolithic executable file](#build-the-executable-file) (_recommended_) and [running the application from the source code](#run-the-application-without-building-the-executable) without prior build.
 
 ### Build the executable file
 ```powershell
