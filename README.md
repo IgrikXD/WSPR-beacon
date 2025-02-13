@@ -18,9 +18,7 @@ The transmitted WSPR message's correctness was verified by decoding the transmis
 ![WSJT-X report](./Resources/WSJT-X-report.png)
 
 ## How to use this repository?
-The [Firmware](./Firmware/) directory contains the software required for device operation, along with [firmware installation  instructions](./Firmware/README.md). The [PCB](./PCB/) directory includes **Gerber**, **BOM**, and **schematic** files for different device versions, as well as [assembly documentation](./Assembly-guide.md). It contains everything needed for [manufacturing and assembling the hardware at the factory](https://www.pcbway.com/project/shareproject/WSPR_beacon_2_0_472264d9.html).
-
-For device usage details, refer to the [operating instructions](./Usage-guide.md).
+The [Firmware](./Firmware/) directory contains the software required for device operation, along with [firmware installation  instructions](./Firmware/README.md). The [PCB](./PCB/) directory includes everything needed for [factory manufacturing and assembly](https://www.pcbway.com/project/shareproject/WSPR_beacon_2_0_472264d9.html), including **Gerber**, **BOM**, and **schematic** files for different device versions, as well as [assembly documentation](./Assembly-guide.md). For device usage details, refer to the [operating instructions](./Usage-guide.md).
 
 ## Resources
 [A Little WSPR Beacon (Aren’t They All Little?) – Dave Richards AA7EE](https://aa7ee.wordpress.com/2023/02/26/a-little-wspr-beacon-arent-they-all-little/)  
