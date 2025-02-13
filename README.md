@@ -2,7 +2,7 @@
 
 ![WSPR-beacon](./Resources/WSPR-beacon-logo.png)
 
-A small hardware device for transmitting WSPR messages based on the SI5351 IC. The device has a built-in TCXO to eliminate SI5351 frequency drift, a built-in GPS module for operation with active GPS antennas, transmission time synchronization and automatic QTH locator calculation, and a simple amplifier based on a single BS170 transistor ([_PCB version 1.0_](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-1.0)) or buffer amplifier based on a 74ACT244 IC ([_PCB version 2.0_](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-2.0)). PCB is made on based on SMD components and adapted for installation in an aluminum enclosure with dimensions 80 x 50 x 20 mm.
+A compact hardware device for transmitting WSPR messages based on the SI5351 IC. The device has a built-in TCXO to eliminate SI5351 frequency drift, a built-in GPS module for operation with active GPS antennas, transmission timing synchronization and automatic QTH locator calculation, and a simple buffer amplifier using a 74ACT244 IC. The PCB is designed with SMD components and adapted for installation in an aluminum enclosure with dimensions 80 x 50 x 20 mm.
 
 ## Project support
 [![BTC: Make a donation][BTC-badge]](https://nowpayments.io/donation/wsprbeacon)&nbsp;[![PayPal: Make a donation][PayPal-badge]](https://www.paypal.com/donate/?hosted_button_id=Q8PRFPXKKSDAQ)&nbsp;[![Revolut: Make a donation][Revolut-badge]](https://revolut.me/iharygxob)
@@ -10,28 +10,19 @@ A small hardware device for transmitting WSPR messages based on the SI5351 IC. T
 Your support helps me continue developing open-source projects like [WSPR-beacon](#WSPR-beacon) and [Easy-SDR](https://github.com/IgrikXD/Easy-SDR), while also enabling the creation of new tools that benefit the community.
 
 ## Current development progress
-[![Progress][EasyEDA-badge]](https://oshwlab.com/igrikxd/wspr-beacon)&nbsp;[![Progress](https://img.shields.io/badge/latest%20pcb%20version-2.0-blue.svg?longCache=true&style=for-the-badge)](./Gerbers)  
+[![Progress][EasyEDA-badge]](https://oshwlab.com/igrikxd/wspr-beacon)&nbsp;[![Progress](https://img.shields.io/badge/latest%20pcb%20version-3.1-blue.svg?longCache=true&style=for-the-badge)](./PCB)  
 [![GitHub Actions: Firmware build status][Firmware-build-badge]](https://github.com/IgrikXD/WSPR-beacon/actions/workflows/firmware-build.yml)&nbsp;[![Progress](https://img.shields.io/badge/latest%20firmware%20version-1.1-blue.svg?longCache=true&style=for-the-badge)](./Firmware)  
 
 The transmitted WSPR message's correctness was verified by decoding the transmission using a locally located Airspy R2 SDR receiver and the [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) application. Also, you can see the [results of testing the device during long-distance WSPR message transmission](./Device-test-report.md).
 
 ![WSJT-X report](./Resources/WSJT-X-report.png)
 
-## Basic characteristics of the WSPR-beacon
-**RF connectors:** SMA  
-**Feed line:** 50 Ohm coaxial cable  
-**GPS antenna type:** active, external  
-**Maximum output power:** ~23 dBm  
-**Supply voltage:** 5V, USB-B, fuse-protected  
-**Current consumption:** 65 mA (_GPS antenna not connected_) / 80 mA (_GPS antenna connected_) / 92 mA (_TX mode_)  
-**Used PCB Material:** FR-4  
-**PCB thickness:** 1.6 mm  
-**PCB copper weight:** 1 oz  
-
 ## How to use this repository?
-The [Firmware](./Firmware/) folder contains software required for the device operation and [firmware instructions](./Firmware/README.md). The [Schematics](./Schematics/) directory contains the device schematic file in _.pdf_ format. The [Gerbers](./Gerbers/) directory contains files necessary for ordering PCB and side covers [fabrication at the factory](https://www.pcbway.com/project/shareproject/WSPR_beacon_2_0_472264d9.html).  
+The [Firmware](./Firmware/) directory contains the software required for device operation, along with [firmware installation  instructions](./Firmware/README.md).
 
-Additionally, you can find information about the [list of required components](./BOMs), [assembly guide](./Assembly-guide.md) and [operating instructions](./Usage-guide.md).
+The [PCB](./PCB/) directory includes everything needed for [factory manufacturing and assembly](https://www.pcbway.com/project/shareproject/WSPR_beacon_2_0_472264d9.html), including **Gerber**, **BOM**, and **schematic** files for different device versions, as well as [assembly documentation](./Assembly-guide.md).
+
+For device usage details, refer to the [operating instructions](./Usage-guide.md).
 
 ## Resources
 [A Little WSPR Beacon (Aren’t They All Little?) – Dave Richards AA7EE](https://aa7ee.wordpress.com/2023/02/26/a-little-wspr-beacon-arent-they-all-little/)  

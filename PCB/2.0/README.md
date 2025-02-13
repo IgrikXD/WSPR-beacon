@@ -1,0 +1,23 @@
+# WSPR-beacon 2.0
+
+## Device characteristics
+**Platform:** Atmega328 MCU  
+**Power amplifier:** Buffer amplifier based on the 74ACT244 IC  
+**RF connectors:** SMA  
+**Feed line:** 50 Ohm coaxial cable  
+**GPS antenna type:** Active, external  
+**Maximum output power:** ~23 dBm  
+**Supply voltage:** 5V (_USB-B, fuse-protected, 600 mA fuse_)  
+| Mode                                 | Current consumption |
+|--------------------------------------|---------------------|
+| Standby (GPS antenna not connected)  | 70 mA               |
+| Standby (GPS antenna connected)      | 86 mA               |
+| Active TX mode                       | 96 mA               |
+
+## PCB fabrication parameters
+**Used PCB Material:** FR-4, TG150  
+**PCB thickness:** 1.6 mm  
+**Minimum hole size:** 0.3 mm  
+**Surface finish:** HASL with lead  
+**Via process:** Tented vias  
+**Copper weight:** 1 oz  
