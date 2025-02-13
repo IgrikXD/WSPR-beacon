@@ -4,13 +4,13 @@
 >The source files for the PCB of this version of the device are not publicly available! For purchase inquiries, please [contact me directly](https://github.com/IgrikXD/WSPR-beacon#how-to-contact-me).
 
 ## Device characteristics
-**Platform:** ESP32-C3 SoC
-**Power amplifier:** Buffer amplifier based on the 74ACT244 IC 
+**Platform:** ESP32-C3 SoC  
+**Power amplifier:** Buffer amplifier based on the 74ACT244 IC  
 **RF connectors:** SMA  
 **Feed line:** 50 Ohm coaxial cable  
 **GPS antenna type:** Active, external  
 **Maximum output power:** ~23 dBm  
-**Supply voltage:** 5V (USB-B, fuse-protected, 600 mA fuse)  
+**Supply voltage:** 5V (_USB-B, fuse-protected, 600 mA fuse_)  
 | Mode                                 | Current consumption |
 |--------------------------------------|---------------------|
 | Standby (GPS antenna not connected)  |  TBD mA             |

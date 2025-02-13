@@ -2,12 +2,12 @@
 
 ## Device characteristics
 **Platform:** Atmega328 MCU  
-**Power amplifier:** Buffer amplifier based on the 74ACT244 IC
+**Power amplifier:** Buffer amplifier based on the 74ACT244 IC  
 **RF connectors:** SMA  
 **Feed line:** 50 Ohm coaxial cable  
 **GPS antenna type:** Active, external  
 **Maximum output power:** ~23 dBm  
-**Supply voltage:** 5V (USB-B, fuse-protected, 600 mA fuse)  
+**Supply voltage:** 5V (_USB-B, fuse-protected, 600 mA fuse_)  
 | Mode                                 | Current consumption |
 |--------------------------------------|---------------------|
 | Standby (GPS antenna not connected)  | 70 mA               |
