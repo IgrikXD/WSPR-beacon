@@ -8,9 +8,10 @@
 **Supply voltage:** 5V (USB-B, fuse-protected)  
 | Mode                                 | Current consumption |
 |--------------------------------------|---------------------|
-| Standby (GPS antenna not connected)  |  mA               |
-| Standby (GPS antenna connected)      |  mA               |
-| Active TX mode                       |  mA               |
+| Standby (GPS antenna not connected)  |  70 A               |
+| Standby (GPS antenna connected)      |  86 mA              |
+| Active TX mode, PA bias 2.5V         |  107 mA             |
+| Active TX mode, PA bias 4.6V         |  224 mA             |
 
 ## PCB fabrication parameters
 **Used PCB Material:** FR-4, TG150  
