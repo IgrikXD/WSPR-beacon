@@ -10,7 +10,7 @@ A compact hardware device for transmitting WSPR messages based on the SI5351 IC.
 Your support helps me continue developing open-source projects like [WSPR-beacon](#WSPR-beacon) and [Easy-SDR](https://github.com/IgrikXD/Easy-SDR), while also enabling the creation of new tools that benefit the community.
 
 ## Current development progress
-[![Progress][EasyEDA-badge]](https://oshwlab.com/igrikxd/wspr-beacon)&nbsp;[![Progress](https://img.shields.io/badge/latest%20pcb%20version-2.0-blue.svg?longCache=true&style=for-the-badge)](./Gerbers)  
+[![Progress][EasyEDA-badge]](https://oshwlab.com/igrikxd/wspr-beacon)&nbsp;[![Progress](https://img.shields.io/badge/latest%20pcb%20version-2.0-blue.svg?longCache=true&style=for-the-badge)](./PCB)  
 [![GitHub Actions: Firmware build status][Firmware-build-badge]](https://github.com/IgrikXD/WSPR-beacon/actions/workflows/firmware-build.yml)&nbsp;[![Progress](https://img.shields.io/badge/latest%20firmware%20version-1.1-blue.svg?longCache=true&style=for-the-badge)](./Firmware)  
 
 The transmitted WSPR message's correctness was verified by decoding the transmission using a locally located Airspy R2 SDR receiver and the [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) application. Also, you can see the [results of testing the device during long-distance WSPR message transmission](./Device-test-report.md).
@@ -18,9 +18,9 @@ The transmitted WSPR message's correctness was verified by decoding the transmis
 ![WSJT-X report](./Resources/WSJT-X-report.png)
 
 ## How to use this repository?
-The [Firmware](./Firmware/) folder contains software required for the device operation and [firmware instructions](./Firmware/README.md). The [Schematics](./Schematics/) directory contains the device schematic file in _.pdf_ format. The [Gerbers](./Gerbers/) directory contains files necessary for ordering PCB and side covers [fabrication at the factory](https://www.pcbway.com/project/shareproject/WSPR_beacon_2_0_472264d9.html).  
+The [Firmware](./Firmware/) directory contains the software required for device operation, along with [firmware installation  instructions](./Firmware/README.md). The [PCB](./PCB/) directory includes **Gerber**, **BOM**, and **schematic** files for different device versions, as well as [assembly documentation](./Assembly-guide.md). It contains everything needed for [manufacturing and assembling the hardware at the factory](https://www.pcbway.com/project/shareproject/WSPR_beacon_2_0_472264d9.html).
 
-Additionally, you can find information about the [list of required components](./BOMs), [assembly guide](./Assembly-guide.md) and [operating instructions](./Usage-guide.md).
+For device usage details, refer to the [operating instructions](./Usage-guide.md).
 
 ## Resources
 [A Little WSPR Beacon (Aren’t They All Little?) – Dave Richards AA7EE](https://aa7ee.wordpress.com/2023/02/26/a-little-wspr-beacon-arent-they-all-little/)  
