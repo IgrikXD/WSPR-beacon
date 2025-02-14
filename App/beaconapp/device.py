@@ -123,7 +123,7 @@ class Device:
                 self.serial.reset_output_buffer()
                 self.get_device_info()
                 break
-        
+
         threading.Thread(target=self._handle_device_disconnect, daemon=True).start()
         threading.Thread(target=self._handle_device_requests, daemon=True).start()
         threading.Thread(target=self._handle_device_response, daemon=True).start()
@@ -135,13 +135,13 @@ class Device:
                 if port.vid == Device.VID_ESPRESSIF and port.pid == Device.PID_ESP32_C3:
                     device_found = True
                     break
-            
+
             if device_found is False:
                 self.serial = None
                 for handler in self.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
                     handler(Device.ConnectionStatus.NOT_CONNECTED)
                 break
-            
+
         threading.Thread(target=self._establish_connection, daemon=True).start()
 
     def _handle_device_requests(self):
@@ -164,7 +164,10 @@ class Device:
                     else:
                         self.serial.write((f"{str(received.message_type.name)} {None} {'\n'}").encode('utf-8'))
                 else:
-                    self.serial.write((f"{str(received.message_type.name)} {str(received.data)} {'\n'}").encode('utf-8'))
+                    self.serial.write((
+                        f"{str(received.message_type.name)} "
+                        f"{str(received.data)} "
+                        f"{'\n'}").encode('utf-8'))
             except queue.Empty:
                 continue
 
