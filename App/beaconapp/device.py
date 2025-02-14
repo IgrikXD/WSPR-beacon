@@ -70,23 +70,16 @@ class Device:
 
     def __init__(self):
         self.tx_queue = queue.Queue()
-        self.rx_queue = queue.Queue()
-
         self.device = None
-        self.device_connected = False
-
-        threading.Thread(target=self._handle_device_requests, daemon=True).start()
+        self.serial = None
 
     def connect(self):
         threading.Thread(target=self._establish_connection, daemon=True).start()
 
-    def get(self) -> IncomingMessageType:
-        return self.rx_queue.get()
-
     def get_device_info(self):
         self.put(DeviceMessage(Device.OutgoingMessageType.GET_DEVICE_INFO))
 
-    def put(self, message):
+    def put(self, message: OutgoingMessageType):
         self.tx_queue.put(message)
 
     def set_wifi_connection_allowed(self, value):
@@ -117,48 +110,72 @@ class Device:
         self.put(DeviceMessage(Device.OutgoingMessageType.RUN_WIFI_CONNECTION, WiFiCredentials(name, password)))
 
     def _establish_connection(self):
-        while True:
+        while (True):
             for port in serial.tools.list_ports.comports():
-                # if self.device_name in port.description:
                 if port.vid == Device.VID_ESPRESSIF and port.pid == Device.PID_ESP32_C3:
-                    self.device_connected = True
                     self.device = port.device
                     time.sleep(0.5)
-                    self.ser = serial.Serial(self.device, 115200, timeout=1)
+                    self.serial = serial.Serial(self.device, 115200, timeout=1)
                     break
 
-            if self.device_connected:
+            if self.device is not None:
                 for handler in self.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
                     handler(Device.ConnectionStatus.USB)
-                self.ser.reset_input_buffer()
-                self.ser.reset_output_buffer()
+                self.serial.reset_input_buffer()
+                self.serial.reset_output_buffer()
                 self.get_device_info()
-                threading.Thread(target=self._handle_device_disconnect, daemon=True).start()
                 break
-
+        
+        threading.Thread(target=self._handle_device_disconnect, daemon=True).start()
+        threading.Thread(target=self._handle_device_requests, daemon=True).start()
         threading.Thread(target=self._handle_device_response, daemon=True).start()
 
     def _handle_device_disconnect(self):
-        while True:
+        while (True):
             device_found = False
             for port in serial.tools.list_ports.comports():
                 if port.vid == Device.VID_ESPRESSIF and port.pid == Device.PID_ESP32_C3:
                     device_found = True
                     break
-
-            self.device_connected = device_found
-
-            if not self.device_connected:
+            
+            if device_found is False:
+                self.device = None
+                self.serial = None
                 for handler in self.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
                     handler(Device.ConnectionStatus.NOT_CONNECTED)
-                threading.Thread(target=self._establish_connection, daemon=True).start()
                 break
+            
+        threading.Thread(target=self._establish_connection, daemon=True).start()
+
+    def _handle_device_requests(self):
+        while (self.device is not None):
+            try:
+                received = self.tx_queue.get()
+                print(f"TX: <{str(received.message_type.name)}> {str(received.data)}")
+                if received.message_type == Device.OutgoingMessageType.SET_ACTIVE_TX_MODE:
+                    if received.data.transmission_mode is not None:
+                        message = (
+                            f"{received.message_type.name} "
+                            f"{received.data.transmission_mode.name} "
+                            f"{received.data.tx_call} "
+                            f"{received.data.qth_locator} "
+                            f"{received.data.output_power} "
+                            f"{received.data.transmit_every} "
+                            f"{received.data.active_band}\n"
+                        )
+                        self.serial.write(message.encode('utf-8'))
+                    else:
+                        self.serial.write((f"{str(received.message_type.name)} {None} {'\n'}").encode('utf-8'))
+                else:
+                    self.serial.write((f"{str(received.message_type.name)} {str(received.data)} {'\n'}").encode('utf-8'))
+            except queue.Empty:
+                continue
 
     def _handle_device_response(self):
-        while (True):
+        while (self.device is not None):
             try:
-                if self.ser.in_waiting > 0:
-                    received = self.dataDecoder(self.ser.readline().decode('utf-8', errors='ignore').strip())
+                if self.serial.in_waiting > 0:
+                    received = self.dataDecoder(self.serial.readline().decode('utf-8', errors='ignore').strip())
                     print(f"RX: <{received.message_type.name}>: {received.data}")
                     for handler in self.mapped_callbacks.get(received.message_type, []):
                         handler(received.data)
@@ -209,27 +226,3 @@ class Device:
             message = DeviceMessage(Device.IncomingMessageType.OTHER, data)
 
         return message
-
-    def _handle_device_requests(self):
-        while (True):
-            try:
-                received = self.tx_queue.get()
-                print(f"TX: <{str(received.message_type.name)}> {str(received.data)}")
-                if received.message_type == Device.OutgoingMessageType.SET_ACTIVE_TX_MODE:
-                    if received.data.transmission_mode is not None:
-                        message = (
-                            f"{received.message_type.name} "
-                            f"{received.data.transmission_mode.name} "
-                            f"{received.data.tx_call} "
-                            f"{received.data.qth_locator} "
-                            f"{received.data.output_power} "
-                            f"{received.data.transmit_every} "
-                            f"{received.data.active_band}\n"
-                        )
-                        self.ser.write(message.encode('utf-8'))
-                    else:
-                        self.ser.write((f"{str(received.message_type.name)} {None} {'\n'}").encode('utf-8'))
-                else:
-                    self.ser.write((f"{str(received.message_type.name)} {str(received.data)} {'\n'}").encode('utf-8'))
-            except queue.Empty:
-                continue
