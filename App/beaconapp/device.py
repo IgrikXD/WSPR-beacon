@@ -70,7 +70,6 @@ class Device:
 
     def __init__(self):
         self.tx_queue = queue.Queue()
-        self.device = None
         self.serial = None
 
     def connect(self):
@@ -113,12 +112,11 @@ class Device:
         while (True):
             for port in serial.tools.list_ports.comports():
                 if port.vid == Device.VID_ESPRESSIF and port.pid == Device.PID_ESP32_C3:
-                    self.device = port.device
                     time.sleep(0.5)
-                    self.serial = serial.Serial(self.device, 115200, timeout=1)
+                    self.serial = serial.Serial(port.device, 115200, timeout=1)
                     break
 
-            if self.device is not None:
+            if self.serial is not None:
                 for handler in self.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
                     handler(Device.ConnectionStatus.USB)
                 self.serial.reset_input_buffer()
@@ -139,7 +137,6 @@ class Device:
                     break
             
             if device_found is False:
-                self.device = None
                 self.serial = None
                 for handler in self.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
                     handler(Device.ConnectionStatus.NOT_CONNECTED)
@@ -148,7 +145,7 @@ class Device:
         threading.Thread(target=self._establish_connection, daemon=True).start()
 
     def _handle_device_requests(self):
-        while (self.device is not None):
+        while (self.serial is not None):
             try:
                 received = self.tx_queue.get()
                 print(f"TX: <{str(received.message_type.name)}> {str(received.data)}")
@@ -172,7 +169,7 @@ class Device:
                 continue
 
     def _handle_device_response(self):
-        while (self.device is not None):
+        while (self.serial is not None):
             try:
                 if self.serial.in_waiting > 0:
                     received = self.dataDecoder(self.serial.readline().decode('utf-8', errors='ignore').strip())
