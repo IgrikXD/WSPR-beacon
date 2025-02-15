@@ -4,15 +4,10 @@ import json
 import serial_asyncio
 import serial.tools.list_ports
 import threading
+from beaconapp.wifi_credentials import WiFiCredentials
 
 from beaconapp.tx_mode import ActiveTXMode, TransmissionMode
 from enum import Enum
-
-
-class WiFiCredentials:
-    def __init__(self, wifi_access_point_name, wifi_access_point_password):
-        self.wifi_access_point_name = wifi_access_point_name
-        self.wifi_access_point_password = wifi_access_point_password
 
 
 class DeviceMessage:
@@ -87,23 +82,20 @@ class Device:
     def gen_calibration_frequency(self, frequency: float):
         self.put(DeviceMessage(self.OutgoingMessageType.GEN_CAL_FREQUENCY, frequency))
 
-    def set_calibration_type(self, calibration_type):
+    def set_calibration_type(self, calibration_type: CalibrationType):
         self.put(DeviceMessage(self.OutgoingMessageType.SET_CAL_METHOD, calibration_type))
 
     def set_calibration_value(self, value: int):
         self.put(DeviceMessage(self.OutgoingMessageType.SET_CAL_VALUE, value))
 
     def set_active_tx_mode(self, active_tx_mode: ActiveTXMode):
-        if active_tx_mode.transmission_mode is None:
-            self.put(DeviceMessage(self.OutgoingMessageType.SET_ACTIVE_TX_MODE, None))
-        else:
-            self.put(DeviceMessage(self.OutgoingMessageType.SET_ACTIVE_TX_MODE, copy.deepcopy(active_tx_mode)))
+        self.put(DeviceMessage(self.OutgoingMessageType.SET_ACTIVE_TX_MODE, active_tx_mode))
 
     def run_self_check(self):
         self.put(DeviceMessage(self.OutgoingMessageType.RUN_SELF_CHECK))
 
-    def run_wifi_connection(self, name: str, password: str):
-        self.put(DeviceMessage(self.OutgoingMessageType.RUN_WIFI_CONNECTION, WiFiCredentials(name, password)))
+    def run_wifi_connection(self, wifi_credentials: WiFiCredentials):
+        self.put(DeviceMessage(self.OutgoingMessageType.RUN_WIFI_CONNECTION, wifi_credentials))
 
     # ---------------------------------------------------------
     # Логика подключения к устройству
@@ -155,20 +147,8 @@ class Device:
         if data is None:
             return None
 
-        if isinstance(data, ActiveTXMode):
-            return {
-                "transmission_mode": data.transmission_mode.name,
-                "tx_call": data.tx_call,
-                "qth_locator": data.qth_locator,
-                "output_power": data.output_power,
-                "transmit_every": data.transmit_every,
-                "active_band": data.active_band,
-            }
-        elif isinstance(data, WiFiCredentials):
-            return {
-                "wifi_access_point_name": data.wifi_access_point_name,
-                "wifi_access_point_password": data.wifi_access_point_password,
-            }
+        if isinstance(data, (ActiveTXMode, WiFiCredentials)):
+            return data.to_json()
         elif isinstance(data, Enum):
             return data.name
         else:
@@ -240,17 +220,7 @@ class Device:
         return raw_data
 
     def _decode_active_tx_mode(self, raw_data):
-        if raw_data is None:
-            return ActiveTXMode()
-
-        return ActiveTXMode(
-            transmission_mode=TransmissionMode[raw_data.get("transmission_mode")],
-            tx_call=raw_data.get("tx_call"),
-            qth_locator=raw_data.get("qth_locator"),
-            output_power=int(raw_data.get("output_power")),
-            transmit_every=raw_data.get("transmit_every"),
-            active_band=raw_data.get("active_band")
-        )
+        return ActiveTXMode.from_json(raw_data)
 
 
 class DeviceProtocol(asyncio.Protocol):
@@ -275,7 +245,7 @@ class DeviceProtocol(asyncio.Protocol):
 
             if line_str:
                 msg = self.device._data_decoder(line_str)
-                print(f"RX: <{msg.message_type.name}> {msg.data}")
+                print(f"RX: {line_str}")
 
                 for handler in self.device.mapped_callbacks.get(msg.message_type, []):
                     handler(msg.data)

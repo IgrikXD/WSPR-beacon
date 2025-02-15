@@ -2,6 +2,7 @@ from beaconapp.config import Config
 from beaconapp.data_validation import DataValidation
 from beaconapp.device import Device
 from beaconapp.ui.widgets import Widgets
+from beaconapp.wifi_credentials import WiFiCredentials
 
 import customtkinter
 
@@ -367,8 +368,7 @@ class SettingsWidget:
         )
 
         self.device.run_wifi_connection(
-            self.wifi_ssid_entry.get(),
-            self.wifi_password_entry.get()
+            WiFiCredentials(self.wifi_ssid_entry.get(), self.wifi_password_entry.get())
         )
 
     def _wifi_connection_error_handle(self):
