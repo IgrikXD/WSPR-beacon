@@ -1,5 +1,6 @@
 from dataclasses import dataclass, asdict
 
+
 @dataclass
 class WiFiCredentials:
     wifi_access_point_name: str = None

@@ -23,14 +23,14 @@ class ActiveTXMode:
 
         if self.transmission_mode is not None:
             data["transmission_mode"] = self.transmission_mode.name
-        
+
         return data
 
     @classmethod
     def from_json(cls, json_data):
         if not json_data:
             return cls()
-        
+
         mode = json_data.get("transmission_mode")
         if mode:
             json_data["transmission_mode"] = TransmissionMode[mode]
