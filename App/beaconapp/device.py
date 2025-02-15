@@ -1,25 +1,20 @@
+import asyncio
+import threading
+import serial_asyncio
+import serial.tools.list_ports
 from enum import Enum
 from beaconapp.tx_mode import ActiveTXMode, TransmissionMode
-
 import copy
-import queue
-import serial
-import serial.tools.list_ports
-import time
-import threading
-
 
 class DeviceMessage:
     def __init__(self, message_type, data=None):
         self.message_type = message_type
         self.data = data
 
-
 class WiFiCredentials:
     def __init__(self, wifi_access_point_name, wifi_access_point_password):
         self.wifi_access_point_name = wifi_access_point_name
         self.wifi_access_point_password = wifi_access_point_password
-
 
 class Device:
     VID_ESPRESSIF = 0x303A
@@ -69,17 +64,27 @@ class Device:
         ALLOW_WIFI_CONNECTION = 8
 
     def __init__(self):
-        self.tx_queue = queue.Queue()
-        self.serial = None
+        self.tx_queue = asyncio.Queue()
+        self.transport = None
+        self.protocol = None
+        self.mapped_callbacks = {}
 
-    def connect(self):
-        threading.Thread(target=self._establish_connection, daemon=True).start()
+        # Переменные для asyncio
+        self.asyncio_loop = None
+        self.async_thread = None
+
+    # Методы для управления обработчиками сообщений остаются без изменений
+    def set_device_response_handlers(self, mapped_callbacks):
+        self.mapped_callbacks = {
+            key: (value if isinstance(value, list) else [value])
+            for key, value in mapped_callbacks.items()
+        }
+
+    def put(self, message: DeviceMessage):
+        self.tx_queue.put_nowait(message)
 
     def get_device_info(self):
         self.put(DeviceMessage(Device.OutgoingMessageType.GET_DEVICE_INFO))
-
-    def put(self, message: OutgoingMessageType):
-        self.tx_queue.put(message)
 
     def set_wifi_connection_allowed(self, value):
         self.put(DeviceMessage(Device.OutgoingMessageType.ALLOW_WIFI_CONNECTION, value))
@@ -93,12 +98,6 @@ class Device:
     def set_calibration_value(self, value):
         self.put(DeviceMessage(Device.OutgoingMessageType.SET_CAL_VALUE, value))
 
-    def set_device_response_handlers(self, mapped_callbacks):
-        self.mapped_callbacks = {
-            key: (value if isinstance(value, list) else [value])
-            for key, value in mapped_callbacks.items()
-        }
-
     def set_active_tx_mode(self, active_tx_mode):
         self.put(DeviceMessage(Device.OutgoingMessageType.SET_ACTIVE_TX_MODE, copy.deepcopy(active_tx_mode)))
 
@@ -108,121 +107,186 @@ class Device:
     def run_wifi_connection(self, name, password):
         self.put(DeviceMessage(Device.OutgoingMessageType.RUN_WIFI_CONNECTION, WiFiCredentials(name, password)))
 
-    def _establish_connection(self):
-        while (True):
+    async def connect(self):
+        await self._establish_connection()
+
+    async def _establish_connection(self):
+        while True:
+            device_port = None
             for port in serial.tools.list_ports.comports():
                 if port.vid == Device.VID_ESPRESSIF and port.pid == Device.PID_ESP32_C3:
-                    time.sleep(0.5)
-                    self.serial = serial.Serial(port.device, 115200, timeout=1)
+                    device_port = port.device
                     break
 
-            if self.serial is not None:
-                for handler in self.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
-                    handler(Device.ConnectionStatus.USB)
-                self.serial.reset_input_buffer()
-                self.serial.reset_output_buffer()
-                self.get_device_info()
-                break
-
-        threading.Thread(target=self._handle_device_disconnect, daemon=True).start()
-        threading.Thread(target=self._handle_device_requests, daemon=True).start()
-        threading.Thread(target=self._handle_device_response, daemon=True).start()
-
-    def _handle_device_disconnect(self):
-        while (True):
-            device_found = False
-            for port in serial.tools.list_ports.comports():
-                if port.vid == Device.VID_ESPRESSIF and port.pid == Device.PID_ESP32_C3:
-                    device_found = True
+            if device_port:
+                await asyncio.sleep(0.5)
+                try:
+                    loop = asyncio.get_running_loop()
+                    self.transport, self.protocol = await serial_asyncio.create_serial_connection(
+                        loop,
+                        lambda: DeviceProtocol(self),
+                        device_port,
+                        baudrate=115200
+                    )
                     break
+                except FileNotFoundError as e:
+                    continue
+                except Exception as e:
+                    print(f"Ошибка открытия порта {device_port}: {e}")
+            await asyncio.sleep(1)
 
-            if device_found is False:
-                self.serial = None
-                for handler in self.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
-                    handler(Device.ConnectionStatus.NOT_CONNECTED)
-                break
+        # Запускаем обработчик исходящих сообщений
+        asyncio.create_task(self._handle_device_requests())
 
-        threading.Thread(target=self._establish_connection, daemon=True).start()
-
-    def _handle_device_requests(self):
-        while (self.serial is not None):
-            try:
-                received = self.tx_queue.get()
-                print(f"TX: <{str(received.message_type.name)}> {str(received.data)}")
-                if received.message_type == Device.OutgoingMessageType.SET_ACTIVE_TX_MODE:
-                    if received.data.transmission_mode is not None:
-                        message = (
-                            f"{received.message_type.name} "
-                            f"{received.data.transmission_mode.name} "
-                            f"{received.data.tx_call} "
-                            f"{received.data.qth_locator} "
-                            f"{received.data.output_power} "
-                            f"{received.data.transmit_every} "
-                            f"{received.data.active_band}\n"
-                        )
-                        self.serial.write(message.encode('utf-8'))
-                    else:
-                        self.serial.write((f"{str(received.message_type.name)} {None} {'\n'}").encode('utf-8'))
+    async def _handle_device_requests(self):
+        while self.transport is not None:
+            message = await self.tx_queue.get()
+            print(f"TX: <{message.message_type.name}> {message.data}")
+            if message.message_type == Device.OutgoingMessageType.SET_ACTIVE_TX_MODE:
+                if message.data.transmission_mode is not None:
+                    msg_str = (
+                        f"{message.message_type.name} "
+                        f"{message.data.transmission_mode.name} "
+                        f"{message.data.tx_call} "
+                        f"{message.data.qth_locator} "
+                        f"{message.data.output_power} "
+                        f"{message.data.transmit_every} "
+                        f"{message.data.active_band}\n"
+                    )
                 else:
-                    self.serial.write((
-                        f"{str(received.message_type.name)} "
-                        f"{str(received.data)} "
-                        f"{'\n'}").encode('utf-8'))
-            except queue.Empty:
-                continue
-
-    def _handle_device_response(self):
-        while (self.serial is not None):
-            try:
-                if self.serial.in_waiting > 0:
-                    received = self.dataDecoder(self.serial.readline().decode('utf-8', errors='ignore').strip())
-                    print(f"RX: <{received.message_type.name}>: {received.data}")
-                    for handler in self.mapped_callbacks.get(received.message_type, []):
-                        handler(received.data)
-            except serial.serialutil.SerialException:
-                break
-
-    def dataDecoder(self, data):
-        tokens = data.split()
-        if tokens[0] == Device.IncomingMessageType.ACTIVE_TX_MODE.name:
-            if tokens[1] == "None":
-                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ActiveTXMode())
+                    msg_str = f"{message.message_type.name} None \n"
             else:
-                message = DeviceMessage(Device.IncomingMessageType[tokens[0]],
-                                        ActiveTXMode(
-                                            TransmissionMode[tokens[1]],
-                                            tokens[2],
-                                            tokens[3],
-                                            int(tokens[4]),
-                                            f"{tokens[5]} {tokens[6]}",
-                                            tokens[7]))
-        elif tokens[0] == Device.IncomingMessageType.CONNECTION_STATUS.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], Device.ConnectionStatus[tokens[1]])
-        elif tokens[0] == Device.IncomingMessageType.SELF_CHECK_ACTION.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ' '.join(tokens[1:]))
-        elif tokens[0] == Device.IncomingMessageType.TX_ACTION_STATUS.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ' '.join(tokens[1:]))
-        elif tokens[0] == Device.IncomingMessageType.SELF_CHECK_STATUS.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
-        elif tokens[0] == Device.IncomingMessageType.SELF_CHECK_ACTIVE.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
-        elif tokens[0] == Device.IncomingMessageType.CAL_STATUS.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
-        elif tokens[0] == Device.IncomingMessageType.TX_STATUS.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
-        elif tokens[0] == Device.IncomingMessageType.GPS_STATUS.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
-        elif tokens[0] == Device.IncomingMessageType.CAL_VALUE.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], int(tokens[1]))
-        elif tokens[0] == Device.IncomingMessageType.CAL_FREQ_GENERATED.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
-        elif tokens[0] == Device.IncomingMessageType.HARDWARE_INFO.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1])
-        elif tokens[0] == Device.IncomingMessageType.FIRMWARE_INFO.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1])
-        elif tokens[0] == Device.IncomingMessageType.WIFI_STATUS.name:
-            message = DeviceMessage(Device.IncomingMessageType[tokens[0]], False if tokens[1] == "False" else True)
-        else:
-            message = DeviceMessage(Device.IncomingMessageType.OTHER, data)
+                msg_str = f"{message.message_type.name} {message.data} \n"
+            if self.transport:
+                self.transport.write(msg_str.encode('utf-8'))
 
+    def serial_exception_handler(self, loop, context):
+        """
+        Обработчик исключений для asyncio‑цикла, который перехватывает ошибки,
+        возникающие при работе с serial_asyncio.
+        """
+        exception = context.get("exception")
+        if exception and isinstance(exception, serial.serialutil.SerialException):
+            msg = str(exception)
+            if "ClearCommError failed" in msg:
+                return
+        loop.default_exception_handler(context)
+        
+    # Методы для управления event loop внутри Device
+    def start(self):
+        """Запускает асинхронный цикл и подключение устройства."""
+        self.asyncio_loop = asyncio.new_event_loop()
+        self.asyncio_loop.set_exception_handler(self.serial_exception_handler)
+        self.async_thread = threading.Thread(target=self._run_loop, daemon=True)
+        self.async_thread.start()
+        # Планируем подключение к устройству
+        asyncio.run_coroutine_threadsafe(self.connect(), self.asyncio_loop)
+
+    def _run_loop(self):
+        asyncio.set_event_loop(self.asyncio_loop)
+        self.asyncio_loop.run_forever()
+
+    async def _shutdown_tasks(self):
+        tasks = [t for t in asyncio.all_tasks(self.asyncio_loop) if t is not asyncio.current_task()]
+        if tasks:
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+
+    def shutdown(self):
+        """Корректно завершает работу asyncio-цикла."""
+        if self.asyncio_loop and self.asyncio_loop.is_running():
+            # Запуск отмены задач
+            shutdown_future = asyncio.run_coroutine_threadsafe(self._shutdown_tasks(), self.asyncio_loop)
+            try:
+                shutdown_future.result(timeout=5)
+            except Exception as e:
+                print("Ошибка при остановке задач:", e)
+            # Остановка цикла
+            self.asyncio_loop.call_soon_threadsafe(self.asyncio_loop.stop)
+            self.async_thread.join(timeout=5)
+            self.asyncio_loop.close()
+
+    def dataDecoder(self, data: str) -> DeviceMessage:
+        tokens = data.split()
+        try:
+            if tokens[0] == Device.IncomingMessageType.ACTIVE_TX_MODE.name:
+                if tokens[1] == "None":
+                    message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ActiveTXMode())
+                else:
+                    # Пример разбора сообщения – может потребоваться доработка под конкретный формат
+                    message = DeviceMessage(
+                        Device.IncomingMessageType[tokens[0]],
+                        ActiveTXMode(
+                            TransmissionMode[tokens[1]],
+                            tokens[2],
+                            tokens[3],
+                            int(tokens[4]),
+                            f"{tokens[5]} {tokens[6]}",
+                            tokens[7]
+                        )
+                    )
+            elif tokens[0] == Device.IncomingMessageType.CONNECTION_STATUS.name:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], Device.ConnectionStatus[tokens[1]])
+            elif tokens[0] == Device.IncomingMessageType.SELF_CHECK_ACTION.name:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ' '.join(tokens[1:]))
+            elif tokens[0] == Device.IncomingMessageType.TX_ACTION_STATUS.name:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], ' '.join(tokens[1:]))
+            elif tokens[0] == Device.IncomingMessageType.SELF_CHECK_STATUS.name:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1] != "False")
+            elif tokens[0] == Device.IncomingMessageType.SELF_CHECK_ACTIVE.name:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1] != "False")
+            elif tokens[0] == Device.IncomingMessageType.CAL_STATUS.name:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1] != "False")
+            elif tokens[0] == Device.IncomingMessageType.TX_STATUS.name:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1] != "False")
+            elif tokens[0] == Device.IncomingMessageType.GPS_STATUS.name:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1] != "False")
+            elif tokens[0] == Device.IncomingMessageType.CAL_VALUE.name:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], int(tokens[1]))
+            elif tokens[0] == Device.IncomingMessageType.CAL_FREQ_GENERATED.name:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1] != "False")
+            elif tokens[0] == Device.IncomingMessageType.HARDWARE_INFO.name:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1])
+            elif tokens[0] == Device.IncomingMessageType.FIRMWARE_INFO.name:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1])
+            elif tokens[0] == Device.IncomingMessageType.WIFI_STATUS.name:
+                message = DeviceMessage(Device.IncomingMessageType[tokens[0]], tokens[1] != "False")
+            else:
+                message = DeviceMessage(Device.IncomingMessageType.OTHER, data)
+        except (IndexError, ValueError, KeyError) as e:
+            # При ошибке разбора возвращаем сообщение с типом OTHER
+            message = DeviceMessage(Device.IncomingMessageType.OTHER, data)
         return message
+
+
+class DeviceProtocol(asyncio.Protocol):
+    def __init__(self, device: Device):
+        self.device = device
+        self.buffer = b""
+
+    def connection_made(self, transport):
+        self.transport = transport
+        for handler in self.device.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
+            handler(Device.ConnectionStatus.USB)
+        self.device.get_device_info()
+
+    def data_received(self, data: bytes):
+        self.buffer += data
+        while b'\n' in self.buffer:
+            line, self.buffer = self.buffer.split(b'\n', 1)
+            line_str = line.decode('utf-8', errors='ignore').strip()
+            if line_str:
+                msg = self.device.dataDecoder(line_str)
+                print(f"RX: <{msg.message_type.name}>: {msg.data}")
+                for handler in self.device.mapped_callbacks.get(msg.message_type, []):
+                    handler(msg.data)
+
+    def connection_lost(self, exc):
+        self.device.transport = None
+        self.device.protocol = None
+        for handler in self.device.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
+            handler(Device.ConnectionStatus.NOT_CONNECTED)
+        asyncio.create_task(self.device.connect())
+
+

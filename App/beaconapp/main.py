@@ -78,7 +78,7 @@ class BeaconApp(customtkinter.CTk):
         })
 
         # Establish the connection to the device
-        device.connect()
+        device.start()
         # Select the default frame
         navigation_frame.select_frame_by_name("transmission")
 
