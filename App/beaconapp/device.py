@@ -65,32 +65,32 @@ class Device:
             for key, value in mapped_callbacks.items()
         }
 
-    def put(self, message: DeviceMessage):
+    def _put(self, message: DeviceMessage):
         self.tx_queue.put_nowait(message)
 
     def get_device_info(self):
-        self.put(DeviceMessage(self.OutgoingMessageType.GET_DEVICE_INFO))
+        self._put(DeviceMessage(self.OutgoingMessageType.GET_DEVICE_INFO))
 
     def set_wifi_connection_allowed(self, value: bool):
-        self.put(DeviceMessage(self.OutgoingMessageType.ALLOW_WIFI_CONNECTION, value))
+        self._put(DeviceMessage(self.OutgoingMessageType.ALLOW_WIFI_CONNECTION, value))
 
     def gen_calibration_frequency(self, frequency: float):
-        self.put(DeviceMessage(self.OutgoingMessageType.GEN_CAL_FREQUENCY, frequency))
+        self._put(DeviceMessage(self.OutgoingMessageType.GEN_CAL_FREQUENCY, frequency))
 
     def set_calibration_type(self, calibration_type: CalibrationType):
-        self.put(DeviceMessage(self.OutgoingMessageType.SET_CAL_METHOD, calibration_type))
+        self._put(DeviceMessage(self.OutgoingMessageType.SET_CAL_METHOD, calibration_type))
 
     def set_calibration_value(self, value: int):
-        self.put(DeviceMessage(self.OutgoingMessageType.SET_CAL_VALUE, value))
+        self._put(DeviceMessage(self.OutgoingMessageType.SET_CAL_VALUE, value))
 
     def set_active_tx_mode(self, active_tx_mode: ActiveTXMode):
-        self.put(DeviceMessage(self.OutgoingMessageType.SET_ACTIVE_TX_MODE, active_tx_mode))
+        self._put(DeviceMessage(self.OutgoingMessageType.SET_ACTIVE_TX_MODE, active_tx_mode))
 
     def run_self_check(self):
-        self.put(DeviceMessage(self.OutgoingMessageType.RUN_SELF_CHECK))
+        self._put(DeviceMessage(self.OutgoingMessageType.RUN_SELF_CHECK))
 
     def run_wifi_connection(self, wifi_credentials: WiFiCredentials):
-        self.put(DeviceMessage(self.OutgoingMessageType.RUN_WIFI_CONNECTION, wifi_credentials))
+        self._put(DeviceMessage(self.OutgoingMessageType.RUN_WIFI_CONNECTION, wifi_credentials))
 
     # ---------------------------------------------------------
     # Логика подключения к устройству
@@ -150,7 +150,7 @@ class Device:
     # ---------------------------------------------------------
     # Завершение работы
     # ---------------------------------------------------------
-    def shutdown(self):
+    def disconnect(self):
         if self.asyncio_loop and self.asyncio_loop.is_running():
             future = asyncio.run_coroutine_threadsafe(self._shutdown_tasks(), self.asyncio_loop)
             future.result(timeout=5)
@@ -238,4 +238,4 @@ class DeviceProtocol(asyncio.Protocol):
         for handler in self.device.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
             handler(Device.ConnectionStatus.NOT_CONNECTED)
 
-        asyncio.create_task(self.device.connect())
+        asyncio.create_task(self.device._establish_connection())

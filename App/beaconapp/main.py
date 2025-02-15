@@ -111,7 +111,7 @@ class BeaconApp(customtkinter.CTk):
         Save the current configuration and close the app.
         """
         config.save()
-        device.shutdown()
+        device.disconnect()
         self.destroy()
 
 
