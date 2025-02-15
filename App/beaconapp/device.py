@@ -1,12 +1,12 @@
 import asyncio
-import threading
+import copy
+import json
 import serial_asyncio
 import serial.tools.list_ports
-import json
-from enum import Enum
-import copy
+import threading
 
 from beaconapp.tx_mode import ActiveTXMode, TransmissionMode
+from enum import Enum
 
 
 class WiFiCredentials:
