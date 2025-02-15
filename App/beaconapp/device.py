@@ -40,7 +40,6 @@ class Device:
         CAL_FREQ_GENERATED = 12
         CONNECTION_STATUS = 13
         WIFI_STATUS = 14
-        OTHER = 15
 
     class OutgoingMessageType(Enum):
         GET_DEVICE_INFO = 1
@@ -191,15 +190,10 @@ class Device:
     # ---------------------------------------------------------
     def _data_decoder(self, line_str: str):
         obj = json.loads(line_str)
-        msg_type = obj.get("type")
-        raw_data = obj.get("data")
 
-        if msg_type in self.IncomingMessageType.__members__:
-            msg_type = self.IncomingMessageType[msg_type]
-        else:
-            msg_type = self.IncomingMessageType.OTHER
+        msg_type = self.IncomingMessageType[obj.get("type")]
 
-        return DeviceMessage(msg_type, self._decode_data(msg_type, raw_data))
+        return DeviceMessage(msg_type, self._decode_data(msg_type, obj.get("data")))
 
     def _decode_data(self, msg_type, raw_data):
         if msg_type == self.IncomingMessageType.ACTIVE_TX_MODE:
