@@ -18,7 +18,7 @@ class BeaconApp(customtkinter.CTk):
         device = Device()
         # Load the default configuration from a file
         config = Config("config.json")
-        self.app_configuration(config)
+        self.app_configuration(config, device)
         # Create the navigation widget
         navigation_frame = NavigationWidget(self)
         # Create the "Transmission" widget
@@ -82,7 +82,7 @@ class BeaconApp(customtkinter.CTk):
         # Select the default frame
         navigation_frame.select_frame_by_name("transmission")
 
-    def app_configuration(self, config: Config):
+    def app_configuration(self, config: Config, device: Device):
         """
         Configure the application: title, icon, minimum window size, theme, and UI scaling.
         """
@@ -104,13 +104,14 @@ class BeaconApp(customtkinter.CTk):
 
         # Handle the window close event
         self.protocol("WM_DELETE_WINDOW",
-                      lambda: self.update_default_config_and_close_app(config))
+                      lambda: self.update_default_config_and_close_app(config, device))
 
-    def update_default_config_and_close_app(self, config: Config):
+    def update_default_config_and_close_app(self, config: Config, device: Device):
         """
         Save the current configuration and close the app.
         """
         config.save()
+        device.shutdown()
         self.destroy()
 
 

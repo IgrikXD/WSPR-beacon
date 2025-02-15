@@ -16,9 +16,6 @@ class DeviceMessage:
 
 
 class Device:
-    VID_ESPRESSIF = 0x303A
-    PID_ESP32_C3 = 0x1001
-
     class CalibrationType(Enum):
         AUTO = 1
         MANUAL = 2
@@ -120,7 +117,8 @@ class Device:
 
     def _find_device_port(self):
         for port in serial.tools.list_ports.comports():
-            if port.vid == self.VID_ESPRESSIF and port.pid == self.PID_ESP32_C3:
+            # VID and PID for ESP32-C3
+            if port.vid == 0x303A and port.pid == 0x1001:
                 return port.device
         return None
 
@@ -159,10 +157,7 @@ class Device:
     def shutdown(self):
         if self.asyncio_loop and self.asyncio_loop.is_running():
             future = asyncio.run_coroutine_threadsafe(self._shutdown_tasks(), self.asyncio_loop)
-            try:
-                future.result(timeout=5)
-            except Exception as e:
-                print("Ошибка при остановке задач:", e)
+            future.result(timeout=5)
 
             self.asyncio_loop.call_soon_threadsafe(self.asyncio_loop.stop)
             self.async_thread.join(timeout=5)
@@ -211,15 +206,12 @@ class Device:
 
     def _decode_data(self, msg_type, raw_data):
         if msg_type == self.IncomingMessageType.ACTIVE_TX_MODE:
-            return self._decode_active_tx_mode(raw_data)
+            return ActiveTXMode.from_json(raw_data)
 
         if msg_type == self.IncomingMessageType.CONNECTION_STATUS:
             return self.ConnectionStatus[raw_data]
 
         return raw_data
-
-    def _decode_active_tx_mode(self, raw_data):
-        return ActiveTXMode.from_json(raw_data)
 
 
 class DeviceProtocol(asyncio.Protocol):
