@@ -96,9 +96,6 @@ class Device:
     # ---------------------------------------------------------
     # Логика подключения к устройству
     # ---------------------------------------------------------
-    async def connect(self):
-        await self._establish_connection()
-
     async def _establish_connection(self):
         while True:
             device_port = self._find_device_port()
@@ -172,13 +169,13 @@ class Device:
     # ---------------------------------------------------------
     # Запуск в отдельном потоке
     # ---------------------------------------------------------
-    def start(self):
+    def connect(self):
         self.asyncio_loop = asyncio.new_event_loop()
         self.asyncio_loop.set_exception_handler(self.serial_exception_handler)
         self.async_thread = threading.Thread(target=self._run_loop, daemon=True)
         self.async_thread.start()
 
-        asyncio.run_coroutine_threadsafe(self.connect(), self.asyncio_loop)
+        asyncio.run_coroutine_threadsafe(self._establish_connection(), self.asyncio_loop)
 
     def _run_loop(self):
         asyncio.set_event_loop(self.asyncio_loop)
