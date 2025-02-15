@@ -116,15 +116,14 @@ class Device:
             device_port = self._find_device_port()
             if device_port:
                 await asyncio.sleep(0.5)
-                loop = asyncio.get_running_loop()
                 self.transport, _ = await serial_asyncio.create_serial_connection(
-                    loop,
+                    asyncio.get_running_loop(),
                     lambda: DeviceProtocol(self),
                     device_port,
                     baudrate=115200
                 )
                 break
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)
 
         asyncio.create_task(self._handle_device_requests())
 
@@ -212,26 +211,24 @@ class Device:
         self.asyncio_loop.run_forever()
 
     def serial_exception_handler(self, loop, context):
-        exception = context.get("exception")
-        if exception and "ClearCommError failed" in str(exception):
+        if "ClearCommError failed" in str(context.get("exception", "")):
             return
         loop.default_exception_handler(context)
 
     # ---------------------------------------------------------
     # Декодирование входящих данных (JSON -> DeviceMessage)
     # ---------------------------------------------------------
-    def dataDecoder(self, line_str: str):
+    def _data_decoder(self, line_str: str):
         obj = json.loads(line_str)
-        msg_type_str = obj.get("type", "")
-        raw_data = obj.get("data", None)
+        msg_type = obj.get("type")
+        raw_data = obj.get("data")
 
-        if msg_type_str in self.IncomingMessageType.__members__:
-            msg_type = self.IncomingMessageType[msg_type_str]
+        if msg_type in self.IncomingMessageType.__members__:
+            msg_type = self.IncomingMessageType[msg_type]
         else:
             msg_type = self.IncomingMessageType.OTHER
 
-        data = self._decode_data(msg_type, raw_data)
-        return DeviceMessage(msg_type, data)
+        return DeviceMessage(msg_type, self._decode_data(msg_type, raw_data))
 
     def _decode_data(self, msg_type, raw_data):
         if msg_type == self.IncomingMessageType.ACTIVE_TX_MODE:
@@ -277,7 +274,7 @@ class DeviceProtocol(asyncio.Protocol):
             line_str = line.decode('utf-8', errors='ignore').strip()
 
             if line_str:
-                msg = self.device.dataDecoder(line_str)
+                msg = self.device._data_decoder(line_str)
                 print(f"RX: <{msg.message_type.name}> {msg.data}")
 
                 for handler in self.device.mapped_callbacks.get(msg.message_type, []):
