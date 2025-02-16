@@ -60,6 +60,23 @@ class Device:
         self.asyncio_loop = None
         self.async_thread = None
 
+    def connect(self):
+        self.asyncio_loop = asyncio.new_event_loop()
+        self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
+        self.async_thread = threading.Thread(target=self._run_asyncio_loop, daemon=True)
+        self.async_thread.start()
+
+        asyncio.run_coroutine_threadsafe(self._establish_connection(), self.asyncio_loop)
+
+    def disconnect(self):
+        if self.asyncio_loop and self.asyncio_loop.is_running():
+            future = asyncio.run_coroutine_threadsafe(self._shutdown_tasks(), self.asyncio_loop)
+            future.result(timeout=5)
+
+            self.asyncio_loop.call_soon_threadsafe(self.asyncio_loop.stop)
+            self.async_thread.join(timeout=5)
+            self.asyncio_loop.close()
+
     def set_device_response_handlers(self, mapped_callbacks):
         self.mapped_callbacks = {
             key: (value if isinstance(value, list) else [value])
@@ -90,12 +107,35 @@ class Device:
     def run_wifi_connection(self, wifi_credentials: WiFiCredentials):
         self._put(DeviceMessage(self.OutgoingMessageType.RUN_WIFI_CONNECTION, wifi_credentials))
 
-    def _put(self, message: DeviceMessage):
-        self.tx_queue.put_nowait(message)
+    def _data_decoder(self, line_str: str):
+        obj = json.loads(line_str)
 
-    # ---------------------------------------------------------
-    # Логика подключения к устройству
-    # ---------------------------------------------------------
+        msg_type = self.IncomingMessageType[obj.get("type")]
+
+        return DeviceMessage(msg_type, self._decode_data(msg_type, obj.get("data")))
+
+    def _decode_data(self, msg_type, raw_data):
+        if msg_type == self.IncomingMessageType.ACTIVE_TX_MODE:
+            return ActiveTXMode.from_json(raw_data)
+
+        if msg_type == self.IncomingMessageType.CONNECTION_STATUS:
+            return self.ConnectionStatus[raw_data]
+
+        return raw_data
+
+    def _encode_data(self, data):
+        if data is None:
+            return None
+
+        if isinstance(data, (ActiveTXMode, WiFiCredentials)):
+            return data.to_json()
+        elif isinstance(data, Enum):
+            return data.name
+        return data
+
+    def _encode_device_message(self, message: DeviceMessage) -> str:
+        return json.dumps({"type": message.message_type.name, "data": self._encode_data(message.data)}) + "\n"
+
     async def _establish_connection(self):
         while True:
             device_port = self._find_device_port()
@@ -119,13 +159,17 @@ class Device:
                 return port.device
         return None
 
-    # ---------------------------------------------------------
-    # Логика отправки сообщений (через очередь)
-    # ---------------------------------------------------------
     async def _handle_device_requests(self):
         while self.transport is not None:
             message = await self.tx_queue.get()
             self._send_to_device(message)
+
+    def _put(self, message: DeviceMessage):
+        self.tx_queue.put_nowait(message)
+
+    def _run_asyncio_loop(self):
+        asyncio.set_event_loop(self.asyncio_loop)
+        self.asyncio_loop.run_forever()
 
     def _send_to_device(self, message: DeviceMessage):
         json_str = self._encode_device_message(message)
@@ -133,31 +177,10 @@ class Device:
         if self.transport:
             self.transport.write(json_str.encode('utf-8'))
 
-    def _encode_device_message(self, message: DeviceMessage) -> str:
-        payload = {"type": message.message_type.name, "data": self._encode_data(message.data)}
-        return json.dumps(payload) + "\n"
-
-    def _encode_data(self, data):
-        if data is None:
-            return None
-
-        if isinstance(data, (ActiveTXMode, WiFiCredentials)):
-            return data.to_json()
-        elif isinstance(data, Enum):
-            return data.name
-        return data
-
-    # ---------------------------------------------------------
-    # Завершение работы
-    # ---------------------------------------------------------
-    def disconnect(self):
-        if self.asyncio_loop and self.asyncio_loop.is_running():
-            future = asyncio.run_coroutine_threadsafe(self._shutdown_tasks(), self.asyncio_loop)
-            future.result(timeout=5)
-
-            self.asyncio_loop.call_soon_threadsafe(self.asyncio_loop.stop)
-            self.async_thread.join(timeout=5)
-            self.asyncio_loop.close()
+    def _serial_exception_handler(self, loop, context):
+        if "ClearCommError failed" in str(context.get("exception", "")):
+            return
+        loop.default_exception_handler(context)
 
     async def _shutdown_tasks(self):
         tasks = [t for t in asyncio.all_tasks(self.asyncio_loop) if t is not asyncio.current_task()]
@@ -165,51 +188,20 @@ class Device:
             task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
 
-    # ---------------------------------------------------------
-    # Запуск в отдельном потоке
-    # ---------------------------------------------------------
-    def connect(self):
-        self.asyncio_loop = asyncio.new_event_loop()
-        self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
-        self.async_thread = threading.Thread(target=self._run_loop, daemon=True)
-        self.async_thread.start()
-
-        asyncio.run_coroutine_threadsafe(self._establish_connection(), self.asyncio_loop)
-
-    def _run_loop(self):
-        asyncio.set_event_loop(self.asyncio_loop)
-        self.asyncio_loop.run_forever()
-
-    def _serial_exception_handler(self, loop, context):
-        if "ClearCommError failed" in str(context.get("exception", "")):
-            return
-        loop.default_exception_handler(context)
-
-    # ---------------------------------------------------------
-    # Декодирование входящих данных (JSON -> DeviceMessage)
-    # ---------------------------------------------------------
-    def _data_decoder(self, line_str: str):
-        obj = json.loads(line_str)
-
-        msg_type = self.IncomingMessageType[obj.get("type")]
-
-        return DeviceMessage(msg_type, self._decode_data(msg_type, obj.get("data")))
-
-    def _decode_data(self, msg_type, raw_data):
-        if msg_type == self.IncomingMessageType.ACTIVE_TX_MODE:
-            return ActiveTXMode.from_json(raw_data)
-
-        if msg_type == self.IncomingMessageType.CONNECTION_STATUS:
-            return self.ConnectionStatus[raw_data]
-
-        return raw_data
-
 
 class DeviceProtocol(asyncio.Protocol):
     def __init__(self, device: Device):
         self.device = device
         self.transport = None
         self.buffer = b""
+
+    def connection_lost(self, exc):
+        self.device.transport = None
+
+        for handler in self.device.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
+            handler(Device.ConnectionStatus.NOT_CONNECTED)
+
+        asyncio.create_task(self.device._establish_connection())
 
     def connection_made(self, transport):
         self.transport = transport
@@ -232,10 +224,4 @@ class DeviceProtocol(asyncio.Protocol):
                 for handler in self.device.mapped_callbacks.get(msg.message_type, []):
                     handler(msg.data)
 
-    def connection_lost(self, exc):
-        self.device.transport = None
 
-        for handler in self.device.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
-            handler(Device.ConnectionStatus.NOT_CONNECTED)
-
-        asyncio.create_task(self.device._establish_connection())
