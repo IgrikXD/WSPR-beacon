@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+
 @dataclass
 class DeviceMessage:
     message_type: Enum
@@ -223,5 +224,3 @@ class DeviceProtocol(asyncio.Protocol):
 
                 for handler in self.device.mapped_callbacks.get(msg.message_type, []):
                     handler(msg.data)
-
-
