@@ -3,16 +3,17 @@ import json
 import serial_asyncio
 import serial.tools.list_ports
 import threading
-from beaconapp.wifi_credentials import WiFiCredentials
 
 from beaconapp.tx_mode import ActiveTXMode
+from beaconapp.wifi_credentials import WiFiCredentials
+from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
-
+@dataclass
 class DeviceMessage:
-    def __init__(self, message_type, data=None):
-        self.message_type = message_type
-        self.data = data
+    message_type: Enum
+    data: Any = None
 
 
 class Device:
@@ -65,9 +66,6 @@ class Device:
             for key, value in mapped_callbacks.items()
         }
 
-    def _put(self, message: DeviceMessage):
-        self.tx_queue.put_nowait(message)
-
     def get_device_info(self):
         self._put(DeviceMessage(self.OutgoingMessageType.GET_DEVICE_INFO))
 
@@ -91,6 +89,9 @@ class Device:
 
     def run_wifi_connection(self, wifi_credentials: WiFiCredentials):
         self._put(DeviceMessage(self.OutgoingMessageType.RUN_WIFI_CONNECTION, wifi_credentials))
+
+    def _put(self, message: DeviceMessage):
+        self.tx_queue.put_nowait(message)
 
     # ---------------------------------------------------------
     # Логика подключения к устройству
@@ -144,8 +145,7 @@ class Device:
             return data.to_json()
         elif isinstance(data, Enum):
             return data.name
-        else:
-            return data
+        return data
 
     # ---------------------------------------------------------
     # Завершение работы
@@ -170,7 +170,7 @@ class Device:
     # ---------------------------------------------------------
     def connect(self):
         self.asyncio_loop = asyncio.new_event_loop()
-        self.asyncio_loop.set_exception_handler(self.serial_exception_handler)
+        self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
         self.async_thread = threading.Thread(target=self._run_loop, daemon=True)
         self.async_thread.start()
 
@@ -180,7 +180,7 @@ class Device:
         asyncio.set_event_loop(self.asyncio_loop)
         self.asyncio_loop.run_forever()
 
-    def serial_exception_handler(self, loop, context):
+    def _serial_exception_handler(self, loop, context):
         if "ClearCommError failed" in str(context.get("exception", "")):
             return
         loop.default_exception_handler(context)
