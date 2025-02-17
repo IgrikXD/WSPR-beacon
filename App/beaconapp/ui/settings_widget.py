@@ -107,6 +107,7 @@ class SettingsWidget:
             self.general_frame,
             row=7,
             text="Password:",
+            show="●",
             state="disabled",
             bind_action=["<KeyRelease>", self._wifi_update_connect_button_state],
             optimize_for_scrollable=True
@@ -421,8 +422,7 @@ class SettingsWidget:
         Dynamically enable or disable the Wi-Fi connect button
         depending on whether the SSID and password fields are filled.
         """
-        if (self.wifi_ssid_entry.get().strip() and
-                self.wifi_password_entry.get().strip()):
+        if (self.wifi_ssid_entry.get().strip() and self.wifi_password_entry.get().strip()):
             self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(state="normal"))
         else:
             self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(state="disabled"))
