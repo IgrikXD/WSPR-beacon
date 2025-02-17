@@ -194,6 +194,7 @@ class Widgets:
         parent,
         row,
         text,
+        show=None,
         placeholder_text=None,
         state="normal",
         bind_action=None,
@@ -207,6 +208,7 @@ class Widgets:
             parent (widget): Parent widget to contain the frame and entry.
             row (int): The row in the grid layout.
             text (str): Text for the label placed in the frame.
+            show (str): Character to display instead of the actual text (e.g., "*").
             placeholder_text (str): Placeholder text for the entry.
             state (str): The entry state (e.g., "normal", "disabled").
             bind_action (tuple or list): Event binding(s) for the entry.
@@ -225,6 +227,7 @@ class Widgets:
 
         entry = customtkinter.CTkEntry(
             frame,
+            show=show,
             placeholder_text=placeholder_text,
             state=state,
             width=160
