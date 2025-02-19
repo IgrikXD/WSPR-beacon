@@ -186,6 +186,7 @@ class Device:
             try:
                 print("Connecting to WebSocket...")
                 self.websocket = await websockets.connect("ws://esp32-device:81")
+                self.active_transport = self.Transport.WIFI
                 asyncio.create_task(self._websocket_receiver())
                 break
             except Exception:
@@ -194,8 +195,6 @@ class Device:
 
     async def _websocket_receiver(self):
         try:
-            print("WebSocket receiver started")
-            self.active_transport = self.Transport.WIFI if self.websocket else None
             self.get_device_info()
             async for message in self.websocket:
                 message = message.strip()
