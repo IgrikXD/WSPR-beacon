@@ -114,6 +114,10 @@ class Device:
     def set_wifi_connection(self, wifi_credentials: WiFiCredentials):
         self._put(DeviceMessage(self.OutgoingMessageType.RUN_WIFI_CONNECTION, wifi_credentials))
 
+    def _call_handlers(self, msg_type: Enum, data) -> None:
+        for handler in self.mapped_callbacks.get(msg_type, []):
+            handler(data)
+
     def _data_decoder(self, line_str: str):
         obj = json.loads(line_str)
 
@@ -121,19 +125,18 @@ class Device:
 
         return DeviceMessage(msg_type, self._decode_data(msg_type, obj.get("data")))
 
-    def _decode_data(self, msg_type, raw_data):
+    def _decode_data(self, msg_type: IncomingMessageType, raw_data):
         if msg_type == self.IncomingMessageType.ACTIVE_TX_MODE:
             return ActiveTXMode.from_json(raw_data)
 
         if msg_type == self.IncomingMessageType.CONNECTION_STATUS:
             if raw_data == self.Transport.USB.name:
                 self.active_transport = self.Transport.USB if self.transport else None
-            if raw_data == self.Transport.WIFI.name:
+            elif raw_data == self.Transport.WIFI.name:
                 self.active_transport = self.Transport.WIFI if self.ws else None
             return self.active_transport
-        
+
         if msg_type == self.IncomingMessageType.WIFI_SSID_DATA:
-            print(raw_data)
             return WiFiData.from_json(raw_data)
 
         return raw_data
@@ -148,8 +151,11 @@ class Device:
             return data.name
         return data
 
-    def _encode_device_message(self, message: DeviceMessage) -> str:
-        return json.dumps({"type": message.message_type.name, "data": self._encode_data(message.data)}) + "\n"
+    def _encode_device_message(self, message: DeviceMessage):
+        return json.dumps({
+            "type": message.message_type.name,
+            "data": self._encode_data(message.data)
+        }) + "\n"
 
     async def _establish_serial_connection(self):
         while True:
@@ -192,17 +198,15 @@ class Device:
                 if message:
                     msg = self._data_decoder(message)
                     print(f"RX (WebSocket): {message}")
-                    
-                    for handler in self.mapped_callbacks.get(msg.message_type, []):
-                        handler(msg.data)
+                    self._call_handlers(msg.message_type, msg.data)
         except Exception as e:
             print("WebSocket receiver error", e)
         finally:
             self.ws = None
             if self.transport is None:
                 self.active_transport = None
-                for handler in self.mapped_callbacks.get(self.IncomingMessageType.CONNECTION_STATUS, []):
-                    handler(None)
+                self._call_handlers(self.IncomingMessageType.CONNECTION_STATUS, None)
+            await asyncio.sleep(1)
             asyncio.create_task(self._establish_websocket_connection())
 
     async def _handle_device_requests(self):
@@ -226,7 +230,7 @@ class Device:
             print(f"TX (USB): {json_str.strip()}")
             self.transport.write(json_str.encode('utf-8'))
 
-    def _serial_exception_handler(self, loop, context):
+    def _serial_exception_handler(self, loop: asyncio.AbstractEventLoop, context: dict):
         if "ClearCommError failed" in str(context.get("exception", "")):
             return
         loop.default_exception_handler(context)
@@ -246,10 +250,7 @@ class DeviceProtocol(asyncio.Protocol):
 
     def connection_lost(self, exc):
         self.device.transport = None
-
-        for handler in self.device.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
-            handler(None)
-
+        self.device._call_handlers(Device.IncomingMessageType.CONNECTION_STATUS, None)
         asyncio.create_task(self.device._establish_serial_connection())
 
     def connection_made(self, transport):
@@ -270,5 +271,4 @@ class DeviceProtocol(asyncio.Protocol):
                 msg = self.device._data_decoder(message)
                 print(f"RX (USB): {message}")
 
-                for handler in self.device.mapped_callbacks.get(msg.message_type, []):
-                    handler(msg.data)
+                self.device._call_handlers(msg.message_type, msg.data)
