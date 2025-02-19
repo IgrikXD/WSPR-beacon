@@ -336,16 +336,18 @@ class SettingsWidget:
     def _wifi_change_state(self, state):
         """
         Change the state of WiFi-related UI elements.
-        Updates the state of the WiFi connection button, SSID entry, password entry, and the WiFi 
+        Updates the state of the WiFi connection button, SSID entry, password entry, and the WiFi
         auto-connect at startup option.
-        
+
         Args:
             state (str): The desired state ("normal" or "disabled").
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(state=state))
         self.ssid_entry.after(0, lambda: self.ssid_entry.configure(state=state))
         self.password_entry.after(0, lambda: self.password_entry.configure(state=state))
-        self.wifi_auto_connect_at_startup_option.after(0, lambda: self.wifi_auto_connect_at_startup_option.configure(state=state))
+        self.wifi_auto_connect_at_startup_option.after(
+            0, lambda: self.wifi_auto_connect_at_startup_option.configure(state=state)
+        )
 
     def _wifi_auto_connect_at_startup_option_event(self, value):
         """
@@ -374,7 +376,7 @@ class SettingsWidget:
         )
 
         self.device.set_wifi_connection(
-            None if self.device.active_transport == Device.Transport.WIFI 
+            None if self.device.active_transport == Device.Transport.WIFI
             else WiFiCredentials(self.ssid_entry.get(), self.password_entry.get())
         )
 
@@ -416,7 +418,7 @@ class SettingsWidget:
 
     def _wifi_update_connection_button_state(self, event=None):
         """
-        Dynamically enable or disable the Wi-Fi connect button depending on whether the SSID 
+        Dynamically enable or disable the Wi-Fi connect button depending on whether the SSID
         and password fields are filled.
         """
         if (self.ssid_entry.get().strip() and self.password_entry.get().strip()):

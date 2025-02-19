@@ -1,12 +1,13 @@
 from dataclasses import dataclass, asdict
 from enum import Enum
 
+
 class ConnectionStatus(Enum):
     CONNECTED = "connected"
     DISCONNECTED = "disconnected"
     FAIL = "fail"
 
- 
+
 @dataclass
 class WiFiCredentials:
     wifi_access_point_name: str = None
@@ -14,7 +15,7 @@ class WiFiCredentials:
 
     def to_json(self) -> dict:
         return asdict(self)
-    
+
 
 @dataclass
 class WiFiData:
