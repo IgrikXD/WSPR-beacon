@@ -184,7 +184,6 @@ class Device:
     async def _establish_websocket_connection(self):
         while True:
             try:
-                print("Connecting to WebSocket...")
                 self.websocket = await websockets.connect("ws://esp32-device:81")
                 self.active_transport = self.Transport.WIFI
                 asyncio.create_task(self._websocket_receiver())
