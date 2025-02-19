@@ -131,10 +131,12 @@ class Device:
             return ActiveTXMode.from_json(raw_data)
 
         if msg_type == self.IncomingMessageType.CONNECTION_STATUS:
-            if raw_data == self.Transport.USB.name:
-                self.active_transport = self.Transport.USB if self.serial else None
-            elif raw_data == self.Transport.WIFI.name:
-                self.active_transport = self.Transport.WIFI if self.websocket else None
+            if raw_data == self.Transport.USB.name and self.serial:
+                self.active_transport = self.Transport.USB
+            elif raw_data == self.Transport.WIFI.name and self.websocket:
+                self.active_transport = self.Transport.WIFI
+            elif raw_data == self.Transport.WIFI.name and self.websocket is None and self.serial:
+                self.active_transport = self.Transport.USB
             return self.active_transport
 
         if msg_type == self.IncomingMessageType.WIFI_SSID_DATA:
@@ -187,7 +189,8 @@ class Device:
                 asyncio.create_task(self._websocket_receiver())
                 break
             except Exception:
-                continue
+                self.websocket = None
+                await asyncio.sleep(1)
 
     async def _websocket_receiver(self):
         try:
