@@ -58,17 +58,14 @@ class BeaconApp(customtkinter.CTk):
                                                                 "disabled" if self_check_active else "normal")],
             Device.IncomingMessageType.HARDWARE_INFO:      [self_check_frame.update_hardware_info],
             Device.IncomingMessageType.FIRMWARE_INFO:      [self_check_frame.update_firmware_info],
-            Device.IncomingMessageType.WIFI_STATUS:        [settings_frame.set_wifi_status],
+            Device.IncomingMessageType.WIFI_SSID_DATA:     [settings_frame.set_wifi_data],
             Device.IncomingMessageType.CONNECTION_STATUS:  [navigation_frame.set_connection_status,
-                                                            lambda connection: transmission_frame.change_state(
-                                                                "disabled" if connection is
-                                                                Device.ConnectionStatus.NOT_CONNECTED else "normal"),
-                                                            lambda connection: self_check_frame.change_state(
-                                                                "disabled" if connection is
-                                                                Device.ConnectionStatus.NOT_CONNECTED else "normal"),
-                                                            lambda connection: settings_frame.change_state(
-                                                                "disabled" if connection is
-                                                                Device.ConnectionStatus.NOT_CONNECTED else "normal")],
+                                                            lambda transport: transmission_frame.change_state(
+                                                                "disabled" if transport is None else "normal"),
+                                                            lambda transport: self_check_frame.change_state(
+                                                                "disabled" if transport is None else "normal"),
+                                                            lambda transport: settings_frame.change_state(
+                                                                "disabled" if transport is None else "normal")],
             Device.IncomingMessageType.CAL_VALUE:          [settings_frame.set_calibration_value],
             Device.IncomingMessageType.CAL_FREQ_GENERATED: [settings_frame.set_calibration_freq_status,
                                                             lambda cal_freq_generated: transmission_frame.change_state(

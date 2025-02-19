@@ -2,7 +2,7 @@ from beaconapp.config import Config
 from beaconapp.data_validation import DataValidation
 from beaconapp.device import Device
 from beaconapp.ui.widgets import Widgets
-from beaconapp.wifi_credentials import WiFiCredentials
+from beaconapp.wifi import ConnectionStatus, WiFiCredentials, WiFiData
 
 import customtkinter
 
@@ -77,39 +77,39 @@ class SettingsWidget:
         # Device connection settings label
         Widgets.create_block_label(self.general_frame, row=4, text="Device connection settings")
 
-        # Settings -> Device connection settings -> Wi-Fi connection
-        self.wifi_connection_button, self.wifi_connection_option = Widgets.create_option_menu_with_button(
+        # Settings -> Device connection settings -> SSID
+        self.wifi_connection_button, self.ssid_entry = Widgets.create_entry_with_button(
             self.general_frame,
             row=5,
-            text="Wi-Fi connection:",
-            options=["Enable", "Disable"],
-            option_default_value="Disable",
-            option_state="disabled",
-            option_command=self._wifi_change_option_event,
+            text="SSID:",
+            entry_state="disabled",
+            entry_bind_action=["<KeyRelease>", self._wifi_update_connection_button_state],
             button_text="Connect",
             button_state="disabled",
             button_command=self._wifi_connection_button_pressed,
             optimize_for_scrollable=True
         )
 
-        # Settings -> Device connection settings -> SSID
-        self.wifi_ssid_entry = Widgets.create_entry_with_background_frame(
+        # Settings -> Device connection settings -> Password
+        self.password_entry = Widgets.create_entry_with_background_frame(
             self.general_frame,
             row=6,
-            text="SSID:",
+            text="Password:",
             state="disabled",
-            bind_action=["<KeyRelease>", self._wifi_update_connect_button_state],
+            show="●",
+            bind_action=["<KeyRelease>", self._wifi_update_connection_button_state],
             optimize_for_scrollable=True
         )
 
-        # Settings -> Device connection settings -> Password
-        self.wifi_password_entry = Widgets.create_entry_with_background_frame(
+        # Settings -> Device connection settings -> Auto-connect to Wi-Fi on startup
+        self.wifi_auto_connect_at_startup_option = Widgets.create_option_menu_with_background_frame(
             self.general_frame,
             row=7,
-            text="Password:",
-            show="●",
+            text="Auto-connect to Wi-Fi on startup:",
+            values=["Enabled", "Disabled"],
+            default_value="Enabled",
             state="disabled",
-            bind_action=["<KeyRelease>", self._wifi_update_connect_button_state],
+            command=self._wifi_auto_connect_at_startup_option_event,
             optimize_for_scrollable=True
         )
 
@@ -179,16 +179,33 @@ class SettingsWidget:
         self.cal_value_entry.delete(0, "end")
         self.cal_value_entry.insert(0, value)
 
-    def set_wifi_status(self, is_wifi_connected):
+    def set_wifi_data(self, data: WiFiData):
         """
-        Update UI elements when Wi-Fi connection attempt finishes.
+        Updates the Wi-Fi paremeters in the UI with the provided Wi-Fi data.
 
         Args:
-            is_wifi_connected (bool): Indicates if the Wi-Fi connection was successful.
+            data (WiFiData): An object containing the Wi-Fi data to be set, including:
+                - ssid (str): The name of the Wi-Fi network.
+                - password (str): The password of the Wi-Fi network.
+                - status (ConnectionStatus): The current connection status of the WiFi network.
+                - connect_at_startup (bool): Whether to auto-connect to this Wi-Fi network at startup.
         """
-        (self._wifi_connection_pass if is_wifi_connected else self._wifi_connection_error_handle)()
-        # Device calibration management is allowed after the Wi-Fi connection process is completed.
-        self._calibration_change_state("normal")
+        self._wifi_change_state("normal")
+
+        self.ssid_entry.delete(0, "end")
+        self.ssid_entry.insert(0, data.ssid)
+
+        self.password_entry.delete(0, "end")
+        self.password_entry.insert(0, data.password)
+
+        connection_actions = {
+            ConnectionStatus.CONNECTED: self._wifi_connection_pass,
+            ConnectionStatus.DISCONNECTED: self._ssid_disconnected,
+            ConnectionStatus.FAIL: self._wifi_connection_error_handle,
+        }
+        connection_actions[data.status]()
+
+        self.wifi_auto_connect_at_startup_option.set("Enabled" if data.connect_at_startup else "Disabled")
 
     def _calibration_change_option_event(self, calibration_option):
         """
@@ -316,113 +333,93 @@ class SettingsWidget:
 
         self.device.set_calibration_value(new_value)
 
-    def _wifi_change_option_event(self, wifi_option):
-        """
-        Event handler for changing the Wi-Fi connection option (Enable/Disable).
-
-        Args:
-            wifi_option (str): Selected Wi-Fi option ("Enable" or "Disable").
-        """
-        self.wifi_connection_option.focus_set()
-        # The state of the "SSID" and "Password" fields depends on the selected
-        # "Wi-Fi connection" option value.
-        if wifi_option == "Disable":
-            self._wifi_elements_change_state("disabled")
-            self.device.set_wifi_connection_allowed(False)
-        else:
-            self._wifi_elements_change_state("normal")
-            self._wifi_update_connect_button_state()
-            self.device.set_wifi_connection_allowed(True)
-
     def _wifi_change_state(self, state):
         """
-        Change the state of the Wi-Fi-related UI components.
-
+        Change the state of WiFi-related UI elements.
+        Updates the state of the WiFi connection button, SSID entry, password entry, and the WiFi 
+        auto-connect at startup option.
+        
         Args:
             state (str): The desired state ("normal" or "disabled").
         """
-        self.wifi_connection_option.after(0, lambda: self.wifi_connection_option.configure(state=state))
-        if state == "normal":
-            # The state of the "SSID" and "Password" fields depends on the selected
-            # "Wi-Fi connection" option value.
-            self._wifi_elements_change_state(
-                "normal" if self.wifi_connection_option.get() == "Enable" else "disabled"
-            )
-            self._wifi_update_connect_button_state()
-        else:
-            self._wifi_elements_change_state("disabled")
+        self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(state=state))
+        self.ssid_entry.after(0, lambda: self.ssid_entry.configure(state=state))
+        self.password_entry.after(0, lambda: self.password_entry.configure(state=state))
+        self.wifi_auto_connect_at_startup_option.after(0, lambda: self.wifi_auto_connect_at_startup_option.configure(state=state))
+
+    def _wifi_auto_connect_at_startup_option_event(self, value):
+        """
+        Event handler for changing the Wi-Fi connection at device startup option.
+
+        Args:
+            value (str): Selected option for Wi-Fi connection at device startup ("Enabled" or "Disabled").
+        """
+        self.device.set_ssid_connect_at_startup(True if value == "Enabled" else False)
 
     def _wifi_connection_button_pressed(self):
         """
         Handle the logic when the Wi-Fi connection button is pressed.
-        Attempt to connect to the specified SSID.
+        Attempt to connect to the specified SSID or disconnect from the currently connected network.
         """
         self.wifi_connection_button.focus_set()
-        self.wifi_connection_option.configure(state="disabled")
         # Disabling the calibration feature while establishing a Wi-Fi connection.
         self._calibration_change_state("disabled")
 
         self.wifi_connection_button.configure(
             state="disabled",
-            text="Connecting...",
+            text="Waiting...",
+            fg_color=["#3B8ED0", "#1F6AA5"],
+            hover_color=["#3B8ED0", "#1F6AA5"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"]
         )
 
-        self.device.run_wifi_connection(
-            WiFiCredentials(self.wifi_ssid_entry.get(), self.wifi_password_entry.get())
+        self.device.set_wifi_connection(
+            None if self.device.active_transport == Device.Transport.WIFI 
+            else WiFiCredentials(self.ssid_entry.get(), self.password_entry.get())
         )
 
     def _wifi_connection_error_handle(self):
         """
-        Handle UI changes if the Wi-Fi connection attempt fails.
+        Handle UI changes when the Wi-Fi connection attempt fails.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
-            text="FAIL!",
-            fg_color=["#D9534F", "#A94442"]
+            state="disabled",
+            text="Failed!",
+            fg_color=["#D9534F", "#A94442"],
+            hover_color=["#D9534F", "#A94442"],
+            text_color_disabled=["#BDBDBD", "#999999"]
         ))
-        self.wifi_connection_button.after(2000, self._wifi_connection_finished)
+        self.wifi_connection_button.after(2000, self._ssid_disconnected)
 
-    def _wifi_connection_finished(self):
+    def _ssid_disconnected(self):
         """
-        Restore Wi-Fi connection UI elements to the default state after
-        a connection attempt finishes (whether successful or not).
+        Handle UI changes when the SSID connection is terminated.
         """
-        self.wifi_connection_option.configure(state="normal")
-        self.wifi_connection_button.configure(
+        self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
             state="normal",
             text="Connect",
             fg_color=["#3B8ED0", "#1F6AA5"],
             hover_color=["#36719F", "#144870"],
             text_color_disabled=["#BDBDBD", "#999999"]
-        )
+        ))
 
     def _wifi_connection_pass(self):
         """
-        Handle UI changes if the Wi-Fi connection attempt is successful.
+        Handle UI changes when the Wi-Fi connection attempt is successful.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
-            text="Connected!",
-            fg_color=["#3BAA5D", "#2E8B57"]
+            text="Disconnect",
+            fg_color=["#D9534F", "#A94442"],
+            hover_color=["#9A2A2A", "#7A2A28"],
+            text_color_disabled=["#BDBDBD", "#999999"]
         ))
-        self.wifi_connection_button.after(2000, self._wifi_connection_finished)
 
-    def _wifi_elements_change_state(self, state):
+    def _wifi_update_connection_button_state(self, event=None):
         """
-        Enable or disable Wi-Fi-related UI fields (SSID, password, connection button).
-
-        Args:
-            state (str): The desired state ("normal" or "disabled").
+        Dynamically enable or disable the Wi-Fi connect button depending on whether the SSID 
+        and password fields are filled.
         """
-        self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(state=state))
-        self.wifi_ssid_entry.after(0, lambda: self.wifi_ssid_entry.configure(state=state))
-        self.wifi_password_entry.after(0, lambda: self.wifi_password_entry.configure(state=state))
-
-    def _wifi_update_connect_button_state(self, event=None):
-        """
-        Dynamically enable or disable the Wi-Fi connect button
-        depending on whether the SSID and password fields are filled.
-        """
-        if (self.wifi_ssid_entry.get().strip() and self.wifi_password_entry.get().strip()):
+        if (self.ssid_entry.get().strip() and self.password_entry.get().strip()):
             self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(state="normal"))
         else:
             self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(state="disabled"))

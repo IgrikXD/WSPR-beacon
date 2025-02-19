@@ -3,9 +3,10 @@ import json
 import serial_asyncio
 import serial.tools.list_ports
 import threading
+import websockets
 
 from beaconapp.tx_mode import ActiveTXMode
-from beaconapp.wifi_credentials import WiFiCredentials
+from beaconapp.wifi import WiFiCredentials, WiFiData
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -22,10 +23,9 @@ class Device:
         AUTO = 1
         MANUAL = 2
 
-    class ConnectionStatus(Enum):
-        NOT_CONNECTED = 1
-        USB = 2
-        WIFI = 3
+    class Transport(Enum):
+        USB = 1
+        WIFI = 2
 
     class IncomingMessageType(Enum):
         ACTIVE_TX_MODE = 1
@@ -41,7 +41,7 @@ class Device:
         CAL_VALUE = 11
         CAL_FREQ_GENERATED = 12
         CONNECTION_STATUS = 13
-        WIFI_STATUS = 14
+        WIFI_SSID_DATA = 14
 
     class OutgoingMessageType(Enum):
         GET_DEVICE_INFO = 1
@@ -51,11 +51,15 @@ class Device:
         SET_CAL_VALUE = 5
         GEN_CAL_FREQUENCY = 6
         RUN_WIFI_CONNECTION = 7
-        ALLOW_WIFI_CONNECTION = 8
+        SET_SSID_CONNECT_AT_STARTUP = 8
 
     def __init__(self):
         self.tx_queue = asyncio.Queue()
+        # --- Serial Transport (USB) ---
         self.transport = None
+        # --- WebSocket Transport (Wi-Fi) ---
+        self.ws = None
+        self.active_transport = self.Transport.USB
         self.mapped_callbacks = {}
 
         self.asyncio_loop = None
@@ -67,7 +71,9 @@ class Device:
         self.async_thread = threading.Thread(target=self._run_asyncio_loop, daemon=True)
         self.async_thread.start()
 
-        asyncio.run_coroutine_threadsafe(self._establish_connection(), self.asyncio_loop)
+        asyncio.run_coroutine_threadsafe(self._establish_serial_connection(), self.asyncio_loop)
+        asyncio.run_coroutine_threadsafe(self._establish_websocket_connection(), self.asyncio_loop)
+        asyncio.run_coroutine_threadsafe(self._handle_device_requests(), self.asyncio_loop)
 
     def disconnect(self):
         if self.asyncio_loop and self.asyncio_loop.is_running():
@@ -87,9 +93,6 @@ class Device:
     def get_device_info(self):
         self._put(DeviceMessage(self.OutgoingMessageType.GET_DEVICE_INFO))
 
-    def set_wifi_connection_allowed(self, value: bool):
-        self._put(DeviceMessage(self.OutgoingMessageType.ALLOW_WIFI_CONNECTION, value))
-
     def gen_calibration_frequency(self, frequency: float):
         self._put(DeviceMessage(self.OutgoingMessageType.GEN_CAL_FREQUENCY, frequency))
 
@@ -105,7 +108,10 @@ class Device:
     def run_self_check(self):
         self._put(DeviceMessage(self.OutgoingMessageType.RUN_SELF_CHECK))
 
-    def run_wifi_connection(self, wifi_credentials: WiFiCredentials):
+    def set_ssid_connect_at_startup(self, value: bool):
+        self._put(DeviceMessage(self.OutgoingMessageType.SET_SSID_CONNECT_AT_STARTUP, value))
+
+    def set_wifi_connection(self, wifi_credentials: WiFiCredentials):
         self._put(DeviceMessage(self.OutgoingMessageType.RUN_WIFI_CONNECTION, wifi_credentials))
 
     def _data_decoder(self, line_str: str):
@@ -120,7 +126,15 @@ class Device:
             return ActiveTXMode.from_json(raw_data)
 
         if msg_type == self.IncomingMessageType.CONNECTION_STATUS:
-            return self.ConnectionStatus[raw_data]
+            if raw_data == self.Transport.USB.name:
+                self.active_transport = self.Transport.USB if self.transport else None
+            if raw_data == self.Transport.WIFI.name:
+                self.active_transport = self.Transport.WIFI if self.ws else None
+            return self.active_transport
+        
+        if msg_type == self.IncomingMessageType.WIFI_SSID_DATA:
+            print(raw_data)
+            return WiFiData.from_json(raw_data)
 
         return raw_data
 
@@ -137,7 +151,7 @@ class Device:
     def _encode_device_message(self, message: DeviceMessage) -> str:
         return json.dumps({"type": message.message_type.name, "data": self._encode_data(message.data)}) + "\n"
 
-    async def _establish_connection(self):
+    async def _establish_serial_connection(self):
         while True:
             device_port = self._find_device_port()
             if device_port:
@@ -151,8 +165,6 @@ class Device:
                 break
             await asyncio.sleep(0.5)
 
-        asyncio.create_task(self._handle_device_requests())
-
     def _find_device_port(self):
         for port in serial.tools.list_ports.comports():
             # VID and PID for ESP32-C3
@@ -160,8 +172,41 @@ class Device:
                 return port.device
         return None
 
+    async def _establish_websocket_connection(self):
+        while True:
+            try:
+                print("Connecting to WebSocket...")
+                self.ws = await websockets.connect("ws://esp32-device:81")
+                asyncio.create_task(self._websocket_receiver())
+                break
+            except Exception:
+                continue
+
+    async def _websocket_receiver(self):
+        try:
+            print("WebSocket receiver started")
+            self.active_transport = self.Transport.WIFI if self.ws else None
+            self.get_device_info()
+            async for message in self.ws:
+                message = message.strip()
+                if message:
+                    msg = self._data_decoder(message)
+                    print(f"RX (WebSocket): {message}")
+                    
+                    for handler in self.mapped_callbacks.get(msg.message_type, []):
+                        handler(msg.data)
+        except Exception as e:
+            print("WebSocket receiver error", e)
+        finally:
+            self.ws = None
+            if self.transport is None:
+                self.active_transport = None
+                for handler in self.mapped_callbacks.get(self.IncomingMessageType.CONNECTION_STATUS, []):
+                    handler(None)
+            asyncio.create_task(self._establish_websocket_connection())
+
     async def _handle_device_requests(self):
-        while self.transport is not None:
+        while self.active_transport is not None:
             message = await self.tx_queue.get()
             self._send_to_device(message)
 
@@ -174,8 +219,11 @@ class Device:
 
     def _send_to_device(self, message: DeviceMessage):
         json_str = self._encode_device_message(message)
-        print(f"TX: {json_str.strip()}")
-        if self.transport:
+        if self.active_transport == self.Transport.WIFI and self.ws is not None:
+            print(f"TX (WebSocket): {json_str.strip()}")
+            asyncio.create_task(self.ws.send(json_str))
+        elif self.active_transport == self.Transport.USB and self.transport is not None:
+            print(f"TX (USB): {json_str.strip()}")
             self.transport.write(json_str.encode('utf-8'))
 
     def _serial_exception_handler(self, loop, context):
@@ -200,15 +248,15 @@ class DeviceProtocol(asyncio.Protocol):
         self.device.transport = None
 
         for handler in self.device.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
-            handler(Device.ConnectionStatus.NOT_CONNECTED)
+            handler(None)
 
-        asyncio.create_task(self.device._establish_connection())
+        asyncio.create_task(self.device._establish_serial_connection())
 
     def connection_made(self, transport):
         self.transport = transport
 
         for handler in self.device.mapped_callbacks.get(Device.IncomingMessageType.CONNECTION_STATUS, []):
-            handler(Device.ConnectionStatus.USB)
+            handler(Device.Transport.USB)
 
         self.device.get_device_info()
 
@@ -216,11 +264,11 @@ class DeviceProtocol(asyncio.Protocol):
         self.buffer += data
         while b'\n' in self.buffer:
             line, self.buffer = self.buffer.split(b'\n', 1)
-            line_str = line.decode('utf-8', errors='ignore').strip()
+            message = line.decode('utf-8', errors='ignore').strip()
 
-            if line_str:
-                msg = self.device._data_decoder(line_str)
-                print(f"RX: {line_str}")
+            if message:
+                msg = self.device._data_decoder(message)
+                print(f"RX (USB): {message}")
 
                 for handler in self.device.mapped_callbacks.get(msg.message_type, []):
                     handler(msg.data)
