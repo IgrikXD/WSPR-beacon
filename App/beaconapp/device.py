@@ -115,7 +115,7 @@ class Device:
     def set_wifi_connection(self, wifi_credentials: WiFiCredentials):
         self._put(DeviceMessage(self.OutgoingMessageType.RUN_WIFI_CONNECTION, wifi_credentials))
 
-    def _call_handlers(self, msg_type: Enum, data) -> None:
+    def _call_handlers(self, msg_type: Enum, data):
         for handler in self.mapped_callbacks.get(msg_type, []):
             handler(data)
 
@@ -211,7 +211,7 @@ class Device:
             asyncio.create_task(self._establish_websocket_connection())
 
     async def _handle_device_requests(self):
-        while self.active_transport is not None:
+        while True:
             message = await self.tx_queue.get()
             self._send_to_device(message)
 
@@ -249,12 +249,14 @@ class DeviceProtocol(asyncio.Protocol):
         self.buffer = b""
 
     def connection_lost(self, exc):
-        self.device.transport = None
+        self.device.serial = None
+        self.device.active_transport = None
         self.device._call_handlers(Device.IncomingMessageType.CONNECTION_STATUS, None)
         asyncio.create_task(self.device._establish_serial_connection())
 
     def connection_made(self, transport: asyncio.Transport):
-        self.device.transport = transport
+        self.device.serial = transport
+        self.device.active_transport = self.device.Transport.USB
         self.device._call_handlers(Device.IncomingMessageType.CONNECTION_STATUS, Device.Transport.USB)
         self.device.get_device_info()
 
