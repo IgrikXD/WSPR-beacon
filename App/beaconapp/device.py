@@ -40,7 +40,7 @@ class Device:
         FIRMWARE_INFO = 10
         CAL_VALUE = 11
         CAL_FREQ_GENERATED = 12
-        CONNECTION_STATUS = 13
+        ACTIVE_TRANSPORT = 13
         WIFI_SSID_DATA = 14
 
     class OutgoingMessageType(Enum):
@@ -130,7 +130,7 @@ class Device:
         if msg_type == self.IncomingMessageType.ACTIVE_TX_MODE:
             return ActiveTXMode.from_json(raw_data)
 
-        if msg_type == self.IncomingMessageType.CONNECTION_STATUS:
+        if msg_type == self.IncomingMessageType.ACTIVE_TRANSPORT:
             if raw_data == self.Transport.USB.name and self.serial:
                 self.active_transport = self.Transport.USB
             elif raw_data == self.Transport.WIFI.name and self.websocket:
@@ -207,7 +207,7 @@ class Device:
             self.websocket = None
             if self.serial is None:
                 self.active_transport = None
-                self._call_handlers(self.IncomingMessageType.CONNECTION_STATUS, self.active_transport)
+                self._call_handlers(self.IncomingMessageType.ACTIVE_TRANSPORT, self.active_transport)
             await asyncio.sleep(1)
             asyncio.create_task(self._establish_websocket_connection())
 
@@ -252,13 +252,13 @@ class DeviceProtocol(asyncio.Protocol):
     def connection_lost(self, exc):
         self.device.serial = None
         self.device.active_transport = None
-        self.device._call_handlers(Device.IncomingMessageType.CONNECTION_STATUS, None)
+        self.device._call_handlers(Device.IncomingMessageType.ACTIVE_TRANSPORT, None)
         asyncio.create_task(self.device._establish_serial_connection())
 
     def connection_made(self, transport: asyncio.Transport):
         self.device.serial = transport
         self.device.active_transport = self.device.Transport.USB
-        self.device._call_handlers(Device.IncomingMessageType.CONNECTION_STATUS, Device.Transport.USB)
+        self.device._call_handlers(Device.IncomingMessageType.ACTIVE_TRANSPORT, Device.Transport.USB)
         self.device.get_device_info()
 
     def data_received(self, data: bytes):
