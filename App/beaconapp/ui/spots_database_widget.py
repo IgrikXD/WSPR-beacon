@@ -1,4 +1,4 @@
-from beaconapp.tx_mode import ActiveTXMode
+from beaconapp.data_wrappers import ActiveTXMode
 from beaconapp.ui.widgets import Widgets
 from beaconapp.wsprlive_api import WsprLiveApi
 

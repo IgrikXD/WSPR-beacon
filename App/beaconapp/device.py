@@ -5,8 +5,7 @@ import serial.tools.list_ports
 import threading
 import websockets
 
-from beaconapp.data_wrappers import WiFiCredentials, WiFiData
-from beaconapp.tx_mode import ActiveTXMode
+from beaconapp.data_wrappers import WiFiCredentials, WiFiData, ActiveTXMode
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any

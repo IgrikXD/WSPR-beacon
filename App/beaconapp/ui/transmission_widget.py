@@ -1,7 +1,7 @@
 from beaconapp.config import Config
 from beaconapp.data_validation import DataValidation
 from beaconapp.device import Device
-from beaconapp.tx_mode import ActiveTXMode, TransmissionMode
+from beaconapp.data_wrappers import ActiveTXMode, TransmissionMode
 from beaconapp.ui.widgets import Widgets
 
 import copy

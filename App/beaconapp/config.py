@@ -1,4 +1,4 @@
-from beaconapp.tx_mode import ActiveTXMode, TransmissionMode
+from beaconapp.data_wrappers import ActiveTXMode, TransmissionMode
 
 import json
 import os
