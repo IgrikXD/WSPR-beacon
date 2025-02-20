@@ -2,13 +2,13 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 
 
-class TransmissionMode(Enum):
+class TXMode(Enum):
     WSPR = 1
 
 
 @dataclass
 class ActiveTXMode:
-    transmission_mode: TransmissionMode = None
+    transmission_mode: TXMode = None
     tx_call: str = None
     qth_locator: str = None
     output_power: int = None
@@ -33,7 +33,7 @@ class ActiveTXMode:
 
         mode = json_data.get("transmission_mode")
         if mode:
-            json_data["transmission_mode"] = TransmissionMode[mode]
+            json_data["transmission_mode"] = TXMode[mode]
 
         return cls(**json_data)
 

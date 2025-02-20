@@ -1,7 +1,7 @@
 from beaconapp.config import Config
 from beaconapp.data_validation import DataValidation
 from beaconapp.device import Device
-from beaconapp.data_wrappers import ActiveTXMode, TransmissionMode
+from beaconapp.data_wrappers import ActiveTXMode, TXMode
 from beaconapp.ui.widgets import Widgets
 
 import copy
@@ -202,7 +202,7 @@ class TransmissionWidget:
 
         self.general_frame.after(0, self._print_active_mode_details)
 
-        if self.active_tx_mode.transmission_mode == TransmissionMode.WSPR:
+        if self.active_tx_mode.transmission_mode == TXMode.WSPR:
             self.general_frame.after(0, self._print_wspr_active_mode_parameters)
             self.reset_mode_button.after(0, lambda: self.reset_mode_button.configure(state="normal"))
 
@@ -340,7 +340,7 @@ class TransmissionWidget:
 
         # Update active TX mode info
         self.active_tx_mode = ActiveTXMode(
-            TransmissionMode.WSPR,
+            TXMode.WSPR,
             self.wspr_tx_call_entry.get(),
             self.wspr_qth_locator_entry.get(),
             int(self.wspr_output_power_entry.get()),

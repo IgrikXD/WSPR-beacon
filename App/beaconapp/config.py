@@ -1,4 +1,4 @@
-from beaconapp.data_wrappers import ActiveTXMode, TransmissionMode
+from beaconapp.data_wrappers import ActiveTXMode, TXMode
 
 import json
 import os
@@ -7,7 +7,7 @@ import os
 class Config:
     def __init__(self, config_file_name):
         # Default values used in case of missing overridden values in the configuration file
-        self._default_transmission_mode = TransmissionMode.WSPR.name
+        self._default_transmission_mode = TXMode.WSPR.name
         self._default_tx_call = "N0CALL"
         self._default_qth_locator = "XX00"
         self._default_output_power = 23
@@ -66,7 +66,7 @@ class Config:
         Constructs and returns an ActiveTXMode object based on the current configuration.
         """
         return ActiveTXMode(
-            TransmissionMode[self._default_transmission_mode],
+            TXMode[self._default_transmission_mode],
             self._default_tx_call,
             self._default_qth_locator,
             self._default_output_power,
