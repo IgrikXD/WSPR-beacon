@@ -1,6 +1,7 @@
 import pytest
 from beaconapp.data_wrappers import ActiveTXMode, TXMode, WiFiCredentials, WiFiData
 
+
 # Parameterized tests for ActiveTXMode defaults
 @pytest.mark.parametrize("input_value, expected_value", [
     (
@@ -27,6 +28,7 @@ def test_active_tx_mode_defaults_param(input_value, expected_value):
     }
     assert result == expected_value
 
+
 # Parameterized test for ActiveTXMode.clear() method
 @pytest.mark.parametrize("input_value", [
     {
@@ -48,6 +50,7 @@ def test_active_tx_mode_clear_param(input_value):
     assert tx_mode.output_power is None
     assert tx_mode.transmit_every is None
     assert tx_mode.active_band is None
+
 
 # Parameterized tests for ActiveTXMode.to_json() method
 @pytest.mark.parametrize("input_value, expected_value", [
@@ -94,6 +97,7 @@ def test_active_tx_mode_to_json_param(input_value, expected_value):
     result = tx_mode.to_json()
     assert result == expected_value
 
+
 # Parameterized tests for ActiveTXMode.from_json() method
 @pytest.mark.parametrize("json_data, expected_value", [
     (
@@ -135,6 +139,7 @@ def test_active_tx_mode_from_json_param(json_data, expected_value):
     assert tx_mode.transmit_every == expected_value["transmit_every"]
     assert tx_mode.active_band == expected_value["active_band"]
 
+
 # Parameterized tests for WiFiCredentials.to_json()
 @pytest.mark.parametrize("ssid, password", [
     ("Name", "secret"),
@@ -148,6 +153,7 @@ def test_wifi_credentials_to_json_param(ssid, password):
         "password": password,
     }
     assert result == expected_value
+
 
 # Parameterized tests for WiFiData.from_json()
 @pytest.mark.parametrize("json_data, expected_value", [
