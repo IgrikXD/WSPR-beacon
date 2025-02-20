@@ -1,8 +1,8 @@
 from beaconapp.config import Config
 from beaconapp.data_validation import DataValidation
+from beaconapp.data_wrappers import ConnectionStatus, WiFiCredentials, WiFiData
 from beaconapp.device import Device
 from beaconapp.ui.widgets import Widgets
-from beaconapp.wifi import ConnectionStatus, WiFiCredentials, WiFiData
 
 import customtkinter
 

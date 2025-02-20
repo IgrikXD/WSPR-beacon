@@ -1,20 +1,21 @@
 from dataclasses import dataclass, asdict
 from enum import Enum
+from typing import Any
+
+
+@dataclass
+class WiFiCredentials:
+    ssid: str = None
+    password: str = None
+
+    def to_json(self) -> dict:
+        return asdict(self)
 
 
 class ConnectionStatus(Enum):
     CONNECTED = "connected"
     DISCONNECTED = "disconnected"
     FAIL = "fail"
-
-
-@dataclass
-class WiFiCredentials:
-    wifi_access_point_name: str = None
-    wifi_access_point_password: str = None
-
-    def to_json(self) -> dict:
-        return asdict(self)
 
 
 @dataclass
