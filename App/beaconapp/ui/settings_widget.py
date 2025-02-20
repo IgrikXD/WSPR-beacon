@@ -367,17 +367,17 @@ class SettingsWidget:
         # Disabling the calibration feature while establishing a Wi-Fi connection.
         self._calibration_change_state("disabled")
 
+        self.device.set_wifi_connection(
+            None if self.wifi_connection_button.cget("text") == "Disconnect"
+            else WiFiCredentials(self.ssid_entry.get(), self.password_entry.get())
+        )
+
         self.wifi_connection_button.configure(
             state="disabled",
             text="Waiting...",
             fg_color=["#3B8ED0", "#1F6AA5"],
             hover_color=["#3B8ED0", "#1F6AA5"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"]
-        )
-
-        self.device.set_wifi_connection(
-            None if self.device.active_transport == Device.Transport.WIFI
-            else WiFiCredentials(self.ssid_entry.get(), self.password_entry.get())
         )
 
     def _wifi_connection_error_handle(self):
@@ -389,7 +389,7 @@ class SettingsWidget:
             text="Failed!",
             fg_color=["#D9534F", "#A94442"],
             hover_color=["#D9534F", "#A94442"],
-            text_color_disabled=["#BDBDBD", "#999999"]
+            text_color_disabled=["#DCE4EE", "#DCE4EE"]
         ))
         self.wifi_connection_button.after(2000, self._ssid_disconnected)
 
@@ -404,6 +404,7 @@ class SettingsWidget:
             hover_color=["#36719F", "#144870"],
             text_color_disabled=["#BDBDBD", "#999999"]
         ))
+        self._calibration_change_state("normal")
 
     def _wifi_connection_pass(self):
         """
@@ -415,6 +416,7 @@ class SettingsWidget:
             hover_color=["#9A2A2A", "#7A2A28"],
             text_color_disabled=["#BDBDBD", "#999999"]
         ))
+        self._calibration_change_state("normal")
 
     def _wifi_update_connection_button_state(self, event=None):
         """
