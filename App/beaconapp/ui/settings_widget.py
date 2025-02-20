@@ -147,7 +147,7 @@ class SettingsWidget:
         self._calibration_change_state(state)
         self._wifi_change_state(state)
 
-    def set_calibration_freq_status(self, is_generated):
+    def set_calibration_freq_status(self, is_generated: bool):
         """
         Control the calibration frequency generation process and update UI elements accordingly.
 
@@ -187,25 +187,29 @@ class SettingsWidget:
             data (WiFiData): An object containing the Wi-Fi data to be set, including:
                 - ssid (str): The name of the Wi-Fi network.
                 - password (str): The password of the Wi-Fi network.
-                - status (ConnectionStatus): The current connection status of the WiFi network.
                 - connect_at_startup (bool): Whether to auto-connect to this Wi-Fi network at startup.
         """
-        self._wifi_change_state("normal")
-
         self.ssid_entry.delete(0, "end")
         self.ssid_entry.insert(0, data.ssid)
 
         self.password_entry.delete(0, "end")
         self.password_entry.insert(0, data.password)
 
+        self.wifi_auto_connect_at_startup_option.set("Enabled" if data.connect_at_startup else "Disabled")
+
+    def update_wifi_status(self, status: ConnectionStatus):
+        """
+        Updates the Wi-Fi connection button based on the current Wi-Fi connection status.
+
+        Args:
+            status (ConnectionStatus): The current Wi-Fi connection status.
+        """
         connection_actions = {
             ConnectionStatus.CONNECTED: self._wifi_connection_pass,
-            ConnectionStatus.DISCONNECTED: self._ssid_disconnected,
+            ConnectionStatus.DISCONNECTED: self._wifi_disconnected,
             ConnectionStatus.FAIL: self._wifi_connection_error_handle,
         }
-        connection_actions[data.status]()
-
-        self.wifi_auto_connect_at_startup_option.set("Enabled" if data.connect_at_startup else "Disabled")
+        connection_actions[status]()
 
     def _calibration_change_option_event(self, calibration_option):
         """
@@ -391,11 +395,11 @@ class SettingsWidget:
             hover_color=["#D9534F", "#A94442"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"]
         ))
-        self.wifi_connection_button.after(2000, self._ssid_disconnected)
+        self.wifi_connection_button.after(2000, self._wifi_disconnected)
 
-    def _ssid_disconnected(self):
+    def _wifi_disconnected(self):
         """
-        Handle UI changes when the SSID connection is terminated.
+        Handle UI changes when the Wi-Fi connection is terminated.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
             state="normal",

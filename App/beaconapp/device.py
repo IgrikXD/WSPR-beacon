@@ -5,7 +5,7 @@ import serial.tools.list_ports
 import threading
 import websockets
 
-from beaconapp.data_wrappers import WiFiCredentials, WiFiData, ActiveTXMode
+from beaconapp.data_wrappers import ConnectionStatus, WiFiCredentials, WiFiData, ActiveTXMode
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -37,6 +37,7 @@ class Device:
             TX_ACTION_STATUS = 12
             TX_STATUS = 13
             WIFI_SSID_DATA = 14
+            WIFI_STATUS = 15
 
         class Outgoing(Enum):
             GEN_CAL_FREQUENCY = 1
@@ -139,6 +140,9 @@ class Device:
 
         if msg_type == Device.Message.Incoming.WIFI_SSID_DATA:
             return WiFiData.from_json(raw_data)
+
+        if msg_type == Device.Message.Incoming.WIFI_STATUS:
+            return ConnectionStatus(raw_data.get("status"))
 
         return raw_data
 

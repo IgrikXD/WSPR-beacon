@@ -59,6 +59,7 @@ class BeaconApp(customtkinter.CTk):
             Device.Message.Incoming.HARDWARE_INFO:      [self_check_frame.update_hardware_info],
             Device.Message.Incoming.FIRMWARE_INFO:      [self_check_frame.update_firmware_info],
             Device.Message.Incoming.WIFI_SSID_DATA:     [settings_frame.set_wifi_data],
+            Device.Message.Incoming.WIFI_STATUS:        [settings_frame.update_wifi_status],
             Device.Message.Incoming.ACTIVE_TRANSPORT:   [navigation_frame.set_connection_status,
                                                          lambda transport: transmission_frame.change_state(
                                                             "disabled" if transport is None else "normal"),
