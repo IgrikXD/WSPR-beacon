@@ -24,7 +24,7 @@ class Device:
 
     @dataclass
     class Message:
-        class IncomingType(Enum):
+        class Incoming(Enum):
             ACTIVE_TRANSPORT = 1
             ACTIVE_TX_MODE = 2
             CAL_FREQ_GENERATED = 3
@@ -40,7 +40,7 @@ class Device:
             TX_STATUS = 13
             WIFI_SSID_DATA = 14
 
-        class OutgoingType(Enum):
+        class Outgoing(Enum):
             GEN_CAL_FREQUENCY = 1
             GET_DEVICE_INFO = 2
             RUN_SELF_CHECK = 3
@@ -50,7 +50,7 @@ class Device:
             SET_CAL_VALUE = 7
             SET_SSID_CONNECT_AT_STARTUP = 8
         
-        message_type: IncomingType | OutgoingType
+        type: Incoming | Outgoing
         data: Any = None
 
     def __init__(self):
@@ -92,28 +92,28 @@ class Device:
         }
 
     def get_device_info(self):
-        self._put(Device.Message(Device.Message.OutgoingType.GET_DEVICE_INFO))
+        self._put(Device.Message(Device.Message.Outgoing.GET_DEVICE_INFO))
 
     def gen_calibration_frequency(self, frequency: float):
-        self._put(Device.Message(Device.Message.OutgoingType.GEN_CAL_FREQUENCY, frequency))
+        self._put(Device.Message(Device.Message.Outgoing.GEN_CAL_FREQUENCY, frequency))
 
     def set_calibration_type(self, calibration_type: CalibrationType):
-        self._put(Device.Message(Device.Message.OutgoingType.SET_CAL_METHOD, calibration_type))
+        self._put(Device.Message(Device.Message.Outgoing.SET_CAL_METHOD, calibration_type))
 
     def set_calibration_value(self, value: int):
-        self._put(Device.Message(Device.Message.OutgoingType.SET_CAL_VALUE, value))
+        self._put(Device.Message(Device.Message.Outgoing.SET_CAL_VALUE, value))
 
     def set_active_tx_mode(self, active_tx_mode: ActiveTXMode):
-        self._put(Device.Message(Device.Message.OutgoingType.SET_ACTIVE_TX_MODE, active_tx_mode))
+        self._put(Device.Message(Device.Message.Outgoing.SET_ACTIVE_TX_MODE, active_tx_mode))
 
     def run_self_check(self):
-        self._put(Device.Message(Device.Message.OutgoingType.RUN_SELF_CHECK))
+        self._put(Device.Message(Device.Message.Outgoing.RUN_SELF_CHECK))
 
     def set_ssid_connect_at_startup(self, value: bool):
-        self._put(Device.Message(Device.Message.OutgoingType.SET_SSID_CONNECT_AT_STARTUP, value))
+        self._put(Device.Message(Device.Message.Outgoing.SET_SSID_CONNECT_AT_STARTUP, value))
 
     def set_wifi_connection(self, wifi_credentials: WiFiCredentials):
-        self._put(Device.Message(Device.Message.OutgoingType.RUN_WIFI_CONNECTION, wifi_credentials))
+        self._put(Device.Message(Device.Message.Outgoing.RUN_WIFI_CONNECTION, wifi_credentials))
 
     def _call_handlers(self, msg_type: Enum, data):
         for handler in self.mapped_callbacks.get(msg_type, []):
@@ -122,15 +122,15 @@ class Device:
     def _data_decoder(self, line_str: str):
         obj = json.loads(line_str)
 
-        msg_type = Device.Message.IncomingType[obj.get("type")]
+        msg_type = Device.Message.Incoming[obj.get("type")]
 
         return Device.Message(msg_type, self._decode_data(msg_type, obj.get("data")))
 
-    def _decode_data(self, msg_type: Message.IncomingType, raw_data):
-        if msg_type == Device.Message.IncomingType.ACTIVE_TX_MODE:
+    def _decode_data(self, msg_type: Message.Incoming, raw_data):
+        if msg_type == Device.Message.Incoming.ACTIVE_TX_MODE:
             return ActiveTXMode.from_json(raw_data)
 
-        if msg_type == Device.Message.IncomingType.ACTIVE_TRANSPORT:
+        if msg_type == Device.Message.Incoming.ACTIVE_TRANSPORT:
             if raw_data == self.Transport.USB.name and self.serial:
                 self.active_transport = self.Transport.USB
             elif raw_data == self.Transport.WIFI.name and self.websocket:
@@ -139,7 +139,7 @@ class Device:
                 self.active_transport = self.Transport.USB
             return self.active_transport
 
-        if msg_type == Device.Message.IncomingType.WIFI_SSID_DATA:
+        if msg_type == Device.Message.Incoming.WIFI_SSID_DATA:
             return WiFiData.from_json(raw_data)
 
         return raw_data
@@ -156,7 +156,7 @@ class Device:
 
     def _encode_device_message(self, message: Message):
         return json.dumps({
-            "type": message.message_type.name,
+            "type": message.type.name,
             "data": self._encode_data(message.data)
         }) + "\n"
 
@@ -200,14 +200,14 @@ class Device:
                 if message:
                     msg = self._data_decoder(message)
                     print(f"RX (WebSocket): {message}")
-                    self._call_handlers(msg.message_type, msg.data)
+                    self._call_handlers(msg.type, msg.data)
         except Exception as e:
             print("WebSocket receiver error", e)
         finally:
             self.websocket = None
             if self.serial is None:
                 self.active_transport = None
-                self._call_handlers(Device.Message.IncomingType.ACTIVE_TRANSPORT, self.active_transport)
+                self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
             await asyncio.sleep(1)
             asyncio.create_task(self._establish_websocket_connection())
 
@@ -252,13 +252,13 @@ class DeviceProtocol(asyncio.Protocol):
     def connection_lost(self, exc):
         self.device.serial = None
         self.device.active_transport = None
-        self.device._call_handlers(Device.Message.IncomingType.ACTIVE_TRANSPORT, None)
+        self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, None)
         asyncio.create_task(self.device._establish_serial_connection())
 
     def connection_made(self, transport: asyncio.Transport):
         self.device.serial = transport
         self.device.active_transport = self.device.Transport.USB
-        self.device._call_handlers(Device.Message.IncomingType.ACTIVE_TRANSPORT, Device.Transport.USB)
+        self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, Device.Transport.USB)
         self.device.get_device_info()
 
     def data_received(self, data: bytes):
@@ -271,4 +271,4 @@ class DeviceProtocol(asyncio.Protocol):
                 msg = self.device._data_decoder(message)
                 print(f"RX (USB): {message}")
 
-                self.device._call_handlers(msg.message_type, msg.data)
+                self.device._call_handlers(msg.type, msg.data)
