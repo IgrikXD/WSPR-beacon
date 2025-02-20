@@ -60,7 +60,7 @@ class Device:
         # WebSocket transport (Wi-Fi)
         self.websocket = None
         # Active transport, USB by default
-        self.active_transport = self.Transport.USB
+        self.active_transport = Device.Transport.USB
         self.mapped_callbacks = {}
 
         self.asyncio_loop = None
@@ -131,12 +131,12 @@ class Device:
             return ActiveTXMode.from_json(raw_data)
 
         if msg_type == Device.Message.Incoming.ACTIVE_TRANSPORT:
-            if raw_data == self.Transport.USB.name and self.serial:
-                self.active_transport = self.Transport.USB
-            elif raw_data == self.Transport.WIFI.name and self.websocket:
-                self.active_transport = self.Transport.WIFI
-            elif raw_data == self.Transport.WIFI.name and self.websocket is None and self.serial:
-                self.active_transport = self.Transport.USB
+            if raw_data == Device.Transport.USB.name and self.serial:
+                self.active_transport = Device.Transport.USB
+            elif raw_data == Device.Transport.WIFI.name and self.websocket:
+                self.active_transport = Device.Transport.WIFI
+            elif raw_data == Device.Transport.WIFI.name and self.websocket is None and self.serial:
+                self.active_transport = Device.Transport.USB
             return self.active_transport
 
         if msg_type == Device.Message.Incoming.WIFI_SSID_DATA:
@@ -185,7 +185,7 @@ class Device:
         while True:
             try:
                 self.websocket = await websockets.connect("ws://esp32-device:81")
-                self.active_transport = self.Transport.WIFI
+                self.active_transport = Device.Transport.WIFI
                 asyncio.create_task(self._websocket_receiver())
                 break
             except Exception:
@@ -225,10 +225,10 @@ class Device:
 
     def _send_to_device(self, message: Message):
         json_str = self._encode_device_message(message)
-        if self.active_transport == self.Transport.WIFI and self.websocket is not None:
+        if self.active_transport == Device.Transport.WIFI and self.websocket is not None:
             print(f"TX (WebSocket): {json_str.strip()}")
             asyncio.create_task(self.websocket.send(json_str))
-        elif self.active_transport == self.Transport.USB and self.serial is not None:
+        elif self.active_transport == Device.Transport.USB and self.serial is not None:
             print(f"TX (USB): {json_str.strip()}")
             self.serial.write(json_str.encode('utf-8'))
 
@@ -257,7 +257,7 @@ class DeviceProtocol(asyncio.Protocol):
 
     def connection_made(self, transport: asyncio.Transport):
         self.device.serial = transport
-        self.device.active_transport = self.device.Transport.USB
+        self.device.active_transport = Device.Transport.USB
         self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, Device.Transport.USB)
         self.device.get_device_info()
 
