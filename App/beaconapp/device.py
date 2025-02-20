@@ -20,7 +20,6 @@ class Device:
         USB = 1
         WIFI = 2
 
-
     @dataclass
     class Message:
         class Incoming(Enum):
@@ -48,7 +47,7 @@ class Device:
             SET_CAL_METHOD = 6
             SET_CAL_VALUE = 7
             SET_SSID_CONNECT_AT_STARTUP = 8
-        
+
         type: Incoming | Outgoing
         data: Any = None
 
