@@ -9,7 +9,7 @@ import websockets
 from beaconapp.data_wrappers import ConnectionStatus, WiFiCredentials, WiFiData, ActiveTXMode
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, Callable, Dict, List, Optional
 
 
 class Device:
@@ -60,8 +60,8 @@ class Device:
         # WebSocket transport (Wi-Fi)
         self.websocket: websockets = None
         # Active transport, USB by default
-        self.active_transport = Device.Transport.USB
-        self.mapped_callbacks = {}
+        self.active_transport: Optional[Device.Transport] = Device.Transport.USB
+        self.mapped_callbacks: Dict[Device.Message.Incoming, List[Callable]] = {}
 
     def connect(self):
         asyncio_loop = asyncio.new_event_loop()
