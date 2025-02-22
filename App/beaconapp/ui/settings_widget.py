@@ -415,6 +415,7 @@ class SettingsWidget:
         Handle UI changes when the Wi-Fi connection attempt is successful.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
+            state="normal",
             text="Disconnect",
             fg_color=["#D9534F", "#A94442"],
             hover_color=["#9A2A2A", "#7A2A28"],
