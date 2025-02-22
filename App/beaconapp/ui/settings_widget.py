@@ -189,11 +189,15 @@ class SettingsWidget:
                 - password (str): The password of the Wi-Fi network.
                 - connect_at_startup (bool): Whether to auto-connect to this Wi-Fi network at startup.
         """
+        self._wifi_change_state("normal")
+
         self.ssid_entry.delete(0, "end")
         self.ssid_entry.insert(0, data.ssid)
 
         self.password_entry.delete(0, "end")
         self.password_entry.insert(0, data.password)
+
+        self._wifi_update_connection_button_state()
 
         self.wifi_auto_connect_at_startup_option.set("Enabled" if data.connect_at_startup else "Disabled")
 
