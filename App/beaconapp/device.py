@@ -167,7 +167,7 @@ class Device:
     async def _establish_websocket_connection(self):
         while True:
             try:
-                self.websocket = await websockets.connect("ws://esp32-device:81")
+                self.websocket = await websockets.connect("ws://wsprbeacon:81")
                 self.active_transport = Device.Transport.WIFI
                 self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
                 asyncio.create_task(self._websocket_receiver())
