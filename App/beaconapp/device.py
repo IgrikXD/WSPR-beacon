@@ -56,9 +56,9 @@ class Device:
     def __init__(self):
         self.tx_queue = asyncio.Queue()
         # Serial transport (USB)
-        self.serial = None
+        self.serial: asyncio.Transport = None
         # WebSocket transport (Wi-Fi)
-        self.websocket = None
+        self.websocket: websockets = None 
         # Active transport, USB by default
         self.active_transport = Device.Transport.USB
         self.mapped_callbacks = {}
@@ -75,15 +75,6 @@ class Device:
         asyncio.run_coroutine_threadsafe(self._establish_serial_connection(), self.asyncio_loop)
         asyncio.run_coroutine_threadsafe(self._establish_websocket_connection(), self.asyncio_loop)
         asyncio.run_coroutine_threadsafe(self._handle_device_requests(), self.asyncio_loop)
-
-    def disconnect(self):
-        if self.asyncio_loop and self.asyncio_loop.is_running():
-            future = asyncio.run_coroutine_threadsafe(self._shutdown_tasks(), self.asyncio_loop)
-            future.result(timeout=5)
-
-            self.asyncio_loop.call_soon_threadsafe(self.asyncio_loop.stop)
-            self.async_thread.join(timeout=5)
-            self.asyncio_loop.close()
 
     def set_device_response_handlers(self, mapped_callbacks):
         self.mapped_callbacks = {
@@ -232,12 +223,6 @@ class Device:
         if "ClearCommError failed" in str(context.get("exception", "")):
             return
         loop.default_exception_handler(context)
-
-    async def _shutdown_tasks(self):
-        tasks = [t for t in asyncio.all_tasks(self.asyncio_loop) if t is not asyncio.current_task()]
-        for task in tasks:
-            task.cancel()
-        await asyncio.gather(*tasks, return_exceptions=True)
 
 
 class DeviceProtocol(asyncio.Protocol):
