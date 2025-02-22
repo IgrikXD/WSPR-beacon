@@ -58,19 +58,17 @@ class Device:
         # Serial transport (USB)
         self.serial: asyncio.Transport = None
         # WebSocket transport (Wi-Fi)
-        self.websocket: websockets = None 
+        self.websocket: websockets = None
         # Active transport, USB by default
         self.active_transport = Device.Transport.USB
         self.mapped_callbacks = {}
 
         self.asyncio_loop = None
-        self.async_thread = None
 
     def connect(self):
         self.asyncio_loop = asyncio.new_event_loop()
         self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
-        self.async_thread = threading.Thread(target=self._run_asyncio_loop, daemon=True)
-        self.async_thread.start()
+        threading.Thread(target=self._run_asyncio_loop, daemon=True).start()
 
         asyncio.run_coroutine_threadsafe(self._establish_serial_connection(), self.asyncio_loop)
         asyncio.run_coroutine_threadsafe(self._establish_websocket_connection(), self.asyncio_loop)
@@ -141,7 +139,7 @@ class Device:
     def _encode_data(self, data):
         if isinstance(data, (ActiveTXMode, WiFiCredentials)):
             return data.to_json()
-    
+
         return data.value if isinstance(data, Enum) else data
 
     def _encode_device_message(self, message: Message):
