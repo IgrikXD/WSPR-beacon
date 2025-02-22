@@ -63,16 +63,16 @@ class Device:
         self.active_transport = Device.Transport.USB
         self.mapped_callbacks = {}
 
-        self.asyncio_loop = None
-
     def connect(self):
-        self.asyncio_loop = asyncio.new_event_loop()
-        self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
-        threading.Thread(target=self._run_asyncio_loop, daemon=True).start()
+        asyncio_loop = asyncio.new_event_loop()
+        asyncio_loop.set_exception_handler(self._serial_exception_handler)
+        asyncio.set_event_loop(asyncio_loop)
 
-        asyncio.run_coroutine_threadsafe(self._establish_serial_connection(), self.asyncio_loop)
-        asyncio.run_coroutine_threadsafe(self._establish_websocket_connection(), self.asyncio_loop)
-        asyncio.run_coroutine_threadsafe(self._handle_device_requests(), self.asyncio_loop)
+        threading.Thread(target=lambda: asyncio_loop.run_forever(), daemon=True).start()
+
+        asyncio.run_coroutine_threadsafe(self._establish_serial_connection(), asyncio_loop)
+        asyncio.run_coroutine_threadsafe(self._establish_websocket_connection(), asyncio_loop)
+        asyncio.run_coroutine_threadsafe(self._handle_outgoing_messages(), asyncio_loop)
 
     def set_device_response_handlers(self, mapped_callbacks):
         self.mapped_callbacks = {
@@ -126,6 +126,8 @@ class Device:
                 self.active_transport = Device.Transport.WIFI
             elif raw_data == Device.Transport.WIFI.value and self.websocket is None and self.serial:
                 self.active_transport = Device.Transport.USB
+            else:
+                self.active_transport = None
             return self.active_transport
 
         if msg_type == Device.Message.Incoming.WIFI_SSID_DATA:
@@ -196,17 +198,12 @@ class Device:
             self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
             asyncio.create_task(self._establish_websocket_connection())
 
-    async def _handle_device_requests(self):
+    async def _handle_outgoing_messages(self):
         while True:
-            message = await self.tx_queue.get()
-            self._send_to_device(message)
+            self._send_to_device(await self.tx_queue.get())
 
     def _put(self, message: Message):
         self.tx_queue.put_nowait(message)
-
-    def _run_asyncio_loop(self):
-        asyncio.set_event_loop(self.asyncio_loop)
-        self.asyncio_loop.run_forever()
 
     def _send_to_device(self, message: Message):
         json_str = self._encode_device_message(message)
