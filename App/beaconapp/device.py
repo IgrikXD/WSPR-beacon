@@ -221,10 +221,10 @@ class Device:
 
     def _send_to_device(self, message: Message):
         json_str = self._encode_device_message(message)
-        if self.active_transport == Device.Transport.WIFI and self.websocket is not None:
+        if self.active_transport == Device.Transport.WIFI:
             print(f"TX (WebSocket): {json_str.strip()}")
             asyncio.create_task(self.websocket.send(json_str))
-        elif self.active_transport == Device.Transport.USB and self.serial is not None:
+        elif self.active_transport == Device.Transport.USB:
             print(f"TX (USB): {json_str.strip()}")
             self.serial.write(json_str.encode('utf-8'))
 
