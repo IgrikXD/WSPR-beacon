@@ -164,13 +164,6 @@ class Device:
                 break
             await asyncio.sleep(0.5)
 
-    def _find_device_port(self):
-        for port in serial.tools.list_ports.comports():
-            # VID and PID for ESP32-C3
-            if port.vid == 0x303A and port.pid == 0x1001:
-                return port.device
-        return None
-
     async def _establish_websocket_connection(self):
         while True:
             try:
@@ -183,20 +176,12 @@ class Device:
                 self.websocket = None
                 await asyncio.sleep(0.5)
 
-    async def _websocket_receiver(self):
-        try:
-            self.get_device_info()
-            async for message in self.websocket:
-                message = message.strip()
-                if message:
-                    msg = self._data_decoder(message)
-                    print(f"RX (WebSocket): {message}")
-                    self._call_handlers(msg.type, msg.data)
-        except websockets.exceptions.ConnectionClosedError:
-            self.websocket = None
-            self.active_transport = Device.Transport.USB if self.serial else None
-            self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
-            asyncio.create_task(self._establish_websocket_connection())
+    def _find_device_port(self):
+        for port in serial.tools.list_ports.comports():
+            # VID and PID for ESP32-C3
+            if port.vid == 0x303A and port.pid == 0x1001:
+                return port.device
+        return None
 
     async def _handle_outgoing_messages(self):
         while True:
@@ -218,6 +203,21 @@ class Device:
         if "ClearCommError failed" in str(context.get("exception", "")):
             return
         loop.default_exception_handler(context)
+
+    async def _websocket_receiver(self):
+        try:
+            self.get_device_info()
+            async for message in self.websocket:
+                message = message.strip()
+                if message:
+                    msg = self._data_decoder(message)
+                    print(f"RX (WebSocket): {message}")
+                    self._call_handlers(msg.type, msg.data)
+        except websockets.exceptions.ConnectionClosedError:
+            self.websocket = None
+            self.active_transport = Device.Transport.USB if self.serial else None
+            self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
+            asyncio.create_task(self._establish_websocket_connection())
 
 
 class DeviceProtocol(asyncio.Protocol):
