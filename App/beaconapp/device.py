@@ -2,9 +2,9 @@ import asyncio
 import json
 import serial_asyncio
 import serial.tools.list_ports
+import socket
 import threading
 import websockets
-import socket
 
 from beaconapp.data_wrappers import ConnectionStatus, WiFiCredentials, WiFiData, ActiveTXMode
 from dataclasses import dataclass
@@ -18,8 +18,8 @@ class Device:
         MANUAL = 2
 
     class Transport(Enum):
-        USB = 1
-        WIFI = 2
+        USB = "USB"
+        WIFI = "Wi-Fi"
 
     @dataclass
     class Message:
@@ -131,11 +131,11 @@ class Device:
             return ActiveTXMode.from_json(raw_data)
 
         if msg_type == Device.Message.Incoming.ACTIVE_TRANSPORT:
-            if raw_data == Device.Transport.USB.name and self.serial:
+            if raw_data == Device.Transport.USB.value and self.serial:
                 self.active_transport = Device.Transport.USB
-            elif raw_data == Device.Transport.WIFI.name and self.websocket:
+            elif raw_data == Device.Transport.WIFI.value and self.websocket:
                 self.active_transport = Device.Transport.WIFI
-            elif raw_data == Device.Transport.WIFI.name and self.websocket is None and self.serial:
+            elif raw_data == Device.Transport.WIFI.value and self.websocket is None and self.serial:
                 self.active_transport = Device.Transport.USB
             return self.active_transport
 
@@ -190,7 +190,7 @@ class Device:
                 break
             except socket.gaierror:
                 self.websocket = None
-                await asyncio.sleep(1)
+                await asyncio.sleep(0.5)
 
     async def _websocket_receiver(self):
         try:

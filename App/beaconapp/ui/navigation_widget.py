@@ -92,7 +92,7 @@ class NavigationWidget:
         text = "Not connected!"
 
         if active_transport:
-            text = f"Connected ({active_transport.name})"
+            text = f"Connected ({active_transport.value})"
 
         self.device_connection_status.after(0, lambda: self.device_connection_status.configure(text=text))
 
