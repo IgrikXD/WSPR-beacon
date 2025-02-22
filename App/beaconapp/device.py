@@ -14,8 +14,8 @@ from typing import Any
 
 class Device:
     class CalibrationType(Enum):
-        AUTO = 1
-        MANUAL = 2
+        AUTO = "auto"
+        MANUAL = "manual"
 
     class Transport(Enum):
         USB = "USB"
@@ -24,31 +24,31 @@ class Device:
     @dataclass
     class Message:
         class Incoming(Enum):
-            ACTIVE_TRANSPORT = 1
-            ACTIVE_TX_MODE = 2
-            CAL_FREQ_GENERATED = 3
-            CAL_STATUS = 4
-            CAL_VALUE = 5
-            FIRMWARE_INFO = 6
-            GPS_STATUS = 7
-            HARDWARE_INFO = 8
-            SELF_CHECK_ACTION = 9
-            SELF_CHECK_ACTIVE = 10
-            SELF_CHECK_STATUS = 11
-            TX_ACTION_STATUS = 12
-            TX_STATUS = 13
-            WIFI_SSID_DATA = 14
-            WIFI_STATUS = 15
+            ACTIVE_TRANSPORT = "ACTIVE_TRANSPORT"
+            ACTIVE_TX_MODE = "ACTIVE_TX_MODE"
+            CAL_FREQ_GENERATED = "CAL_FREQ_GENERATED"
+            CAL_STATUS = "CAL_STATUS"
+            CAL_VALUE = "CAL_VALUE"
+            FIRMWARE_INFO = "FIRMWARE_INFO"
+            GPS_STATUS = "GPS_STATUS"
+            HARDWARE_INFO = "HARDWARE_INFO"
+            SELF_CHECK_ACTION = "SELF_CHECK_ACTION"
+            SELF_CHECK_ACTIVE = "SELF_CHECK_ACTIVE"
+            SELF_CHECK_STATUS = "SELF_CHECK_STATUS"
+            TX_ACTION_STATUS = "TX_ACTION_STATUS"
+            TX_STATUS = "TX_STATUS"
+            WIFI_SSID_DATA = "WIFI_SSID_DATA"
+            WIFI_STATUS = "WIFI_STATUS"
 
         class Outgoing(Enum):
-            GEN_CAL_FREQUENCY = 1
-            GET_DEVICE_INFO = 2
-            RUN_SELF_CHECK = 3
-            RUN_WIFI_CONNECTION = 4
-            SET_ACTIVE_TX_MODE = 5
-            SET_CAL_METHOD = 6
-            SET_CAL_VALUE = 7
-            SET_SSID_CONNECT_AT_STARTUP = 8
+            GEN_CAL_FREQUENCY = "GEN_CAL_FREQUENCY"
+            GET_DEVICE_INFO = "GET_DEVICE_INFO"
+            RUN_SELF_CHECK = "RUN_SELF_CHECK"
+            RUN_WIFI_CONNECTION = "RUN_WIFI_CONNECTION"
+            SET_ACTIVE_TX_MODE = "SET_ACTIVE_TX_MODE"
+            SET_CAL_METHOD = "SET_CAL_METHOD"
+            SET_CAL_VALUE = "SET_CAL_VALUE"
+            SET_SSID_CONNECT_AT_STARTUP = "SET_SSID_CONNECT_AT_STARTUP"
 
         type: Incoming | Outgoing
         data: Any = None
@@ -122,7 +122,7 @@ class Device:
     def _data_decoder(self, line_str: str):
         obj = json.loads(line_str)
 
-        msg_type = Device.Message.Incoming[obj.get("type")]
+        msg_type = Device.Message.Incoming(obj.get("type"))
 
         return Device.Message(msg_type, self._decode_data(msg_type, obj.get("data")))
 
@@ -151,11 +151,11 @@ class Device:
         if isinstance(data, (ActiveTXMode, WiFiCredentials)):
             return data.to_json()
     
-        return data.name if isinstance(data, Enum) else data
+        return data.value if isinstance(data, Enum) else data
 
     def _encode_device_message(self, message: Message):
         return json.dumps({
-            "type": message.type.name,
+            "type": message.type.value,
             "data": self._encode_data(message.data)
         }) + "\n"
 
