@@ -147,14 +147,10 @@ class Device:
         return raw_data
 
     def _encode_data(self, data):
-        if data is None:
-            return None
-
         if isinstance(data, (ActiveTXMode, WiFiCredentials)):
             return data.to_json()
-        elif isinstance(data, Enum):
-            return data.name
-        return data
+    
+        return data.name if isinstance(data, Enum) else data
 
     def _encode_device_message(self, message: Message):
         return json.dumps({
