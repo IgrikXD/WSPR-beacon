@@ -4,6 +4,7 @@ import serial_asyncio
 import serial.tools.list_ports
 import threading
 import websockets
+import socket
 
 from beaconapp.data_wrappers import ConnectionStatus, WiFiCredentials, WiFiData, ActiveTXMode
 from dataclasses import dataclass
@@ -184,9 +185,10 @@ class Device:
             try:
                 self.websocket = await websockets.connect("ws://esp32-device:81")
                 self.active_transport = Device.Transport.WIFI
+                self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
                 asyncio.create_task(self._websocket_receiver())
                 break
-            except Exception:
+            except socket.gaierror:
                 self.websocket = None
                 await asyncio.sleep(1)
 
@@ -199,14 +201,10 @@ class Device:
                     msg = self._data_decoder(message)
                     print(f"RX (WebSocket): {message}")
                     self._call_handlers(msg.type, msg.data)
-        except Exception as e:
-            print("WebSocket receiver error", e)
-        finally:
+        except websockets.exceptions.ConnectionClosedError:
             self.websocket = None
-            if self.serial is None:
-                self.active_transport = None
-                self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
-            await asyncio.sleep(1)
+            self.active_transport = Device.Transport.USB if self.serial else None
+            self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
             asyncio.create_task(self._establish_websocket_connection())
 
     async def _handle_device_requests(self):
@@ -250,13 +248,13 @@ class DeviceProtocol(asyncio.Protocol):
     def connection_lost(self, exc):
         self.device.serial = None
         self.device.active_transport = None
-        self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, None)
+        self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.device.active_transport)
         asyncio.create_task(self.device._establish_serial_connection())
 
     def connection_made(self, transport: asyncio.Transport):
         self.device.serial = transport
         self.device.active_transport = Device.Transport.USB
-        self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, Device.Transport.USB)
+        self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.device.active_transport)
         self.device.get_device_info()
 
     def data_received(self, data: bytes):
