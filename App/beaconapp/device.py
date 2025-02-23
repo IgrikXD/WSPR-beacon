@@ -73,11 +73,18 @@ class Device:
         asyncio.run_coroutine_threadsafe(self.ws_transport.connect(), asyncio_loop)
         asyncio.run_coroutine_threadsafe(self._handle_outgoing_messages(), asyncio_loop)
 
-    def set_device_response_handlers(self, mapped_callbacks):
+    def set_device_response_handlers(self, mapped_callbacks: Dict[Message.Incoming, List[Callable]]):
         for key, value in mapped_callbacks.items():
             if not isinstance(value, list):
                 value = [value]
-            self.mapped_callbacks.setdefault(key, []).extend(value)
+
+            # If there is no such key, initialize with an empty list
+            self.mapped_callbacks.setdefault(key, [])
+
+            # Adding colbacks that don't already exist
+            for handler in value:
+                if handler not in self.mapped_callbacks[key]:
+                    self.mapped_callbacks[key].append(handler)
 
     def gen_calibration_frequency(self, frequency: float):
         self._put(Device.Message(Device.Message.Outgoing.GEN_CAL_FREQUENCY, frequency))
