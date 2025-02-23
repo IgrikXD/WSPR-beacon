@@ -55,6 +55,7 @@ class Device:
         # Active transport, USB (Serial) by default
         self.active_transport: Optional[Device.Transport] = Device.Transport.USB
         self.mapped_callbacks: Dict[Device.Message.Incoming, List[Callable]] = {}
+        # By default, set callback to switch active transport on an incoming request from the device
         self.set_device_response_handlers({Device.Message.Incoming.ACTIVE_TRANSPORT: [self._set_active_transport]})
 
         self.serial_transport = SerialTransport(self)
@@ -78,23 +79,23 @@ class Device:
                 value = [value]
             self.mapped_callbacks.setdefault(key, []).extend(value)
 
+    def gen_calibration_frequency(self, frequency: float):
+        self._put(Device.Message(Device.Message.Outgoing.GEN_CAL_FREQUENCY, frequency))
+
     def get_device_info(self):
         self._put(Device.Message(Device.Message.Outgoing.GET_DEVICE_INFO))
 
-    def gen_calibration_frequency(self, frequency: float):
-        self._put(Device.Message(Device.Message.Outgoing.GEN_CAL_FREQUENCY, frequency))
+    def run_self_check(self):
+        self._put(Device.Message(Device.Message.Outgoing.RUN_SELF_CHECK))
+
+    def set_active_tx_mode(self, active_tx_mode: ActiveTXMode):
+        self._put(Device.Message(Device.Message.Outgoing.SET_ACTIVE_TX_MODE, active_tx_mode))
 
     def set_calibration_type(self, calibration_type: CalibrationType):
         self._put(Device.Message(Device.Message.Outgoing.SET_CAL_METHOD, calibration_type))
 
     def set_calibration_value(self, value: int):
         self._put(Device.Message(Device.Message.Outgoing.SET_CAL_VALUE, value))
-
-    def set_active_tx_mode(self, active_tx_mode: ActiveTXMode):
-        self._put(Device.Message(Device.Message.Outgoing.SET_ACTIVE_TX_MODE, active_tx_mode))
-
-    def run_self_check(self):
-        self._put(Device.Message(Device.Message.Outgoing.RUN_SELF_CHECK))
 
     def set_ssid_connect_at_startup(self, value: bool):
         self._put(Device.Message(Device.Message.Outgoing.SET_SSID_CONNECT_AT_STARTUP, value))
