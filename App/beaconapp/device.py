@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from beaconapp.data_wrappers import ActiveTXMode, CalibrationType, ConnectionStatus, WiFiCredentials, WiFiData
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Set
 
 
 class Device:
@@ -52,8 +52,16 @@ class Device:
 
     def __init__(self):
         self.tx_queue = asyncio.Queue()
+        
         # Active transport, USB (Serial) by default
         self.active_transport: Optional[Device.Transport] = Device.Transport.USB
+        # Transport priority (if we cannot satisfy _requested_transport)
+        self.transport_priority = [Device.Transport.USB, Device.Transport.WIFI]
+        # Current "requested" (from the device) transport
+        self._requested_transport: Optional[Device.Transport] = self.active_transport
+        # Transports that are currently connected (USB/WebSocket)
+        self._connected_transports: Set[Device.Transport] = set()
+
         self.mapped_callbacks: Dict[Device.Message.Incoming, List[Callable]] = {}
         # By default, set callback to switch active transport on an incoming request from the device
         self.set_device_response_handlers({Device.Message.Incoming.ACTIVE_TRANSPORT: [self._set_active_transport]})
@@ -114,18 +122,39 @@ class Device:
         for handler in self.mapped_callbacks.get(msg_type, []):
             handler(data)
 
-    def _set_active_transport(self, active_transport: Transport):
-        if active_transport == Device.Transport.USB:
-            self.active_transport = (Device.Transport.USB if self.serial_transport.transport else None)
-        elif active_transport == Device.Transport.WIFI:
-            if self.ws_transport.websocket:
-                self.active_transport = Device.Transport.WIFI
-            elif self.serial_transport.transport:
-                self.active_transport = Device.Transport.USB
-            else:
-                self.active_transport = None
+    def _on_transport_connected(self, transport_type: Transport):
+        self._connected_transports.add(transport_type)
+        self._decide_active_transport()
+
+    def _on_transport_disconnected(self, transport_type: Transport):
+        if transport_type in self._connected_transports:
+            self._connected_transports.remove(transport_type)
+
+        if transport_type == Device.Transport.USB:
+            if Device.Transport.WIFI in self._connected_transports:
+                self._connected_transports.remove(Device.Transport.WIFI)
+
+        self._decide_active_transport()
+
+    def _decide_active_transport(self):
+        old_transport = self.active_transport
+
+        if self._requested_transport in self._connected_transports:
+            self.active_transport = self._requested_transport
         else:
-            self.active_transport = None
+            chosen = None
+            for t in self.transport_priority:
+                if t in self._connected_transports:
+                    chosen = t
+                    break
+            self.active_transport = chosen
+
+        if self.active_transport != old_transport:
+            self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
+
+    def _set_active_transport(self, transport: Transport):
+        self._requested_transport = transport
+        self._decide_active_transport()
 
     def _decode_device_message(self, message: str):
         obj = json.loads(message)
@@ -234,8 +263,7 @@ class WebsocketTransport(BaseTransport):
         while True:
             try:
                 self.websocket = await websockets.connect("ws://wsprbeacon:81")
-                self.device.active_transport = Device.Transport.WIFI
-                self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.device.active_transport)
+                self.device._on_transport_connected(Device.Transport.WIFI)
                 asyncio.create_task(self._websocket_receiver())
                 break
             except socket.gaierror:
@@ -258,13 +286,7 @@ class WebsocketTransport(BaseTransport):
                     self.device._call_handlers(msg.type, msg.data)
         except websockets.exceptions.ConnectionClosedError:
             self.websocket = None
-            # If the web socket connection is terminated, switch to USB (if available)
-            if self.device.serial_transport.transport:
-                self.device.active_transport = Device.Transport.USB
-            else:
-                self.device.active_transport = None
-
-            self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.device.active_transport)
+            self.device._on_transport_disconnected(Device.Transport.WIFI)
             asyncio.create_task(self.connect())
 
 
@@ -276,8 +298,7 @@ class DeviceProtocol(asyncio.Protocol):
 
     def connection_made(self, transport: asyncio.Transport):
         self.serial_transport.transport = transport
-        self.device.active_transport = Device.Transport.USB
-        self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.device.active_transport)
+        self.device._on_transport_connected(Device.Transport.USB)
         self.device.get_device_info()
 
     def data_received(self, data: bytes):
@@ -292,6 +313,5 @@ class DeviceProtocol(asyncio.Protocol):
 
     def connection_lost(self, exc):
         self.serial_transport.transport = None
-        self.device.active_transport = None
-        self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.device.active_transport)
+        self.device._on_transport_disconnected(Device.Transport.USB)
         asyncio.create_task(self.serial_transport.connect())
