@@ -314,6 +314,9 @@ class SerialTransport(BaseTransport):
     def __init__(self, device: Device):
         super().__init__(device)
         self.transport: Optional[asyncio.Transport] = None
+        # VID and PID for ESP32-C3
+        self.vid = 0x303A
+        self.pid = 0x1001
 
     async def connect(self):
         """
@@ -343,11 +346,10 @@ class SerialTransport(BaseTransport):
 
     def _find_device_port(self):
         """
-        Searches for a connected ESP32-C3 device by matching VID/PID.
+        Searches for a connected device by matching VID/PID.
         """
         for port in serial.tools.list_ports.comports():
-            # VID and PID for ESP32-C3
-            if port.vid == 0x303A and port.pid == 0x1001:
+            if port.vid == self.vid and port.pid == self.pid:
                 return port.device
         return None
 
@@ -359,14 +361,16 @@ class WebsocketTransport(BaseTransport):
     def __init__(self, device: Device):
         super().__init__(device)
         self.websocket: Optional[websockets.WebSocketClientProtocol] = None
+        self.hostname = "wsprbeacon"
+        self.port = 81
 
     async def connect(self):
         """
-        Continuously tries to connect to the WebSocket at ws://wsprbeacon:81.
+        Continuously tries to connect to the WebSocket.
         """
         while True:
             try:
-                self.websocket = await websockets.connect("ws://wsprbeacon:81")
+                self.websocket = await websockets.connect(f"ws://{self.hostname}:{self.port}")
                 self.device._on_transport_connected(Device.Transport.WIFI)
                 # Start the message receiver task
                 asyncio.create_task(self._websocket_receiver())
