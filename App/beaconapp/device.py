@@ -72,6 +72,9 @@ class Device:
         self.ws_transport = WebsocketTransport(self)
 
     def connect(self):
+        """
+        Create a new event loop in a separate thread and run Serial and WebSocket connections in parallel.
+        """
         asyncio_loop = asyncio.new_event_loop()
         asyncio_loop.set_exception_handler(self._serial_exception_handler)
         asyncio.set_event_loop(asyncio_loop)
@@ -84,6 +87,10 @@ class Device:
         asyncio.run_coroutine_threadsafe(self._handle_outgoing_messages(), asyncio_loop)
 
     def set_device_response_handlers(self, mapped_callbacks: Dict[Message.Incoming, List[Callable]]):
+        """
+        Register one or more callbacks for given incoming message types.
+        Prevent duplicate callbacks for the same message type.
+        """
         for key, value in mapped_callbacks.items():
             if not isinstance(value, list):
                 value = [value]
@@ -91,47 +98,81 @@ class Device:
             # If there is no such key, initialize with an empty list
             self.mapped_callbacks.setdefault(key, [])
 
-            # Adding colbacks that don't already exist
+            # Add callbacks that are not yet in the list
             for handler in value:
                 if handler not in self.mapped_callbacks[key]:
                     self.mapped_callbacks[key].append(handler)
 
     def gen_calibration_frequency(self, frequency: float):
+        """
+        Sends a request to generate a calibration frequency.
+        """
         self._put(Device.Message(Device.Message.Outgoing.GEN_CAL_FREQUENCY, frequency))
 
     def get_device_info(self):
+        """
+        Requests device info.
+        """
         self._put(Device.Message(Device.Message.Outgoing.GET_DEVICE_INFO))
 
     def run_self_check(self):
+        """
+        Sends a request to run a self-check procedure on the device.
+        """
         self._put(Device.Message(Device.Message.Outgoing.RUN_SELF_CHECK))
 
     def set_active_tx_mode(self, active_tx_mode: ActiveTXMode):
+        """
+        Sends a request to set the active TX mode.
+        """
         self._put(Device.Message(Device.Message.Outgoing.SET_ACTIVE_TX_MODE, active_tx_mode))
 
     def set_calibration_type(self, calibration_type: CalibrationType):
+        """
+        Sends a request to set the calibration type (auto, manual).
+        """
         self._put(Device.Message(Device.Message.Outgoing.SET_CAL_METHOD, calibration_type))
 
     def set_calibration_value(self, value: int):
+        """
+        Sends a request to set a calibration value (for manual calibration).
+        """
         self._put(Device.Message(Device.Message.Outgoing.SET_CAL_VALUE, value))
 
     def set_ssid_connect_at_startup(self, value: bool):
+        """
+        Sends a request to set SSID connect on startup.
+        """
         self._put(Device.Message(Device.Message.Outgoing.SET_SSID_CONNECT_AT_STARTUP, value))
 
     def set_wifi_connection(self, wifi_credentials: WiFiCredentials):
+        """
+        Sends a request to run Wi-Fi connection with given credentials.
+        """
         self._put(Device.Message(Device.Message.Outgoing.RUN_WIFI_CONNECTION, wifi_credentials))
 
     def _call_handlers(self, msg_type: Enum, data):
+        """
+        Calls all handlers associated with the given incoming message type.
+        """
         for handler in self.mapped_callbacks.get(msg_type, []):
             handler(data)
 
     def _on_transport_connected(self, transport_type: Transport):
+        """
+        Called by a transport class (Serial/WebSocket) when a successful connection is established.
+        """
         self._connected_transports.add(transport_type)
         self._decide_active_transport()
 
     def _on_transport_disconnected(self, transport_type: Transport):
+        """
+        Called by a transport class (Serial/WebSocket) when a connection is lost or closed.
+        """
         if transport_type in self._connected_transports:
             self._connected_transports.remove(transport_type)
 
+        # If USB is disconnected, assume we lose device power, thus remove Wi-Fi as well
         if transport_type == Device.Transport.USB:
             if Device.Transport.WIFI in self._connected_transports:
                 self._connected_transports.remove(Device.Transport.WIFI)
@@ -139,11 +180,20 @@ class Device:
         self._decide_active_transport()
 
     def _decide_active_transport(self):
+        """
+        Chooses which transport should be active based on:
+            1) _requested_transport (if it is actually connected)
+            2) transport_priority (e.g., Wi-Fi first, then USB)
+            3) or None if no transport is currently available
+        Notifies handlers if the active transport changes.
+        """
         old_transport = self.active_transport
 
+        # If the requested transport is connected, use it
         if self._requested_transport in self._connected_transports:
             self.active_transport = self._requested_transport
         else:
+            # Otherwise, pick from transport_priority
             transport_to_activate = None
             for transport in self.transport_priority:
                 if transport in self._connected_transports:
@@ -151,14 +201,23 @@ class Device:
                     break
             self.active_transport = transport_to_activate
 
+        # If the active transport changed, notify via the INCOMING.ACTIVE_TRANSPORT event
         if self.active_transport != old_transport:
             self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
 
     def _set_active_transport(self, transport: Transport):
+        """
+        Callback called on an incoming ACTIVE_TRANSPORT message from the device. This sets the
+        "requested" transport, and triggers a decision pass.
+        """
         self._requested_transport = transport
         self._decide_active_transport()
 
     def _decode_device_message(self, message: str):
+        """
+        Decodes a message from JSON into a Device.Message, including special handling for known
+        data types (ActiveTXMode, WiFiData, etc.).
+        """
         obj = json.loads(message)
         msg_type = Device.Message.Incoming(obj.get("type"))
         raw_data = obj.get("data")
@@ -177,6 +236,9 @@ class Device:
         return Device.Message(msg_type, data)
 
     def _encode_device_message(self, message: Message):
+        """
+        Encodes a Device.Message into a JSON string, converting enums and data objects appropriately.
+        """
         if isinstance(message.data, (ActiveTXMode, WiFiCredentials)):
             data = message.data.to_json()
         elif isinstance(message.data, Enum):
@@ -190,14 +252,23 @@ class Device:
         }) + "\n"
 
     async def _handle_outgoing_messages(self):
+        """
+        Continuously takes messages from tx_queue and sends them to the currently active transport.
+        """
         while True:
             message = await self.tx_queue.get()
             self._send_to_device(message)
 
     def _put(self, message: Message):
+        """
+        Places a message into the tx_queue for asynchronous sending.
+        """
         self.tx_queue.put_nowait(message)
 
     def _send_to_device(self, message: Message):
+        """
+        Sends an encoded message to the currently active transport (USB or Wi-Fi).
+        """
         json_str = self._encode_device_message(message)
         if self.active_transport == Device.Transport.WIFI:
             self.ws_transport.send(json_str)
@@ -205,31 +276,50 @@ class Device:
             self.serial_transport.send(json_str)
 
     def _serial_exception_handler(self, loop: asyncio.AbstractEventLoop, context: dict):
-        # Ignore “ClearCommError failed” - bug on Windows related to emergency device disconnection
+        """
+        Ignores the known Windows bug "ClearCommError failed" related to abrupt disconnections.
+        Otherwise, uses the default exception handler.
+        """
         if "ClearCommError failed" in str(context.get("exception", "")):
             return
         loop.default_exception_handler(context)
 
 
 class BaseTransport(ABC):
+    """
+    Abstract base class for different transport implementations (Serial, WebSocket, etc.).
+    """
     def __init__(self, device: Device):
         self.device = device
 
     @abstractmethod
     async def connect(self):
+        """
+        Attempts to establish a connection with the device.
+        """
         pass
 
     @abstractmethod
     def send(self, message: str):
+        """
+        Sends a message string via the transport.
+        """
         pass
 
 
 class SerialTransport(BaseTransport):
+    """
+    Serial (USB) transport implementation using serial_asyncio.
+    """
     def __init__(self, device: Device):
         super().__init__(device)
         self.transport: Optional[asyncio.Transport] = None
 
     async def connect(self):
+        """
+        Continuously looks for a matching COM port (ESP32-C3 PID/VID),
+        and tries to establish a Serial connection.
+        """
         while True:
             device_port = self._find_device_port()
             if device_port:
@@ -244,11 +334,17 @@ class SerialTransport(BaseTransport):
             await asyncio.sleep(1)
 
     def send(self, message: str):
+        """
+        Sends message bytes via the established Serial connection.
+        """
         if self.transport:
             print(f"TX (USB): {message.strip()}")
             self.transport.write(message.encode('utf-8'))
 
     def _find_device_port(self):
+        """
+        Searches for a connected ESP32-C3 device by matching VID/PID.
+        """
         for port in serial.tools.list_ports.comports():
             # VID and PID for ESP32-C3
             if port.vid == 0x303A and port.pid == 0x1001:
@@ -257,15 +353,22 @@ class SerialTransport(BaseTransport):
 
 
 class WebsocketTransport(BaseTransport):
+    """
+    WebSocket (Wi-Fi) transport implementation using asyncio and websockets library.
+    """
     def __init__(self, device: Device):
         super().__init__(device)
         self.websocket: Optional[websockets.WebSocketClientProtocol] = None
 
     async def connect(self):
+        """
+        Continuously tries to connect to the WebSocket at ws://wsprbeacon:81.
+        """
         while True:
             try:
                 self.websocket = await websockets.connect("ws://wsprbeacon:81")
                 self.device._on_transport_connected(Device.Transport.WIFI)
+                # Start the message receiver task
                 asyncio.create_task(self._websocket_receiver())
                 break
             except socket.gaierror:
@@ -273,12 +376,20 @@ class WebsocketTransport(BaseTransport):
                 await asyncio.sleep(1)
 
     def send(self, message: str):
+        """
+        Sends a text message via the active WebSocket connection.
+        """
         if self.websocket is not None:
             print(f"TX (WebSocket): {message.strip()}")
             asyncio.create_task(self.websocket.send(message))
 
     async def _websocket_receiver(self):
+        """
+        Continuously reads messages from the WebSocket until disconnected, decoding and
+        handing them over to the device's _call_handlers. On disconnection, tries to reconnect.
+        """
         try:
+            # Immediately request device info upon successful connection
             self.device.get_device_info()
             async for message in self.websocket:
                 message = message.strip()
@@ -293,17 +404,28 @@ class WebsocketTransport(BaseTransport):
 
 
 class DeviceProtocol(asyncio.Protocol):
+    """
+    Asyncio Protocol handling data for the SerialTransport.
+    """
     def __init__(self, device: Device, serial_transport: SerialTransport):
         self.device = device
         self.serial_transport = serial_transport
         self.buffer = b""
 
     def connection_made(self, transport: asyncio.Transport):
+        """
+        Called when a serial connection is established.
+        """
         self.serial_transport.transport = transport
         self.device._on_transport_connected(Device.Transport.USB)
+        # Immediately request device info after successful connection
         self.device.get_device_info()
 
     def data_received(self, data: bytes):
+        """
+        Called whenever data is received via Serial. Accumulates data until a newline
+        and then processes each line.
+        """
         self.buffer += data
         while b'\n' in self.buffer:
             line, self.buffer = self.buffer.split(b'\n', 1)
@@ -314,6 +436,9 @@ class DeviceProtocol(asyncio.Protocol):
                 self.device._call_handlers(msg.type, msg.data)
 
     def connection_lost(self, exc):
+        """
+        Called when the serial connection is lost or closed. Attempts to reconnect.
+        """
         self.serial_transport.transport = None
         self.device._on_transport_disconnected(Device.Transport.USB)
         asyncio.create_task(self.serial_transport.connect())
