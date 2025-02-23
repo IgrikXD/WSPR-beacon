@@ -6,7 +6,8 @@ import socket
 import threading
 import websockets
 
-from beaconapp.data_wrappers import ConnectionStatus, WiFiCredentials, WiFiData, ActiveTXMode
+from abc import ABC, abstractmethod
+from beaconapp.data_wrappers import ActiveTXMode, ConnectionStatus, WiFiCredentials, WiFiData
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
@@ -55,13 +56,12 @@ class Device:
 
     def __init__(self):
         self.tx_queue = asyncio.Queue()
-        # Serial transport (USB)
-        self.serial: asyncio.Transport = None
-        # WebSocket transport (Wi-Fi)
-        self.websocket: websockets = None
-        # Active transport, USB by default
+        # Active transport, USB (Serial) by default
         self.active_transport: Optional[Device.Transport] = Device.Transport.USB
         self.mapped_callbacks: Dict[Device.Message.Incoming, List[Callable]] = {}
+
+        self.serial_transport = SerialTransport(self)
+        self.ws_transport = WebsocketTransport(self)
 
     def connect(self):
         asyncio_loop = asyncio.new_event_loop()
@@ -70,8 +70,9 @@ class Device:
 
         threading.Thread(target=lambda: asyncio_loop.run_forever(), daemon=True).start()
 
-        asyncio.run_coroutine_threadsafe(self._establish_serial_connection(), asyncio_loop)
-        asyncio.run_coroutine_threadsafe(self._establish_websocket_connection(), asyncio_loop)
+        # In parallel try to connect via serial and websocket
+        asyncio.run_coroutine_threadsafe(self.serial_transport.connect(), asyncio_loop)
+        asyncio.run_coroutine_threadsafe(self.ws_transport.connect(), asyncio_loop)
         asyncio.run_coroutine_threadsafe(self._handle_outgoing_messages(), asyncio_loop)
 
     def set_device_response_handlers(self, mapped_callbacks):
@@ -108,73 +109,105 @@ class Device:
         for handler in self.mapped_callbacks.get(msg_type, []):
             handler(data)
 
-    def _data_decoder(self, line_str: str):
+    def _decode_device_message(self, line_str: str):
         obj = json.loads(line_str)
-
         msg_type = Device.Message.Incoming(obj.get("type"))
+        raw_data = obj.get("data")
 
-        return Device.Message(msg_type, self._decode_data(msg_type, obj.get("data")))
-
-    def _decode_data(self, msg_type: Message.Incoming, raw_data):
         if msg_type == Device.Message.Incoming.ACTIVE_TX_MODE:
-            return ActiveTXMode.from_json(raw_data)
-
-        if msg_type == Device.Message.Incoming.ACTIVE_TRANSPORT:
-            if raw_data == Device.Transport.USB.value and self.serial:
+            data = ActiveTXMode.from_json(raw_data)
+        elif msg_type == Device.Message.Incoming.ACTIVE_TRANSPORT:
+            if raw_data == Device.Transport.USB.value and self.serial_transport.transport:
                 self.active_transport = Device.Transport.USB
-            elif raw_data == Device.Transport.WIFI.value and self.websocket:
+            elif raw_data == Device.Transport.WIFI.value and self.ws_transport.websocket:
                 self.active_transport = Device.Transport.WIFI
-            elif raw_data == Device.Transport.WIFI.value and self.websocket is None and self.serial:
+            elif (raw_data == Device.Transport.WIFI.value
+                  and self.ws_transport.websocket is None
+                  and self.serial_transport.transport):
                 self.active_transport = Device.Transport.USB
             else:
                 self.active_transport = None
-            return self.active_transport
+            data = self.active_transport
+        elif msg_type == Device.Message.Incoming.WIFI_SSID_DATA:
+            data = WiFiData.from_json(raw_data)
+        elif msg_type == Device.Message.Incoming.WIFI_STATUS:
+            data = ConnectionStatus(raw_data.get("status"))
+        else:
+            data = raw_data
 
-        if msg_type == Device.Message.Incoming.WIFI_SSID_DATA:
-            return WiFiData.from_json(raw_data)
-
-        if msg_type == Device.Message.Incoming.WIFI_STATUS:
-            return ConnectionStatus(raw_data.get("status"))
-
-        return raw_data
-
-    def _encode_data(self, data):
-        if isinstance(data, (ActiveTXMode, WiFiCredentials)):
-            return data.to_json()
-
-        return data.value if isinstance(data, Enum) else data
+        return Device.Message(msg_type, data)
 
     def _encode_device_message(self, message: Message):
+        if isinstance(message.data, (ActiveTXMode, WiFiCredentials)):
+            data = message.data.to_json()
+        elif isinstance(message.data, Enum):
+            data = message.data.value
+        else:
+            data = message.data
+
         return json.dumps({
             "type": message.type.value,
-            "data": self._encode_data(message.data)
+            "data": data
         }) + "\n"
 
-    async def _establish_serial_connection(self):
+    async def _handle_outgoing_messages(self):
+        while True:
+            message = await self.tx_queue.get()
+            self._send_to_device(message)
+
+    def _put(self, message: Message):
+        self.tx_queue.put_nowait(message)
+
+    def _send_to_device(self, message: Message):
+        json_str = self._encode_device_message(message)
+        if self.active_transport == Device.Transport.WIFI:
+            self.ws_transport.send(json_str)
+        elif self.active_transport == Device.Transport.USB:
+            self.serial_transport.send(json_str)
+
+    def _serial_exception_handler(self, loop: asyncio.AbstractEventLoop, context: dict):
+        # Ignore “ClearCommError failed” - bug on Windows related to emergency device disconnection
+        if "ClearCommError failed" in str(context.get("exception", "")):
+            return
+        loop.default_exception_handler(context)
+
+
+class BaseTransport(ABC):
+    def __init__(self, device: Device):
+        self.device = device
+
+    @abstractmethod
+    async def connect(self):
+        pass
+
+    @abstractmethod
+    def send(self, message: str):
+        pass
+
+
+class SerialTransport(BaseTransport):
+    def __init__(self, device: Device):
+        super().__init__(device)
+        self.transport: Optional[asyncio.Transport] = None
+
+    async def connect(self):
         while True:
             device_port = self._find_device_port()
             if device_port:
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(1)
                 await serial_asyncio.create_serial_connection(
                     asyncio.get_running_loop(),
-                    lambda: DeviceProtocol(self),
+                    lambda: DeviceProtocol(self.device, self),
                     device_port,
                     baudrate=115200
                 )
                 break
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(1)
 
-    async def _establish_websocket_connection(self):
-        while True:
-            try:
-                self.websocket = await websockets.connect("ws://wsprbeacon:81")
-                self.active_transport = Device.Transport.WIFI
-                self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
-                asyncio.create_task(self._websocket_receiver())
-                break
-            except socket.gaierror:
-                self.websocket = None
-                await asyncio.sleep(0.5)
+    def send(self, message: str):
+        if self.transport:
+            print(f"TX (USB): {message.strip()}")
+            self.transport.write(message.encode('utf-8'))
 
     def _find_device_port(self):
         for port in serial.tools.list_ports.comports():
@@ -183,56 +216,58 @@ class Device:
                 return port.device
         return None
 
-    async def _handle_outgoing_messages(self):
+
+class WebsocketTransport(BaseTransport):
+    def __init__(self, device: Device):
+        super().__init__(device)
+        self.websocket: Optional[websockets.WebSocketClientProtocol] = None
+
+    async def connect(self):
         while True:
-            self._send_to_device(await self.tx_queue.get())
+            try:
+                self.websocket = await websockets.connect("ws://wsprbeacon:81")
+                self.device.active_transport = Device.Transport.WIFI
+                self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.device.active_transport)
+                asyncio.create_task(self._websocket_receiver())
+                break
+            except socket.gaierror:
+                self.websocket = None
+                await asyncio.sleep(1)
 
-    def _put(self, message: Message):
-        self.tx_queue.put_nowait(message)
-
-    def _send_to_device(self, message: Message):
-        json_str = self._encode_device_message(message)
-        if self.active_transport == Device.Transport.WIFI:
-            print(f"TX (WebSocket): {json_str.strip()}")
-            asyncio.create_task(self.websocket.send(json_str))
-        elif self.active_transport == Device.Transport.USB:
-            print(f"TX (USB): {json_str.strip()}")
-            self.serial.write(json_str.encode('utf-8'))
-
-    def _serial_exception_handler(self, loop: asyncio.AbstractEventLoop, context: dict):
-        if "ClearCommError failed" in str(context.get("exception", "")):
-            return
-        loop.default_exception_handler(context)
+    def send(self, message: str):
+        if self.websocket is not None:
+            print(f"TX (WebSocket): {message.strip()}")
+            asyncio.create_task(self.websocket.send(message))
 
     async def _websocket_receiver(self):
         try:
-            self.get_device_info()
+            self.device.get_device_info()
             async for message in self.websocket:
                 message = message.strip()
                 if message:
-                    msg = self._data_decoder(message)
+                    msg = self.device._decode_device_message(message)
                     print(f"RX (WebSocket): {message}")
-                    self._call_handlers(msg.type, msg.data)
+                    self.device._call_handlers(msg.type, msg.data)
         except websockets.exceptions.ConnectionClosedError:
             self.websocket = None
-            self.active_transport = Device.Transport.USB if self.serial else None
-            self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
-            asyncio.create_task(self._establish_websocket_connection())
+            # If the web socket connection is terminated, switch to USB (if available)
+            if self.device.serial_transport.transport:
+                self.device.active_transport = Device.Transport.USB
+            else:
+                self.device.active_transport = None
+
+            self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.device.active_transport)
+            asyncio.create_task(self.connect())
 
 
 class DeviceProtocol(asyncio.Protocol):
-    def __init__(self, device: Device):
+    def __init__(self, device: Device, serial_transport: SerialTransport):
         self.device = device
+        self.serial_transport = serial_transport
         self.buffer = b""
 
-    def connection_lost(self, exc):
-        self.device.serial = None
-        self.device.active_transport = None
-        self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.device.active_transport)
-        asyncio.create_task(self.device._establish_serial_connection())
-
     def connection_made(self, transport: asyncio.Transport):
-        self.device.serial = transport
+        self.serial_transport.transport = transport
         self.device.active_transport = Device.Transport.USB
         self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.device.active_transport)
         self.device.get_device_info()
@@ -242,9 +277,13 @@ class DeviceProtocol(asyncio.Protocol):
         while b'\n' in self.buffer:
             line, self.buffer = self.buffer.split(b'\n', 1)
             message = line.decode('utf-8', errors='ignore').strip()
-
             if message:
-                msg = self.device._data_decoder(message)
+                msg = self.device._decode_device_message(message)
                 print(f"RX (USB): {message}")
-
                 self.device._call_handlers(msg.type, msg.data)
+
+    def connection_lost(self, exc):
+        self.serial_transport.transport = None
+        self.device.active_transport = None
+        self.device._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.device.active_transport)
+        asyncio.create_task(self.serial_transport.connect())
