@@ -105,7 +105,7 @@ class Device:
     def _call_handlers(self, msg_type: Enum, data):
         for handler in self.mapped_callbacks.get(msg_type, []):
             handler(data)
-    
+
     def _set_active_transport(self, active_transport: Transport):
         if active_transport == Device.Transport.USB:
             self.active_transport = (Device.Transport.USB if self.serial_transport.transport else None)

@@ -39,8 +39,8 @@ class ActiveTXMode:
 
 
 class CalibrationType(Enum):
-        AUTO = "auto"
-        MANUAL = "manual"
+    AUTO = "auto"
+    MANUAL = "manual"
 
 
 class ConnectionStatus(Enum):
