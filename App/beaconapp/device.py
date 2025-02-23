@@ -59,6 +59,7 @@ class Device:
         # Active transport, USB (Serial) by default
         self.active_transport: Optional[Device.Transport] = Device.Transport.USB
         self.mapped_callbacks: Dict[Device.Message.Incoming, List[Callable]] = {}
+        self.set_device_response_handlers({Device.Message.Incoming.ACTIVE_TRANSPORT: [self._set_active_transport]})
 
         self.serial_transport = SerialTransport(self)
         self.ws_transport = WebsocketTransport(self)
@@ -76,10 +77,10 @@ class Device:
         asyncio.run_coroutine_threadsafe(self._handle_outgoing_messages(), asyncio_loop)
 
     def set_device_response_handlers(self, mapped_callbacks):
-        self.mapped_callbacks = {
-            key: (value if isinstance(value, list) else [value])
-            for key, value in mapped_callbacks.items()
-        }
+        for key, value in mapped_callbacks.items():
+            if not isinstance(value, list):
+                value = [value]
+            self.mapped_callbacks.setdefault(key, []).extend(value)
 
     def get_device_info(self):
         self._put(Device.Message(Device.Message.Outgoing.GET_DEVICE_INFO))
@@ -108,26 +109,29 @@ class Device:
     def _call_handlers(self, msg_type: Enum, data):
         for handler in self.mapped_callbacks.get(msg_type, []):
             handler(data)
+    
+    def _set_active_transport(self, active_transport: Transport):
+        if active_transport == Device.Transport.USB:
+            self.active_transport = (Device.Transport.USB if self.serial_transport.transport else None)
+        elif active_transport == Device.Transport.WIFI:
+            if self.ws_transport.websocket:
+                self.active_transport = Device.Transport.WIFI
+            elif self.serial_transport.transport:
+                self.active_transport = Device.Transport.USB
+            else:
+                self.active_transport = None
+        else:
+            self.active_transport = None
 
-    def _decode_device_message(self, line_str: str):
-        obj = json.loads(line_str)
+    def _decode_device_message(self, message: str):
+        obj = json.loads(message)
         msg_type = Device.Message.Incoming(obj.get("type"))
         raw_data = obj.get("data")
 
         if msg_type == Device.Message.Incoming.ACTIVE_TX_MODE:
             data = ActiveTXMode.from_json(raw_data)
         elif msg_type == Device.Message.Incoming.ACTIVE_TRANSPORT:
-            if raw_data == Device.Transport.USB.value and self.serial_transport.transport:
-                self.active_transport = Device.Transport.USB
-            elif raw_data == Device.Transport.WIFI.value and self.ws_transport.websocket:
-                self.active_transport = Device.Transport.WIFI
-            elif (raw_data == Device.Transport.WIFI.value
-                  and self.ws_transport.websocket is None
-                  and self.serial_transport.transport):
-                self.active_transport = Device.Transport.USB
-            else:
-                self.active_transport = None
-            data = self.active_transport
+            data = Device.Transport(raw_data)
         elif msg_type == Device.Message.Incoming.WIFI_SSID_DATA:
             data = WiFiData.from_json(raw_data)
         elif msg_type == Device.Message.Incoming.WIFI_STATUS:
