@@ -52,14 +52,16 @@ class Device:
 
     def __init__(self):
         self.tx_queue = asyncio.Queue()
-        
+
         # Active transport, USB (Serial) by default
         self.active_transport: Optional[Device.Transport] = Device.Transport.USB
         # Transport priority (if we cannot satisfy _requested_transport)
-        self.transport_priority = [Device.Transport.USB, Device.Transport.WIFI]
+        # Wi-FI: priotity 0 (high)
+        # USB (Serial): priotity 1 (low)
+        self.transport_priority = [Device.Transport.WIFI, Device.Transport.USB]
         # Current "requested" (from the device) transport
         self._requested_transport: Optional[Device.Transport] = self.active_transport
-        # Transports that are currently connected (USB/WebSocket)
+        # Transports that are currently connected (USB (Serial)/WebSocket)
         self._connected_transports: Set[Device.Transport] = set()
 
         self.mapped_callbacks: Dict[Device.Message.Incoming, List[Callable]] = {}
@@ -142,12 +144,12 @@ class Device:
         if self._requested_transport in self._connected_transports:
             self.active_transport = self._requested_transport
         else:
-            chosen = None
-            for t in self.transport_priority:
-                if t in self._connected_transports:
-                    chosen = t
+            transport_to_activate = None
+            for transport in self.transport_priority:
+                if transport in self._connected_transports:
+                    transport_to_activate = transport
                     break
-            self.active_transport = chosen
+            self.active_transport = transport_to_activate
 
         if self.active_transport != old_transport:
             self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
