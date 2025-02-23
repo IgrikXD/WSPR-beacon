@@ -7,17 +7,13 @@ import threading
 import websockets
 
 from abc import ABC, abstractmethod
-from beaconapp.data_wrappers import ActiveTXMode, ConnectionStatus, WiFiCredentials, WiFiData
+from beaconapp.data_wrappers import ActiveTXMode, CalibrationType, ConnectionStatus, WiFiCredentials, WiFiData
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 
 class Device:
-    class CalibrationType(Enum):
-        AUTO = "auto"
-        MANUAL = "manual"
-
     class Transport(Enum):
         USB = "USB"
         WIFI = "Wi-Fi"

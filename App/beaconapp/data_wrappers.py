@@ -38,6 +38,11 @@ class ActiveTXMode:
         return cls(**json_data)
 
 
+class CalibrationType(Enum):
+        AUTO = "auto"
+        MANUAL = "manual"
+
+
 class ConnectionStatus(Enum):
     CONNECTED = "connected"
     DISCONNECTED = "disconnected"

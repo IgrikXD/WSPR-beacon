@@ -1,6 +1,6 @@
 from beaconapp.config import Config
 from beaconapp.data_validation import DataValidation
-from beaconapp.data_wrappers import ConnectionStatus, WiFiCredentials, WiFiData
+from beaconapp.data_wrappers import CalibrationType, ConnectionStatus, WiFiCredentials, WiFiData
 from beaconapp.device import Device
 from beaconapp.ui.widgets import Widgets
 
@@ -227,11 +227,11 @@ class SettingsWidget:
         # the selected "SI5351 calibration mode" option value.
         if calibration_option == "Auto (by GPS)":
             self._calibration_elements_change_state("disabled")
-            self.device.set_calibration_type(Device.CalibrationType.AUTO)
+            self.device.set_calibration_type(CalibrationType.AUTO)
         else:
             self._calibration_elements_change_state("normal")
             self._calibration_frequency_update_generate_button_state()
-            self.device.set_calibration_type(Device.CalibrationType.MANUAL)
+            self.device.set_calibration_type(CalibrationType.MANUAL)
 
     def _calibration_change_state(self, state):
         """
