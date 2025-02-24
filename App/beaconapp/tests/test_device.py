@@ -185,9 +185,9 @@ def test_decode_device_message(incoming_json, expected_type, expected_data):
         # Outgoing: GEN_CAL_FREQUENCY: float
         (Device.Message.Outgoing.GEN_CAL_FREQUENCY, 10.5,
          '{"type": "GEN_CAL_FREQUENCY", "data": 10.5}'),
-        # Outgoing: GEN_CAL_FREQUENCY: False
-        (Device.Message.Outgoing.GEN_CAL_FREQUENCY, False,
-         '{"type": "GEN_CAL_FREQUENCY", "data": false}'),
+        # Outgoing: GEN_CAL_FREQUENCY: None
+        (Device.Message.Outgoing.GEN_CAL_FREQUENCY, None,
+         '{"type": "GEN_CAL_FREQUENCY", "data": null}'),
         # Outgoing: GET_DEVICE_INFO: None
         (Device.Message.Outgoing.GET_DEVICE_INFO, None,
          '{"type": "GET_DEVICE_INFO", "data": null}'),

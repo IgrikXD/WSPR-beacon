@@ -275,7 +275,7 @@ class SettingsWidget:
         self._wifi_change_state("disabled")
 
         if self.cal_frequency_button.cget("text") == "Terminate":
-            self.device.gen_calibration_frequency(False)
+            self.device.gen_calibration_frequency(None)
         else:
             self.device.gen_calibration_frequency(float(self.cal_frequency_entry.get()))
 

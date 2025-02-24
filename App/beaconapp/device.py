@@ -103,7 +103,7 @@ class Device:
                 if handler not in self.mapped_callbacks[key]:
                     self.mapped_callbacks[key].append(handler)
 
-    def gen_calibration_frequency(self, frequency: float):
+    def gen_calibration_frequency(self, frequency: float | None):
         """
         Sends a request to generate a calibration frequency.
         """
@@ -145,7 +145,7 @@ class Device:
         """
         self._put(Device.Message(Device.Message.Outgoing.SET_SSID_CONNECT_AT_STARTUP, value))
 
-    def set_wifi_connection(self, wifi_credentials: WiFiCredentials):
+    def set_wifi_connection(self, wifi_credentials: WiFiCredentials | None):
         """
         Sends a request to run Wi-Fi connection with given credentials.
         """
