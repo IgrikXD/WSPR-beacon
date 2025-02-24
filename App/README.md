@@ -31,3 +31,22 @@ After the build is complete, you can run the executable file located in the `dis
 ```powershell
 python -m beaconapp.main
 ```
+
+## Testing
+> [!WARNING]  
+> These tests help detect potential issues early but do not replace full validation on real hardware!
+
+Unit tests are available to verify the application's core functionality, and they check:
+- Correct formation of commands sent to the device
+- Proper decoding of messages received from the device
+- Correct processing of data retrieved from the [**WSPR.live API**](https://wspr.live/)
+- Automatic selection of the appropriate communication transport (_USB or Wi-Fi_)
+- Proper registration of message handlers for incoming device messages
+- Validation of user-configured parameters
+- Correct operation of data wrappers used for data exchange during device communication
+
+To run the unit tests, install `pytest` and execute:
+```powershell
+pip install pytest==8.3.4
+pytest
+```
