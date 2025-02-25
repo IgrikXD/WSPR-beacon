@@ -1,8 +1,10 @@
 import asyncio
 import json
+import logging
 import serial_asyncio
 import serial.tools.list_ports
 import socket
+import sys
 import threading
 import websockets
 
@@ -11,6 +13,12 @@ from beaconapp.data_wrappers import ActiveTXMode, CalibrationType, ConnectionSta
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
+
+logger = logging.getLogger(__name__)
+# Add handler that writes logs to sys.stdout
+logger.addHandler(logging.StreamHandler())
+# Set logger level to DEBUG if `--debug` is present in the command line arguments, otherwise to CRITICAL
+logger.setLevel(logging.DEBUG if ('--debug' in sys.argv) else logging.CRITICAL)
 
 
 class Device:
@@ -342,7 +350,7 @@ class SerialTransport(BaseTransport):
         Sends message bytes via the established Serial connection.
         """
         if self.transport:
-            print(f"TX (USB): {message.strip()}")
+            logger.debug(f"TX (USB): {message.strip()}")
             self.transport.write(message.encode('utf-8'))
 
     def _find_device_port(self):
@@ -385,7 +393,7 @@ class WebsocketTransport(BaseTransport):
         Sends a text message via the active WebSocket connection.
         """
         if self.websocket is not None:
-            print(f"TX (WebSocket): {message.strip()}")
+            logger.debug(f"TX (WebSocket): {message.strip()}")
             asyncio.create_task(self.websocket.send(message))
 
     async def _websocket_receiver(self):
@@ -400,7 +408,7 @@ class WebsocketTransport(BaseTransport):
                 message = message.strip()
                 if message:
                     msg = self.device._decode_device_message(message)
-                    print(f"RX (WebSocket): {message}")
+                    logger.debug(f"RX (WebSocket): {message}")
                     self.device._call_handlers(msg.type, msg.data)
         except websockets.exceptions.ConnectionClosedError:
             self.websocket = None
@@ -437,7 +445,7 @@ class DeviceProtocol(asyncio.Protocol):
             message = line.decode('utf-8', errors='ignore').strip()
             if message:
                 msg = self.device._decode_device_message(message)
-                print(f"RX (USB): {message}")
+                logger.debug(f"RX (USB): {message}")
                 self.device._call_handlers(msg.type, msg.data)
 
     def connection_lost(self, exc):
