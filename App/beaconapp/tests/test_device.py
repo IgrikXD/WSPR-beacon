@@ -126,6 +126,9 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
         # Incoming: HARDWARE_INFO: str
         ({"type": "HARDWARE_INFO", "data": "3.0"},
          Device.Message.Incoming.HARDWARE_INFO, "3.0"),
+        # Incoming: QTH_LOCATOR: str
+        ({"type": "QTH_LOCATOR", "data": "XX00"},
+         Device.Message.Incoming.QTH_LOCATOR, "XX00"),
         # Incoming: SELF_CHECK_ACTION: str
         ({"type": "SELF_CHECK_ACTION", "data": "- LEDs initialized! -"},
          Device.Message.Incoming.SELF_CHECK_ACTION, "- LEDs initialized! -"),

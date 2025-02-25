@@ -72,7 +72,8 @@ class BeaconApp(customtkinter.CTk):
                                                          lambda cal_freq_generated: transmission_frame.change_state(
                                                             "disabled" if cal_freq_generated else "normal"),
                                                          lambda cal_freq_generated: self_check_frame.change_state(
-                                                            "disabled" if cal_freq_generated else "normal")]
+                                                            "disabled" if cal_freq_generated else "normal")],
+            Device.Message.Incoming.QTH_LOCATOR:        [transmission_frame.update_qth_locator]
         })
 
         # Establish the connection to the device

@@ -228,6 +228,16 @@ class TransmissionWidget:
         fg_color = ["#3BAA5D", "#2E8B57"] if gps_status else ["#BFBFBF", "#4D4D4D"]
         self.gps_status.after(0, lambda: self.gps_status.configure(fg_color=fg_color))
 
+    def update_qth_locator(self, qth_locator):
+        """
+        Update the QTH locator entry.
+
+        Args:
+            qth_locator: New QTH locator value.
+        """
+        self.wspr_qth_locator_entry.after(0, lambda: self.wspr_qth_locator_entry.delete(0, "end"))
+        self.wspr_qth_locator_entry.after(0, lambda: self.wspr_qth_locator_entry.insert(0, qth_locator))
+
     def update_tx_message_action_status(self, text):
         """
         Update the transmission action status label.
