@@ -28,8 +28,15 @@ pyinstaller --noconsole --onefile `
 After the build is complete, you can run the executable file located in the `dist` directory.
 
 ### Run the application without building the executable
+To run the application directly without building an executable, use:
 ```powershell
 python -m beaconapp.main
+```
+
+#### Debug mode
+To enable debug mode and display messages about data exchange with the device in the console, use:
+```powershell
+python -m beaconapp.main --debug
 ```
 
 ## Testing
