@@ -3,6 +3,7 @@ import urllib.request
 import urllib.parse
 import pytest
 import os
+
 from beaconapp.wsprlive_api import WsprLiveApi
 
 

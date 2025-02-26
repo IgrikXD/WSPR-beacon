@@ -53,6 +53,7 @@ Unit tests are available to verify the application's core functionality, and the
 - Proper registration of message handlers for incoming device messages
 - Validation of user-configured parameters
 - Correct operation of data wrappers used for data exchange during device communication
+- Correct saving and loading of the application's configuration file
 
 To run the unit tests, install `pytest` and execute:
 ```powershell

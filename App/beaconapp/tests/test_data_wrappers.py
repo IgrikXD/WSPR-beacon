@@ -1,4 +1,5 @@
 import pytest
+
 from beaconapp.data_wrappers import ActiveTXMode, TXMode, WiFiCredentials, WiFiData
 
 

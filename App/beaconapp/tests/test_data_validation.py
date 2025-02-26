@@ -1,4 +1,5 @@
 import pytest
+
 from beaconapp.data_validation import DataValidation
 
 
