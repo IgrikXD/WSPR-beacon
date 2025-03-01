@@ -32,7 +32,7 @@ def temp_config_file(tmp_path):
             False,
             None,
             {
-                "default_transmission_mode": TXMode.WSPR,
+                "default_tx_mode": TXMode.WSPR,
                 "default_tx_call": "N0CALL",
                 "default_qth_locator": "XX00",
                 "default_output_power": 23,
@@ -48,7 +48,7 @@ def temp_config_file(tmp_path):
             True,
             {},
             {
-                "default_transmission_mode": TXMode.WSPR,
+                "default_tx_mode": TXMode.WSPR,
                 "default_tx_call": "N0CALL",
                 "default_qth_locator": "XX00",
                 "default_output_power": 23,
@@ -68,7 +68,7 @@ def temp_config_file(tmp_path):
                 "default_output_power": 10
             },
             {
-                "default_transmission_mode": TXMode.WSPR,       # default
+                "default_tx_mode": TXMode.WSPR,                 # default
                 "default_tx_call": "N0TTXX",
                 "default_qth_locator": "AB01",
                 "default_output_power": 10,
@@ -83,7 +83,7 @@ def temp_config_file(tmp_path):
         (
             True,
             {
-                "default_transmission_mode": "WSPR",
+                "default_tx_mode": "WSPR",
                 "default_tx_call": "K0ABC",
                 "default_qth_locator": "FN20",
                 "default_output_power": 33,
@@ -94,7 +94,7 @@ def temp_config_file(tmp_path):
                 "default_ui_scaling": 2
             },
             {
-                "default_transmission_mode": TXMode.WSPR,
+                "default_tx_mode": TXMode.WSPR,
                 "default_tx_call": "K0ABC",
                 "default_qth_locator": "FN20",
                 "default_output_power": 33,
@@ -120,7 +120,7 @@ def test_config_load(patch_get_config_path, temp_config_file, config_file_exists
     config = Config(temp_config_file.name)
 
     assert config.get_active_mode_parameters() == ActiveTXMode(
-        expected_defaults["default_transmission_mode"],
+        expected_defaults["default_tx_mode"],
         expected_defaults["default_tx_call"],
         expected_defaults["default_qth_locator"],
         expected_defaults["default_output_power"],

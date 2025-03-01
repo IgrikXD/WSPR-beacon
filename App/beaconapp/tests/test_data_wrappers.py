@@ -8,7 +8,7 @@ from beaconapp.data_wrappers import ActiveTXMode, TXMode, WiFiCredentials, WiFiD
     (
         {},
         {
-            "transmission_mode": None,
+            "tx_mode": None,
             "tx_call": None,
             "qth_locator": None,
             "output_power": None,
@@ -20,7 +20,7 @@ from beaconapp.data_wrappers import ActiveTXMode, TXMode, WiFiCredentials, WiFiD
 def test_active_tx_mode_defaults_param(input_value, expected_value):
     tx_mode = ActiveTXMode(**input_value)
     result = {
-        "transmission_mode": tx_mode.transmission_mode,
+        "tx_mode": tx_mode.tx_mode,
         "tx_call": tx_mode.tx_call,
         "qth_locator": tx_mode.qth_locator,
         "output_power": tx_mode.output_power,
@@ -33,7 +33,7 @@ def test_active_tx_mode_defaults_param(input_value, expected_value):
 # Parameterized test for ActiveTXMode.clear() method
 @pytest.mark.parametrize("input_value", [
     {
-        "transmission_mode": TXMode.WSPR,
+        "tx_mode": TXMode.WSPR,
         "tx_call": "N0CALL",
         "qth_locator": "XX00",
         "output_power": 23,
@@ -45,7 +45,7 @@ def test_active_tx_mode_clear_param(input_value):
     tx_mode = ActiveTXMode(**input_value)
     tx_mode.clear()
     # After calling ActiveTXMode.clear(), all fields should be reset to defaults
-    assert tx_mode.transmission_mode is None
+    assert tx_mode.tx_mode is None
     assert tx_mode.tx_call is None
     assert tx_mode.qth_locator is None
     assert tx_mode.output_power is None
@@ -56,7 +56,7 @@ def test_active_tx_mode_clear_param(input_value):
 # Parameterized tests for ActiveTXMode.to_json() method
 @pytest.mark.parametrize("input_value, expected_value", [
     (
-        # Without transmission_mode set
+        # Without tx_mode set
         {
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
@@ -65,7 +65,7 @@ def test_active_tx_mode_clear_param(input_value):
             "active_band": "2200m"
         },
         {
-            "transmission_mode": None,
+            "tx_mode": None,
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
@@ -74,9 +74,9 @@ def test_active_tx_mode_clear_param(input_value):
         }
     ),
     (
-        # With transmission_mode set
+        # With tx_mode set
         {
-            "transmission_mode": TXMode.WSPR,
+            "tx_mode": TXMode.WSPR,
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
@@ -84,7 +84,7 @@ def test_active_tx_mode_clear_param(input_value):
             "active_band": "2200m"
         },
         {
-            "transmission_mode": "WSPR",
+            "tx_mode": "WSPR",
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
@@ -104,7 +104,7 @@ def test_active_tx_mode_to_json_param(input_value, expected_value):
     (
         {},  # Empty dictionary should yield default values
         {
-            "transmission_mode": None,
+            "tx_mode": None,
             "tx_call": None,
             "qth_locator": None,
             "output_power": None,
@@ -114,7 +114,7 @@ def test_active_tx_mode_to_json_param(input_value, expected_value):
     ),
     (
         {
-            "transmission_mode": "WSPR",
+            "tx_mode": "WSPR",
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
@@ -122,7 +122,7 @@ def test_active_tx_mode_to_json_param(input_value, expected_value):
             "active_band": "2200m",
         },
         {
-            "transmission_mode": TXMode.WSPR,
+            "tx_mode": TXMode.WSPR,
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
@@ -133,7 +133,7 @@ def test_active_tx_mode_to_json_param(input_value, expected_value):
 ])
 def test_active_tx_mode_from_json_param(json_data, expected_value):
     tx_mode = ActiveTXMode.from_json(json_data)
-    assert tx_mode.transmission_mode == expected_value["transmission_mode"]
+    assert tx_mode.tx_mode == expected_value["tx_mode"]
     assert tx_mode.tx_call == expected_value["tx_call"]
     assert tx_mode.qth_locator == expected_value["qth_locator"]
     assert tx_mode.output_power == expected_value["output_power"]

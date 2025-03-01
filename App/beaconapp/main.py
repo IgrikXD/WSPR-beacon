@@ -50,9 +50,9 @@ class BeaconApp(customtkinter.CTk):
             Device.Message.Incoming.ACTIVE_TX_MODE:     [transmission_frame.set_active_tx_mode,
                                                          spots_database_frame.set_active_tx_mode,
                                                          lambda active_tx_mode: self_check_frame.change_state(
-                                                            "disabled" if active_tx_mode.transmission_mode else "normal"),
+                                                            "disabled" if active_tx_mode.tx_mode else "normal"),
                                                          lambda active_tx_mode: settings_frame.change_state(
-                                                            "disabled" if active_tx_mode.transmission_mode else "normal")],
+                                                            "disabled" if active_tx_mode.tx_mode else "normal")],
             Device.Message.Incoming.CAL_FREQ_GENERATED: [settings_frame.set_calibration_freq_status,
                                                          lambda cal_freq_generated: transmission_frame.change_state(
                                                             "disabled" if cal_freq_generated else "normal"),

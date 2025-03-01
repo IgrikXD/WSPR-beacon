@@ -81,7 +81,7 @@ class SpotsDatabaseWidget:
         """
         self.active_tx_mode = copy.deepcopy(active_tx_mode)
 
-        self.change_state("normal" if active_tx_mode.transmission_mode else "disabled")
+        self.change_state("normal" if active_tx_mode.tx_mode else "disabled")
 
     def _extract_spots_data(self, active_tx_mode: ActiveTXMode):
         """

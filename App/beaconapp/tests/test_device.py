@@ -73,7 +73,7 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
         # Incoming: ACTIVE_TX_MODE: ActiveTXMode
         ({"type": "ACTIVE_TX_MODE",
           "data": {
-              "transmission_mode": "WSPR",
+              "tx_mode": "WSPR",
               "tx_call": "N0CALL",
               "qth_locator": "XX00",
               "output_power": 23,
@@ -86,7 +86,7 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
         # Incoming: ACTIVE_TX_MODE: empty ActiveTXMode
         ({"type": "ACTIVE_TX_MODE",
           "data": {
-              "transmission_mode": None,
+              "tx_mode": None,
               "tx_call": None,
               "qth_locator": None,
               "output_power": None,
@@ -213,7 +213,7 @@ def test_decode_device_message(incoming_json, expected_type, expected_data):
             (
                 '{'
                 '"type": "SET_ACTIVE_TX_MODE", '
-                '"data": {"transmission_mode": "WSPR", '
+                '"data": {"tx_mode": "WSPR", '
                 '"tx_call": "N0CALL", '
                 '"qth_locator": "XX00", '
                 '"output_power": 23, '
@@ -229,7 +229,7 @@ def test_decode_device_message(incoming_json, expected_type, expected_data):
             (
                 '{'
                 '"type": "SET_ACTIVE_TX_MODE", '
-                '"data": {"transmission_mode": null, '
+                '"data": {"tx_mode": null, '
                 '"tx_call": null, '
                 '"qth_locator": null, '
                 '"output_power": null, '

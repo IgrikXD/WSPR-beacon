@@ -37,7 +37,7 @@ class TransmissionWidget:
             state="disabled",
             tabs=["WSPR"]
         )
-        self.mode_selection_view.set(self.active_tx_mode.transmission_mode.name)
+        self.mode_selection_view.set(self.active_tx_mode.tx_mode.name)
 
         # WSPR mode frame
         wspr_mode_frame = Widgets.create_background_frame(self.mode_selection_view.tab("WSPR"), row=1, padx=10)
@@ -202,7 +202,7 @@ class TransmissionWidget:
 
         self.general_frame.after(0, self._print_active_mode_details)
 
-        if self.active_tx_mode.transmission_mode == TXMode.WSPR:
+        if self.active_tx_mode.tx_mode == TXMode.WSPR:
             self.general_frame.after(0, self._print_wspr_active_mode_parameters)
             self.reset_mode_button.after(0, lambda: self.reset_mode_button.configure(state="normal"))
 
@@ -311,8 +311,8 @@ class TransmissionWidget:
         self.tx_message_entry.configure(state="normal")
         self.tx_message_entry.delete(0, "end")
 
-        if self.active_tx_mode.transmission_mode:
-            self.tx_message_entry.insert(0, f"{self.active_tx_mode.transmission_mode.name}: "
+        if self.active_tx_mode.tx_mode:
+            self.tx_message_entry.insert(0, f"{self.active_tx_mode.tx_mode.name}: "
                                             f"{self.active_tx_mode.tx_call} "
                                             f"{self.active_tx_mode.qth_locator} "
                                             f"{self.active_tx_mode.output_power}")

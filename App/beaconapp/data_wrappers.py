@@ -8,7 +8,7 @@ class TXMode(Enum):
 
 @dataclass
 class ActiveTXMode:
-    transmission_mode: TXMode = None
+    tx_mode: TXMode = None
     tx_call: str = None
     qth_locator: str = None
     output_power: int = None
@@ -21,8 +21,8 @@ class ActiveTXMode:
     def to_json(self):
         data = asdict(self)
 
-        if self.transmission_mode is not None:
-            data["transmission_mode"] = self.transmission_mode.name
+        if self.tx_mode is not None:
+            data["tx_mode"] = self.tx_mode.name
 
         return data
 
@@ -31,9 +31,9 @@ class ActiveTXMode:
         if not json_data:
             return cls()
 
-        mode = json_data.get("transmission_mode")
+        mode = json_data.get("tx_mode")
         if mode:
-            json_data["transmission_mode"] = TXMode[mode]
+            json_data["tx_mode"] = TXMode[mode]
 
         return cls(**json_data)
 
