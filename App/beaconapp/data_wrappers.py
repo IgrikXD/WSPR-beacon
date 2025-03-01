@@ -3,7 +3,7 @@ from enum import Enum
 
 
 class TXMode(Enum):
-    WSPR = 1
+    WSPR = "WSPR"
 
 
 @dataclass
@@ -22,7 +22,7 @@ class ActiveTXMode:
         data = asdict(self)
 
         if self.tx_mode is not None:
-            data["tx_mode"] = self.tx_mode.name
+            data["tx_mode"] = self.tx_mode.value
 
         return data
 
@@ -33,7 +33,7 @@ class ActiveTXMode:
 
         mode = json_data.get("tx_mode")
         if mode:
-            json_data["tx_mode"] = TXMode[mode]
+            json_data["tx_mode"] = TXMode(mode)
 
         return cls(**json_data)
 

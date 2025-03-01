@@ -18,14 +18,14 @@ from beaconapp.data_wrappers import ActiveTXMode, TXMode, WiFiCredentials, WiFiD
     )
 ])
 def test_active_tx_mode_defaults_param(input_value, expected_value):
-    tx_mode = ActiveTXMode(**input_value)
+    active_tx_mode = ActiveTXMode(**input_value)
     result = {
-        "tx_mode": tx_mode.tx_mode,
-        "tx_call": tx_mode.tx_call,
-        "qth_locator": tx_mode.qth_locator,
-        "output_power": tx_mode.output_power,
-        "transmit_every": tx_mode.transmit_every,
-        "active_band": tx_mode.active_band,
+        "tx_mode": active_tx_mode.tx_mode,
+        "tx_call": active_tx_mode.tx_call,
+        "qth_locator": active_tx_mode.qth_locator,
+        "output_power": active_tx_mode.output_power,
+        "transmit_every": active_tx_mode.transmit_every,
+        "active_band": active_tx_mode.active_band,
     }
     assert result == expected_value
 
@@ -42,15 +42,15 @@ def test_active_tx_mode_defaults_param(input_value, expected_value):
     }
 ])
 def test_active_tx_mode_clear_param(input_value):
-    tx_mode = ActiveTXMode(**input_value)
-    tx_mode.clear()
+    active_tx_mode = ActiveTXMode(**input_value)
+    active_tx_mode.clear()
     # After calling ActiveTXMode.clear(), all fields should be reset to defaults
-    assert tx_mode.tx_mode is None
-    assert tx_mode.tx_call is None
-    assert tx_mode.qth_locator is None
-    assert tx_mode.output_power is None
-    assert tx_mode.transmit_every is None
-    assert tx_mode.active_band is None
+    assert active_tx_mode.tx_mode is None
+    assert active_tx_mode.tx_call is None
+    assert active_tx_mode.qth_locator is None
+    assert active_tx_mode.output_power is None
+    assert active_tx_mode.transmit_every is None
+    assert active_tx_mode.active_band is None
 
 
 # Parameterized tests for ActiveTXMode.to_json() method
@@ -94,9 +94,8 @@ def test_active_tx_mode_clear_param(input_value):
     )
 ])
 def test_active_tx_mode_to_json_param(input_value, expected_value):
-    tx_mode = ActiveTXMode(**input_value)
-    result = tx_mode.to_json()
-    assert result == expected_value
+    active_tx_mode = ActiveTXMode(**input_value)
+    assert active_tx_mode.to_json() == expected_value
 
 
 # Parameterized tests for ActiveTXMode.from_json() method
@@ -132,13 +131,13 @@ def test_active_tx_mode_to_json_param(input_value, expected_value):
     )
 ])
 def test_active_tx_mode_from_json_param(json_data, expected_value):
-    tx_mode = ActiveTXMode.from_json(json_data)
-    assert tx_mode.tx_mode == expected_value["tx_mode"]
-    assert tx_mode.tx_call == expected_value["tx_call"]
-    assert tx_mode.qth_locator == expected_value["qth_locator"]
-    assert tx_mode.output_power == expected_value["output_power"]
-    assert tx_mode.transmit_every == expected_value["transmit_every"]
-    assert tx_mode.active_band == expected_value["active_band"]
+    active_tx_mode = ActiveTXMode.from_json(json_data)
+    assert active_tx_mode.tx_mode == expected_value["tx_mode"]
+    assert active_tx_mode.tx_call == expected_value["tx_call"]
+    assert active_tx_mode.qth_locator == expected_value["qth_locator"]
+    assert active_tx_mode.output_power == expected_value["output_power"]
+    assert active_tx_mode.transmit_every == expected_value["transmit_every"]
+    assert active_tx_mode.active_band == expected_value["active_band"]
 
 
 # Parameterized tests for WiFiCredentials.to_json()
@@ -148,12 +147,11 @@ def test_active_tx_mode_from_json_param(json_data, expected_value):
 ])
 def test_wifi_credentials_to_json_param(ssid, password):
     wifi = WiFiCredentials(ssid=ssid, password=password)
-    result = wifi.to_json()
     expected_value = {
         "ssid": ssid,
         "password": password,
     }
-    assert result == expected_value
+    assert wifi.to_json() == expected_value
 
 
 # Parameterized tests for WiFiData.from_json()
