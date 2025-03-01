@@ -23,6 +23,9 @@ from beaconapp.data_wrappers import ActiveTXMode, CalibrationType, ConnectionSta
         # Only WIFI connected, requested=USB => result=WIFI
         ({Device.Transport.WIFI}, Device.Transport.USB,
          [Device.Transport.WIFI, Device.Transport.USB], Device.Transport.WIFI),
+        # Only WIFI connected, requested=WIFI => result=WIFI
+        ({Device.Transport.WIFI}, Device.Transport.WIFI,
+         [Device.Transport.WIFI, Device.Transport.USB], Device.Transport.WIFI),
         # WIFI & USB both connected, requested=WIFI => priority=[WIFI,USB] => result=WIFI
         ({Device.Transport.USB, Device.Transport.WIFI}, Device.Transport.WIFI,
          [Device.Transport.WIFI, Device.Transport.USB], Device.Transport.WIFI),
