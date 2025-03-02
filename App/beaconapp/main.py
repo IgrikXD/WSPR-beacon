@@ -6,8 +6,15 @@ from beaconapp.ui.settings_widget import SettingsWidget
 from beaconapp.ui.spots_database_widget import SpotsDatabaseWidget
 from beaconapp.ui.transmission_widget import TransmissionWidget
 
+import atexit
 import customtkinter
 import os
+import psutil
+import sys
+import tkinter.messagebox
+
+
+LOCK_FILE = "beaconapp.lock"
 
 
 class BeaconApp(customtkinter.CTk):
@@ -113,7 +120,52 @@ class BeaconApp(customtkinter.CTk):
         self.destroy()
 
 
+def check_already_running() -> bool:
+    """
+    Checks if an instance of the application is already running via a PID lock file.
+    Returns True if the application is already running, otherwise False.
+    """
+    if os.path.exists(LOCK_FILE):
+        try:
+            with open(LOCK_FILE, "r", encoding="utf-8") as f:
+                old_pid = int(f.read().strip())
+            # Check if a process with this PID is still running
+            if old_pid in psutil.pids():
+                # A process with this PID is still active
+                return True
+            else:
+                # The old process is not active, so remove the outdated file
+                os.remove(LOCK_FILE)
+        except (ValueError, OSError):
+            # If PID could not be read or something went wrong, remove the file
+            os.remove(LOCK_FILE)
+    return False
+
+
+def create_lock_file():
+    """
+    Creates a lock file and writes the current process PID into it.
+    """
+    with open(LOCK_FILE, "w", encoding="utf-8") as f:
+        f.write(str(os.getpid()))
+
+    # Remove the lock file when the program exits
+    atexit.register(lambda: os.path.exists(LOCK_FILE) and os.remove(LOCK_FILE))
+
+
 def main():
+    # Check if the application is already running
+    if check_already_running():
+        tkinter.messagebox.showerror(
+            "BEACON.App Error!",
+            "The application is already running!"
+        )
+        sys.exit(1)
+
+    # Create the lock file if not running
+    create_lock_file()
+
+    # Launch the application
     app = BeaconApp()
     app.mainloop()
 

@@ -1,4 +1,5 @@
 customtkinter==5.2.2
 pillow==10.4.0
+psutil==7.0.0
 pyserial-asyncio==0.6
 websockets==15.0
