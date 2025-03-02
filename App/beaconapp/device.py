@@ -74,8 +74,6 @@ class Device:
         self._connected_transports: Set[Device.Transport] = set()
 
         self.mapped_callbacks: Dict[Device.Message.Incoming, List[Callable]] = {}
-        # By default, set callback to switch active transport on an incoming request from the device
-        self.set_device_response_handlers({Device.Message.Incoming.ACTIVE_TRANSPORT: [self._set_active_transport]})
 
         self.serial_transport = SerialTransport(self)
         self.ws_transport = WebsocketTransport(self)
@@ -235,6 +233,8 @@ class Device:
             data = ActiveTXMode.from_json(raw_data)
         elif msg_type == Device.Message.Incoming.ACTIVE_TRANSPORT:
             data = Device.Transport(raw_data)
+            # Switch active transport on an incoming request from the device
+            self._set_active_transport(data)
         elif msg_type == Device.Message.Incoming.WIFI_SSID_DATA:
             data = WiFiData.from_json(raw_data)
         elif msg_type == Device.Message.Incoming.WIFI_STATUS:

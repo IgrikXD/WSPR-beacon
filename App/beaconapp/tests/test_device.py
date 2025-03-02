@@ -325,7 +325,7 @@ def test_set_device_response_handlers(existing_handlers, new_handlers, expected_
     """
     device = Device()
     # Emulate that the device already has some callbacks registered.
-    device.mapped_callbacks = existing_handlers
+    device.set_device_response_handlers(existing_handlers)
 
     device.set_device_response_handlers(new_handlers)
 
