@@ -14,7 +14,8 @@ import sys
 import tkinter.messagebox
 
 
-LOCK_FILE = "beaconapp.lock"
+LOCK_DIR = os.path.expanduser("~/.beaconapp")
+LOCK_FILE = os.path.join(LOCK_DIR, "beaconapp.lock")
 
 
 class BeaconApp(customtkinter.CTk):
@@ -122,7 +123,7 @@ class BeaconApp(customtkinter.CTk):
 
 def check_already_running() -> bool:
     """
-    Checks if an instance of the application is already running via a PID lock file.
+    Checks if an instance of the application is already running via a PID lock file in ~/.beaconapp.
     Returns True if the application is already running, otherwise False.
     """
     if os.path.exists(LOCK_FILE):
@@ -134,7 +135,7 @@ def check_already_running() -> bool:
                 # A process with this PID is still active
                 return True
             else:
-                # The old process is not active, so remove the outdated file
+                # The old process is not active, remove the outdated lock file
                 os.remove(LOCK_FILE)
         except (ValueError, OSError):
             # If PID could not be read or something went wrong, remove the file
@@ -144,8 +145,14 @@ def check_already_running() -> bool:
 
 def create_lock_file():
     """
-    Creates a lock file and writes the current process PID into it.
+    Creates the ~/.beaconapp directory if it does not exist,
+    then creates a lock file with the current process PID.
     """
+    # Ensure the working directory exists
+    if not os.path.isdir(LOCK_DIR):
+        os.makedirs(LOCK_DIR, exist_ok=True)
+
+    # Create or overwrite the lock file
     with open(LOCK_FILE, "w", encoding="utf-8") as f:
         f.write(str(os.getpid()))
 
