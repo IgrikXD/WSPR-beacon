@@ -11,11 +11,12 @@
 **GPS antenna type:** Active, external  
 **Maximum output power:** ~23 dBm  
 **Supply voltage:** 5V (_USB-B, fuse-protected, 600 mA fuse_)  
-| Mode                                 | Current consumption |
-|--------------------------------------|---------------------|
-| Standby (GPS antenna not connected)  |  TBD mA             |
-| Standby (GPS antenna connected)      |  TBD mA             |
-| Active TX mode                       |  TBD mA             |
+| Mode                                                          | Current consumption |
+|---------------------------------------------------------------|---------------------|
+| Standby (_GPS antenna not connected, Wi-Fi not connected_)    |  TBD mA             |
+| Standby (_GPS antenna connected, Wi-Fi connected_)            |  TBD mA             |
+| Active TX mode (_GPS antenna connected, Wi-Fi not connected_) |  TBD mA             |
+| Active TX mode (_GPS antenna connected, Wi-Fi connected_)     |  TBD mA             |
 
 ## PCB fabrication parameters
 **Used PCB Material:** FR-4, TG150  
