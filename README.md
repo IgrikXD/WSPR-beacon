@@ -36,8 +36,8 @@ For device usage details, refer to the [operating instructions](./Usage-guide.md
 [WSPR - Signal Identification Wiki](https://www.sigidwiki.com/wiki/WSPR)  
 
 ## Who helped me with the development of the project?
-Great thanks to [PCBWay](https://pcbway.com) for manufacturing the PCBs for the project as a sponsored contribution.
-![PCBWay-Logo](./Resources/PCBWay-logo.png)
+Many thanks to [PCBWay](https://pcbway.com) for manufacturing the PCBs for this project as a sponsored contribution. Also, thanks to [Mini-Circuits](https://www.minicircuits.com/) for providing transformer samples through the [EZ-Sample](https://www.minicircuits.com/WebStore/ez_sample.html) program.
+![PCBWay-Logo](./Resources/Sponsor-logos.png)
 
 ## How to contact me?
 - E-mail: igor.nikolaevich.96@gmail.com
