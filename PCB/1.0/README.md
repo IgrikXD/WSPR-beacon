@@ -3,6 +3,7 @@
 ## Device characteristics
 **Platform:** Atmega328 MCU  
 **Power amplifier:** Transistor amplifier, based on BS170  
+**Output RF transformer:** Bifilar transformer based on an FT37-43 core  
 **RF connectors:** SMA  
 **Feed line:** 50 Ohm coaxial cable  
 **GPS antenna type:** Active, external  

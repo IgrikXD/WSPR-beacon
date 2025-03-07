@@ -6,6 +6,7 @@
 ## Device characteristics
 **Platform:** ESP32-C3 SoC  
 **Power amplifier:** Buffer amplifier based on the 74ACT244 IC  
+**Output RF transformer:** Mini-Circuits ADT1-1+  
 **RF connectors:** SMA  
 **Feed line:** 50 Ohm coaxial cable  
 **GPS antenna type:** Active, external  
