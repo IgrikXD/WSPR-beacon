@@ -15,6 +15,11 @@
 | Standby (_GPS antenna connected_)     | 86 mA               |
 | Active TX mode                        | 96 mA               |
 
+## Firmware info
+**Latest firmware version:** [wspr-beacon-1.1](../../Firmware/wspr-beacon-1.1/)  
+**Supported transmission protocols:** WSPR  
+**Configurable via user application:** No  
+
 ## PCB fabrication parameters
 **Used PCB Material:** FR-4, TG150  
 **PCB thickness:** 1.6 mm  

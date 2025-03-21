@@ -16,6 +16,11 @@
 | Active TX mode (_PA bias 2.5V_)       |  107 mA             |
 | Active TX mode (_PA bias 4.6V_)       |  224 mA             |
 
+## Firmware info
+**Latest firmware version:** [wspr-beacon-1.1](../../Firmware/wspr-beacon-1.1/)  
+**Supported transmission protocols:** WSPR  
+**Configurable via user application:** No  
+
 ## PCB fabrication parameters
 **Used PCB Material:** FR-4, TG150  
 **PCB thickness:** 1.6 mm  

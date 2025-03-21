@@ -19,6 +19,11 @@
 | Active TX mode (_GPS antenna connected, Wi-Fi not connected_) |  TBD mA             |
 | Active TX mode (_GPS antenna connected, Wi-Fi connected_)     |  TBD mA             |
 
+## Firmware info
+**Latest firmware version:** [wspr-beacon-2.0](../../Firmware/wspr-beacon-2.0/)  
+**Supported transmission protocols:** WSPR  
+**Configurable via user application:** Yes  
+
 ## PCB fabrication parameters
 **Used PCB Material:** FR-4, TG150  
 **PCB thickness:** 1.6 mm  
