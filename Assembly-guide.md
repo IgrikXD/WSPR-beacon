@@ -1,8 +1,5 @@
 # Assembly guide
 
-## PCB requirements
-When manufacturing the PCB, use FR-4 material with a thickness of 1.6 mm and a copper weight oequal to 1 oz. Although this is not the best material for radio frequency equipment, it is the most popular and widely available. The use of FR-4 material is necessary to ensure the wawe impedance of the RF line is 50 ohms. Failure to meet this requirement will result in additional signal loss during device operation. The impedance calculations were performed for a material with a dielectric constant Er = 4.6 (FR-4) using the [Saturn PCB Design V7.08](http://www.saturnpcb.com/pcb_toolkit/) toolkit.
-
 ## Requirements for Atmega328
 
 When using Atmega328 distributed as individual electronic components, you will encounter a firmware upload error:
