@@ -163,13 +163,13 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
         ({"type": "WIFI_SSID_DATA", "data": {"ssid": "Name", "password": "Pass", "connect_at_startup": True}},
          Device.Message.Incoming.WIFI_SSID_DATA, WiFiData("Name", "Pass", True)),
         # Incoming: WIFI_STATUS: ConnectionStatus("connected")
-        ({"type": "WIFI_STATUS", "data": {"status": "connected"}},
+        ({"type": "WIFI_STATUS", "data": {"connected"}},
          Device.Message.Incoming.WIFI_STATUS, ConnectionStatus("connected")),
         # Incoming: WIFI_STATUS: ConnectionStatus("disconnected")
-        ({"type": "WIFI_STATUS", "data": {"status": "disconnected"}},
+        ({"type": "WIFI_STATUS", "data": {"disconnected"}},
          Device.Message.Incoming.WIFI_STATUS, ConnectionStatus("disconnected")),
         # Incoming: WIFI_STATUS: ConnectionStatus("fail")
-        ({"type": "WIFI_STATUS", "data": {"status": "fail"}},
+        ({"type": "WIFI_STATUS", "data": {"fail"}},
          Device.Message.Incoming.WIFI_STATUS, ConnectionStatus("fail")),
     ]
 )

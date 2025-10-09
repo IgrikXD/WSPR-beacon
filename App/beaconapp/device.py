@@ -238,7 +238,7 @@ class Device:
         elif msg_type == Device.Message.Incoming.WIFI_SSID_DATA:
             data = WiFiData.from_json(raw_data)
         elif msg_type == Device.Message.Incoming.WIFI_STATUS:
-            data = ConnectionStatus(raw_data.get("status"))
+            data = ConnectionStatus(raw_data)
         else:
             data = raw_data
 
