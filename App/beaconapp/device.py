@@ -60,7 +60,7 @@ class Device:
         data: Any = None
 
     """
-    Calibration frequency multiplier used in the GEN_CAL_FREQUENCY message. 
+    Calibration frequency multiplier used in the GEN_CAL_FREQUENCY message.
     Needed to avoid converting float -> uint64_t on the firmware side.
     """
     __CAL_FREQ_MULTIPLIER = 100_000_000
@@ -120,7 +120,7 @@ class Device:
         """
         Sends a request to generate a calibration frequency.
         """
-        self._put(Device.Message(Device.Message.Outgoing.GEN_CAL_FREQUENCY, 
+        self._put(Device.Message(Device.Message.Outgoing.GEN_CAL_FREQUENCY,
                                  None if frequency is None else int(frequency * self.__CAL_FREQ_MULTIPLIER)))
 
     def get_device_info(self):
