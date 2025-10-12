@@ -67,6 +67,7 @@ class Device:
 
     def __init__(self):
         self.tx_queue = asyncio.Queue()
+        self.asyncio_loop: Optional[asyncio.AbstractEventLoop] = None
 
         # Active transport, USB (Serial) by default
         self.active_transport: Optional[Device.Transport] = Device.Transport.USB
@@ -88,16 +89,16 @@ class Device:
         """
         Create a new event loop in a separate thread and run Serial and WebSocket connections in parallel.
         """
-        asyncio_loop = asyncio.new_event_loop()
-        asyncio_loop.set_exception_handler(self._serial_exception_handler)
-        asyncio.set_event_loop(asyncio_loop)
+        self.asyncio_loop = asyncio.new_event_loop()
+        self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
+        asyncio.set_event_loop(self.asyncio_loop)
 
-        threading.Thread(target=lambda: asyncio_loop.run_forever(), daemon=True).start()
+        threading.Thread(target=lambda: self.asyncio_loop.run_forever(), daemon=True).start()
 
         # In parallel try to connect via serial and websocket
-        asyncio.run_coroutine_threadsafe(self.serial_transport.connect(), asyncio_loop)
-        asyncio.run_coroutine_threadsafe(self.ws_transport.connect(), asyncio_loop)
-        asyncio.run_coroutine_threadsafe(self._handle_outgoing_messages(), asyncio_loop)
+        asyncio.run_coroutine_threadsafe(self.serial_transport.connect(), self.asyncio_loop)
+        asyncio.run_coroutine_threadsafe(self.ws_transport.connect(), self.asyncio_loop)
+        asyncio.run_coroutine_threadsafe(self._handle_outgoing_messages(), self.asyncio_loop)
 
     def set_device_response_handlers(self, mapped_callbacks: Dict[Message.Incoming, List[Callable]]):
         """
@@ -279,7 +280,7 @@ class Device:
         """
         Places a message into the tx_queue for asynchronous sending.
         """
-        self.tx_queue.put_nowait(message)
+        self.asyncio_loop.call_soon_threadsafe(self.tx_queue.put_nowait, message)
 
     def _send_to_device(self, message: Message):
         """
