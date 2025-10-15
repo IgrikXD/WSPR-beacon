@@ -339,7 +339,7 @@ class TransmissionWidget:
         )
 
         # Send active TX mode to device
-        self.device.set_active_tx_mode(self.active_tx_mode)
+        self.device.set_active_tx_mode(None)
 
     def _wspr_set_as_active_mode_button_pressed(self):
         """

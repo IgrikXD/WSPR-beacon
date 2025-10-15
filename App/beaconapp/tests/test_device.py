@@ -222,22 +222,9 @@ def test_decode_device_message(incoming_json, expected_type, expected_data):
                 '}'
             )
         ),
-        # Outgoing: SET_ACTIVE_TX_MODE: empty ActiveTXMode
-        (
-            Device.Message.Outgoing.SET_ACTIVE_TX_MODE,
-            ActiveTXMode(),
-            (
-                '{'
-                '"type": "SET_ACTIVE_TX_MODE", '
-                '"data": {"tx_mode": null, '
-                '"tx_call": null, '
-                '"qth_locator": null, '
-                '"output_power": null, '
-                '"transmit_every": null, '
-                '"active_band": null}'
-                '}'
-            )
-        ),
+        # Outgoing: SET_ACTIVE_TX_MODE: None
+        (Device.Message.Outgoing.SET_ACTIVE_TX_MODE, None,
+         '{"type": "SET_ACTIVE_TX_MODE", "data": null}'),
         # Outgoing: SET_CAL_METHOD: CalibrationType.AUTO
         (Device.Message.Outgoing.SET_CAL_METHOD, CalibrationType.AUTO,
          '{"type": "SET_CAL_METHOD", "data": "auto"}'),
