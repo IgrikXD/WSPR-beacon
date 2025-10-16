@@ -1,6 +1,6 @@
 import pytest
 
-from beaconapp.data_wrappers import ActiveTXMode, TXMode, WiFiCredentials, WiFiData
+from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode, WiFiCredentials, WiFiData
 
 
 # Parameterized tests for ActiveTXMode defaults
@@ -37,8 +37,8 @@ def test_active_tx_mode_defaults_param(input_value, expected_value):
         "tx_call": "N0CALL",
         "qth_locator": "XX00",
         "output_power": 23,
-        "transmit_every": "10 minutes",
-        "active_band": "2200m"
+        "transmit_every": TransmitEvery.MIN_10,
+        "active_band": Band.BAND_2200M
     }
 ])
 def test_active_tx_mode_clear_param(input_value):
@@ -61,16 +61,16 @@ def test_active_tx_mode_clear_param(input_value):
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
-            "transmit_every": "10 minutes",
-            "active_band": "2200m"
+            "transmit_every": TransmitEvery.MIN_10,
+            "active_band": Band.BAND_2200M
         },
         {
             "tx_mode": None,
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
-            "transmit_every": "10 minutes",
-            "active_band": "2200m"
+            "transmit_every": 10,
+            "active_band": 2200
         }
     ),
     (
@@ -80,16 +80,16 @@ def test_active_tx_mode_clear_param(input_value):
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
-            "transmit_every": "10 minutes",
-            "active_band": "2200m"
+            "transmit_every": TransmitEvery.MIN_10,
+            "active_band": Band.BAND_2200M
         },
         {
-            "tx_mode": "WSPR",
+            "tx_mode": 1,
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
-            "transmit_every": "10 minutes",
-            "active_band": "2200m"
+            "transmit_every": 10,
+            "active_band": 2200
         }
     )
 ])
@@ -113,20 +113,20 @@ def test_active_tx_mode_to_json_param(input_value, expected_value):
     ),
     (
         {
-            "tx_mode": "WSPR",
+            "tx_mode": 1,
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
-            "transmit_every": "10 minutes",
-            "active_band": "2200m",
+            "transmit_every": 10,
+            "active_band": 2200,
         },
         {
             "tx_mode": TXMode.WSPR,
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
-            "transmit_every": "10 minutes",
-            "active_band": "2200m"
+            "transmit_every": TransmitEvery.MIN_10,
+            "active_band": Band.BAND_2200M
         }
     )
 ])

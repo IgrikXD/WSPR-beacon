@@ -1,7 +1,7 @@
 from beaconapp.config import Config
 from beaconapp.data_validation import DataValidation
 from beaconapp.device import Device
-from beaconapp.data_wrappers import ActiveTXMode, TXMode
+from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
 from beaconapp.ui.widgets import Widgets
 
 import copy
@@ -37,7 +37,7 @@ class TransmissionWidget:
             state="disabled",
             tabs=["WSPR"]
         )
-        self.mode_selection_view.set(self.active_tx_mode.tx_mode.value)
+        self.mode_selection_view.set(self.active_tx_mode.tx_mode.name)
 
         # WSPR mode frame
         wspr_mode_frame = Widgets.create_background_frame(self.mode_selection_view.tab("WSPR"), row=1, padx=10)
@@ -80,8 +80,8 @@ class TransmissionWidget:
             wspr_mode_frame,
             row=3,
             text="Transmit every:",
-            values=["2 minutes", "10 minutes", "30 minutes", "60 minutes"],
-            default_value=self.active_tx_mode.transmit_every,
+            values=[f"{e.value} minutes" for e in TransmitEvery],
+            default_value=f"{self.active_tx_mode.transmit_every.value} minutes",
             state="disabled",
             command=self._check_if_wspr_mode_parameters_changed
         )
@@ -91,10 +91,8 @@ class TransmissionWidget:
             wspr_mode_frame,
             row=4,
             text="Active band:",
-            values=["2200m", "600m", "160m", "80m", "60m",
-                    "40m", "30m", "20m", "17m", "15m",
-                    "12m", "10m", "6m", "4m", "2m"],
-            default_value=self.active_tx_mode.active_band,
+            values=[f"{e.value} m" for e in Band],
+            default_value=f"{self.active_tx_mode.active_band.value} m",
             state="disabled",
             command=self._check_if_wspr_mode_parameters_changed
         )
@@ -268,8 +266,9 @@ class TransmissionWidget:
         if (self.wspr_tx_call_entry.get() != self.active_tx_mode.tx_call or
             self.wspr_qth_locator_entry.get() != self.active_tx_mode.qth_locator or
             int(self.wspr_output_power_entry.get()) != self.active_tx_mode.output_power or
-            self.wspr_transmit_every_option.get() != self.active_tx_mode.transmit_every or
-                self.wspr_active_band_option.get() != self.active_tx_mode.active_band):
+            TransmitEvery(int(self.wspr_transmit_every_option.get().split()[0]))
+                != self.active_tx_mode.transmit_every or
+                Band(int(self.wspr_active_band_option.get().split()[0])) != self.active_tx_mode.active_band):
 
             self.wspr_set_as_active_mode_button.configure(
                 state="normal",
@@ -300,9 +299,11 @@ class TransmissionWidget:
         self.wspr_output_power_entry.delete(0, "end")
         self.wspr_output_power_entry.insert(0, self.active_tx_mode.output_power)
 
-        self.wspr_transmit_every_option.set(self.active_tx_mode.transmit_every)
+        self.wspr_transmit_every_option.set(
+            f"{self.active_tx_mode.transmit_every.value} minutes")
 
-        self.wspr_active_band_option.set(self.active_tx_mode.active_band)
+        self.wspr_active_band_option.set(
+            f"{self.active_tx_mode.active_band.value} m")
 
     def _print_active_mode_details(self):
         """
@@ -312,7 +313,7 @@ class TransmissionWidget:
         self.tx_message_entry.delete(0, "end")
 
         if self.active_tx_mode.tx_mode:
-            self.tx_message_entry.insert(0, f"{self.active_tx_mode.tx_mode.value}: "
+            self.tx_message_entry.insert(0, f"{self.active_tx_mode.tx_mode.name}: "
                                             f"{self.active_tx_mode.tx_call} "
                                             f"{self.active_tx_mode.qth_locator} "
                                             f"{self.active_tx_mode.output_power}")
@@ -354,8 +355,8 @@ class TransmissionWidget:
             self.wspr_tx_call_entry.get(),
             self.wspr_qth_locator_entry.get(),
             int(self.wspr_output_power_entry.get()),
-            self.wspr_transmit_every_option.get(),
-            self.wspr_active_band_option.get()
+            TransmitEvery(int(self.wspr_transmit_every_option.get().split()[0])),
+            Band(int(self.wspr_active_band_option.get().split()[0]))
         )
 
         self.change_state("disabled")

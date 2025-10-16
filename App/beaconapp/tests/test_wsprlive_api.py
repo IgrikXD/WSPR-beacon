@@ -60,7 +60,7 @@ def test_get_wspr_spots_data_no_internet(monkeypatch):
     # Mock urllib.request.urlopen with our urlopen_no_connection_mock function
     monkeypatch.setattr(urllib.request, "urlopen", urlopen_no_connection_mock)
     with pytest.raises(urllib.error.URLError):
-        WsprLiveApi.get_wspr_spots_data("2m", "N0CALL", "time", "DESC", 10)
+        WsprLiveApi.get_wspr_spots_data(2, "N0CALL", "time", "DESC", 10)
 
 
 def test_get_wspr_spots_data_returns_empty_list_when_no_data(monkeypatch):
@@ -69,7 +69,7 @@ def test_get_wspr_spots_data_returns_empty_list_when_no_data(monkeypatch):
     """
     # Mock urllib.request.urlopen with urlopen_no_data_mock function
     monkeypatch.setattr(urllib.request, "urlopen", urlopen_no_data_mock)
-    assert WsprLiveApi.get_wspr_spots_data("2m", "N0CALL", "time", "DESC", 10) == []
+    assert WsprLiveApi.get_wspr_spots_data(2, "N0CALL", "time", "DESC", 10) == []
 
 
 def test_get_wspr_spots_data_constructs_correct_query(monkeypatch):
@@ -78,7 +78,7 @@ def test_get_wspr_spots_data_constructs_correct_query(monkeypatch):
     """
     # Mock urllib.request.urlopen with urlopen_success_mock function
     monkeypatch.setattr(urllib.request, "urlopen", urlopen_success_mock)
-    data = WsprLiveApi.get_wspr_spots_data("2m", "N0CALL", "time", "DESC", 10)
+    data = WsprLiveApi.get_wspr_spots_data(2, "N0CALL", "time", "DESC", 10)
 
     assert len(data) == 10
     for item in data:

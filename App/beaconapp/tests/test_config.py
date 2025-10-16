@@ -2,7 +2,7 @@ import json
 import pytest
 import uuid
 
-from beaconapp.data_wrappers import ActiveTXMode, TXMode
+from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
 from beaconapp.config import Config
 
 
@@ -36,8 +36,8 @@ def temp_config_file(tmp_path):
                 "default_tx_call": "N0CALL",
                 "default_qth_locator": "XX00",
                 "default_output_power": 23,
-                "default_transmit_every": "2 minutes",
-                "default_active_band": "40m",
+                "default_transmit_every": TransmitEvery.MIN_2,
+                "default_active_band": Band.BAND_40M,
                 "default_cal_frequency": 28.000,
                 "default_ui_theme": "Dark",
                 "default_ui_scaling": 1
@@ -52,8 +52,8 @@ def temp_config_file(tmp_path):
                 "default_tx_call": "N0CALL",
                 "default_qth_locator": "XX00",
                 "default_output_power": 23,
-                "default_transmit_every": "2 minutes",
-                "default_active_band": "40m",
+                "default_transmit_every": TransmitEvery.MIN_2,
+                "default_active_band": Band.BAND_40M,
                 "default_cal_frequency": 28.000,
                 "default_ui_theme": "Dark",
                 "default_ui_scaling": 1
@@ -72,8 +72,8 @@ def temp_config_file(tmp_path):
                 "default_tx_call": "N0TTXX",
                 "default_qth_locator": "AB01",
                 "default_output_power": 10,
-                "default_transmit_every": "2 minutes",          # default
-                "default_active_band": "40m",                   # default
+                "default_transmit_every": TransmitEvery.MIN_2,  # default
+                "default_active_band": Band.BAND_40M,           # default
                 "default_cal_frequency": 28.000,                # default
                 "default_ui_theme": "Dark",                     # default
                 "default_ui_scaling": 1                         # default
@@ -83,12 +83,12 @@ def temp_config_file(tmp_path):
         (
             True,
             {
-                "default_tx_mode": "WSPR",
+                "default_tx_mode": 1,
                 "default_tx_call": "K0ABC",
                 "default_qth_locator": "FN20",
                 "default_output_power": 33,
-                "default_transmit_every": "10 minutes",
-                "default_active_band": "20m",
+                "default_transmit_every": 10,
+                "default_active_band": 20,
                 "default_cal_frequency": 7.045,
                 "default_ui_theme": "Light",
                 "default_ui_scaling": 2
@@ -98,8 +98,8 @@ def temp_config_file(tmp_path):
                 "default_tx_call": "K0ABC",
                 "default_qth_locator": "FN20",
                 "default_output_power": 33,
-                "default_transmit_every": "10 minutes",
-                "default_active_band": "20m",
+                "default_transmit_every": TransmitEvery.MIN_10,
+                "default_active_band": Band.BAND_20M,
                 "default_cal_frequency": 7.045,
                 "default_ui_theme": "Light",
                 "default_ui_scaling": 2
@@ -150,11 +150,11 @@ def test_set_get_active_mode_parameters(patch_get_config_path, temp_config_file,
     config = Config(temp_config_file.name)
 
     # Set initial active mode parameters
-    initial_active_tx_mode = ActiveTXMode(TXMode.WSPR, initial_call, "XX00", 23, "2 minutes", "40m")
+    initial_active_tx_mode = ActiveTXMode(TXMode.WSPR, initial_call, "XX00", 23, TransmitEvery.MIN_2, Band.BAND_40M)
     config.set_active_mode_parameters(initial_active_tx_mode)
 
     # Update active mode parameters
-    new_active_tx_mode = ActiveTXMode(TXMode.WSPR, new_call, "AB12", 10, "10 minutes", "20m")
+    new_active_tx_mode = ActiveTXMode(TXMode.WSPR, new_call, "AB12", 10, TransmitEvery.MIN_10, Band.BAND_20M)
     config.set_active_mode_parameters(new_active_tx_mode)
 
     # Verify via get_active_mode_parameters
@@ -232,7 +232,7 @@ def test_config_save_and_reload(patch_get_config_path, temp_config_file):
     # The actual config path is resolved inside the Config class via the monkeypatch.
     config = Config(temp_config_file.name)
 
-    active_tx_mode = ActiveTXMode(TXMode.WSPR, "XX0YYZZ", "ZZ99", 15, "30 minutes", "80m")
+    active_tx_mode = ActiveTXMode(TXMode.WSPR, "XX0YYZZ", "ZZ99", 15, TransmitEvery.MIN_30, Band.BAND_80M)
     cal_frequency = 7.045
     ui_theme = "Light"
     ui_scaling = 2

@@ -2,8 +2,33 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 
 
+class Band(Enum):
+    BAND_2200M = 2200
+    BAND_600M = 600
+    BAND_160M = 160
+    BAND_80M = 80
+    BAND_60M = 60
+    BAND_40M = 40
+    BAND_30M = 30
+    BAND_20M = 20
+    BAND_17M = 17
+    BAND_15M = 15
+    BAND_12M = 12
+    BAND_10M = 10
+    BAND_6M = 6
+    BAND_4M = 4
+    BAND_2M = 2
+
+
+class TransmitEvery(Enum):
+    MIN_60 = 60
+    MIN_30 = 30
+    MIN_10 = 10
+    MIN_2 = 2
+
+
 class TXMode(Enum):
-    WSPR = "WSPR"
+    WSPR = 1
 
 
 @dataclass
@@ -12,8 +37,8 @@ class ActiveTXMode:
     tx_call: str = None
     qth_locator: str = None
     output_power: int = None
-    transmit_every: str = None
-    active_band: str = None
+    transmit_every: TransmitEvery = None
+    active_band: Band = None
 
     def clear(self):
         self.__init__()
@@ -21,8 +46,9 @@ class ActiveTXMode:
     def to_json(self):
         data = asdict(self)
 
-        if self.tx_mode is not None:
-            data["tx_mode"] = self.tx_mode.value
+        data["tx_mode"] = getattr(self.tx_mode, "value", None)
+        data["transmit_every"] = self.transmit_every.value
+        data["active_band"] = self.active_band.value
 
         return data
 
@@ -31,9 +57,9 @@ class ActiveTXMode:
         if not json_data:
             return cls()
 
-        mode = json_data.get("tx_mode")
-        if mode:
-            json_data["tx_mode"] = TXMode(mode)
+        json_data["tx_mode"] = TXMode(json_data["tx_mode"]) if (json_data.get("tx_mode") is not None) else None
+        json_data["transmit_every"] = TransmitEvery(json_data.get("transmit_every"))
+        json_data["active_band"] = Band(json_data.get("active_band"))
 
         return cls(**json_data)
 

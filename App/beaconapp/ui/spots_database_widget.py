@@ -92,7 +92,7 @@ class SpotsDatabaseWidget:
         """
         try:
             extracted_data = WsprLiveApi.get_wspr_spots_data(
-                active_tx_mode.active_band,
+                active_tx_mode.active_band.value,
                 active_tx_mode.tx_call,
                 self.sort_by_option.get().lower(),
                 "ASC" if self.sort_by_option.get() == "SNR" else "DESC",

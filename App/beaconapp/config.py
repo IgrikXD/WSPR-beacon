@@ -1,4 +1,4 @@
-from beaconapp.data_wrappers import ActiveTXMode, TXMode
+from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
 
 import json
 import os
@@ -11,8 +11,8 @@ class Config:
         self._default_tx_call = "N0CALL"
         self._default_qth_locator = "XX00"
         self._default_output_power = 23
-        self._default_transmit_every = "2 minutes"
-        self._default_active_band = "40m"
+        self._default_transmit_every = TransmitEvery.MIN_2.value
+        self._default_active_band = Band.BAND_40M.value
         self._default_cal_frequency = 28.000
         self._default_ui_theme = "Dark"
         self._default_ui_scaling = 1
@@ -70,8 +70,8 @@ class Config:
             self._default_tx_call,
             self._default_qth_locator,
             self._default_output_power,
-            self._default_transmit_every,
-            self._default_active_band
+            TransmitEvery(self._default_transmit_every),
+            Band(self._default_active_band)
         )
 
     def set_active_mode_parameters(self, active_tx_mode: ActiveTXMode):
@@ -85,8 +85,8 @@ class Config:
         self._default_tx_call = active_tx_mode.tx_call
         self._default_qth_locator = active_tx_mode.qth_locator
         self._default_output_power = active_tx_mode.output_power
-        self._default_transmit_every = active_tx_mode.transmit_every
-        self._default_active_band = active_tx_mode.active_band
+        self._default_transmit_every = active_tx_mode.transmit_every.value
+        self._default_active_band = active_tx_mode.active_band.value
 
     def get_cal_frequency(self):
         return self._default_cal_frequency

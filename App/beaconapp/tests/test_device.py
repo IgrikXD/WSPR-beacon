@@ -2,7 +2,8 @@ import pytest
 import json
 
 from beaconapp.device import Device
-from beaconapp.data_wrappers import ActiveTXMode, CalibrationType, ConnectionStatus, WiFiCredentials, WiFiData, TXMode
+from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
+from beaconapp.data_wrappers import CalibrationType, ConnectionStatus, WiFiData, WiFiCredentials
 
 
 @pytest.mark.parametrize(
@@ -73,27 +74,18 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
         # Incoming: ACTIVE_TX_MODE: ActiveTXMode
         ({"type": "ACTIVE_TX_MODE",
           "data": {
-              "tx_mode": "WSPR",
+              "tx_mode": 1,
               "tx_call": "N0CALL",
               "qth_locator": "XX00",
               "output_power": 23,
-              "transmit_every": "10 minutes",
-              "active_band": "2200m"
+              "transmit_every": 10,
+              "active_band": 2200
             }
           },
          Device.Message.Incoming.ACTIVE_TX_MODE,
-         ActiveTXMode(TXMode.WSPR, "N0CALL", "XX00", 23, "10 minutes", "2200m")),
+         ActiveTXMode(TXMode.WSPR, "N0CALL", "XX00", 23, TransmitEvery.MIN_10, Band.BAND_2200M)),
         # Incoming: ACTIVE_TX_MODE: empty ActiveTXMode
-        ({"type": "ACTIVE_TX_MODE",
-          "data": {
-              "tx_mode": None,
-              "tx_call": None,
-              "qth_locator": None,
-              "output_power": None,
-              "transmit_every": None,
-              "active_band": None
-            }
-          },
+        ({"type": "ACTIVE_TX_MODE", "data": None},
          Device.Message.Incoming.ACTIVE_TX_MODE,
          ActiveTXMode()),
         # Incoming: CAL_FREQ_GENERATED: True
@@ -209,16 +201,16 @@ def test_decode_device_message(incoming_json, expected_type, expected_data):
         # Outgoing: SET_ACTIVE_TX_MODE: ActiveTXMode
         (
             Device.Message.Outgoing.SET_ACTIVE_TX_MODE,
-            ActiveTXMode(TXMode.WSPR, "N0CALL", "XX00", 23, "10 minutes", "2200m"),
+            ActiveTXMode(TXMode.WSPR, "N0CALL", "XX00", 23, TransmitEvery.MIN_10, Band.BAND_2200M),
             (
                 '{'
                 '"type": "SET_ACTIVE_TX_MODE", '
-                '"data": {"tx_mode": "WSPR", '
+                '"data": {"tx_mode": 1, '
                 '"tx_call": "N0CALL", '
                 '"qth_locator": "XX00", '
                 '"output_power": 23, '
-                '"transmit_every": "10 minutes", '
-                '"active_band": "2200m"}'
+                '"transmit_every": 10, '
+                '"active_band": 2200}'
                 '}'
             )
         ),
