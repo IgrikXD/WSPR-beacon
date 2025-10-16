@@ -11,7 +11,7 @@ class Config:
         self._default_tx_call = "N0CALL"
         self._default_qth_locator = "XX00"
         self._default_output_power = 23
-        self._default_transmit_every = TransmitEvery.MIN_2.value
+        self._default_transmit_every = TransmitEvery.MINUTES_2.value
         self._default_active_band = Band.BAND_40M.value
         self._default_cal_frequency = 28.000
         self._default_ui_theme = "Dark"

@@ -83,7 +83,7 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
             }
           },
          Device.Message.Incoming.ACTIVE_TX_MODE,
-         ActiveTXMode(TXMode.WSPR, "N0CALL", "XX00", 23, TransmitEvery.MIN_10, Band.BAND_2200M)),
+         ActiveTXMode(TXMode.WSPR, "N0CALL", "XX00", 23, TransmitEvery.MINUTES_10, Band.BAND_2200M)),
         # Incoming: ACTIVE_TX_MODE: empty ActiveTXMode
         ({"type": "ACTIVE_TX_MODE", "data": None},
          Device.Message.Incoming.ACTIVE_TX_MODE,
@@ -201,7 +201,7 @@ def test_decode_device_message(incoming_json, expected_type, expected_data):
         # Outgoing: SET_ACTIVE_TX_MODE: ActiveTXMode
         (
             Device.Message.Outgoing.SET_ACTIVE_TX_MODE,
-            ActiveTXMode(TXMode.WSPR, "N0CALL", "XX00", 23, TransmitEvery.MIN_10, Band.BAND_2200M),
+            ActiveTXMode(TXMode.WSPR, "N0CALL", "XX00", 23, TransmitEvery.MINUTES_10, Band.BAND_2200M),
             (
                 '{'
                 '"type": "SET_ACTIVE_TX_MODE", '

@@ -21,10 +21,10 @@ class Band(Enum):
 
 
 class TransmitEvery(Enum):
-    MIN_60 = 60
-    MIN_30 = 30
-    MIN_10 = 10
-    MIN_2 = 2
+    MINUTES_60 = 60
+    MINUTES_30 = 30
+    MINUTES_10 = 10
+    MINUTES_2 = 2
 
 
 class TXMode(Enum):

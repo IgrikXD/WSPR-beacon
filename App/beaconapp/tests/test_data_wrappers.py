@@ -37,7 +37,7 @@ def test_active_tx_mode_defaults_param(input_value, expected_value):
         "tx_call": "N0CALL",
         "qth_locator": "XX00",
         "output_power": 23,
-        "transmit_every": TransmitEvery.MIN_10,
+        "transmit_every": TransmitEvery.MINUTES_10,
         "active_band": Band.BAND_2200M
     }
 ])
@@ -61,7 +61,7 @@ def test_active_tx_mode_clear_param(input_value):
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
-            "transmit_every": TransmitEvery.MIN_10,
+            "transmit_every": TransmitEvery.MINUTES_10,
             "active_band": Band.BAND_2200M
         },
         {
@@ -80,7 +80,7 @@ def test_active_tx_mode_clear_param(input_value):
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
-            "transmit_every": TransmitEvery.MIN_10,
+            "transmit_every": TransmitEvery.MINUTES_10,
             "active_band": Band.BAND_2200M
         },
         {
@@ -125,7 +125,7 @@ def test_active_tx_mode_to_json_param(input_value, expected_value):
             "tx_call": "N0CALL",
             "qth_locator": "XX00",
             "output_power": 23,
-            "transmit_every": TransmitEvery.MIN_10,
+            "transmit_every": TransmitEvery.MINUTES_10,
             "active_band": Band.BAND_2200M
         }
     )
