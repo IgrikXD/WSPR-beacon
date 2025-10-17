@@ -24,7 +24,7 @@ logger.setLevel(logging.DEBUG if ('--debug' in sys.argv) else logging.CRITICAL)
 class Device:
     class Transport(Enum):
         USB = "USB"
-        WIFI = "Wi-Fi"
+        WIFI = "WiFi"
 
     @dataclass
     class Message:
@@ -72,7 +72,7 @@ class Device:
         # Active transport, USB (Serial) by default
         self.active_transport: Optional[Device.Transport] = Device.Transport.USB
         # Transport priority (if we cannot satisfy _requested_transport)
-        # Wi-FI: priotity 0 (high)
+        # WiFi: priotity 0 (high)
         # USB (Serial): priotity 1 (low)
         self.transport_priority = [Device.Transport.WIFI, Device.Transport.USB]
         # Current "requested" (from the device) transport
@@ -162,7 +162,7 @@ class Device:
 
     def set_wifi_connection(self, wifi_credentials: WiFiCredentials | None):
         """
-        Sends a request to run Wi-Fi connection with given credentials.
+        Sends a request to run WiFi connection with given credentials.
         """
         self._put(Device.Message(Device.Message.Outgoing.RUN_WIFI_CONNECTION, wifi_credentials))
 
@@ -187,7 +187,7 @@ class Device:
         if transport_type in self._connected_transports:
             self._connected_transports.remove(transport_type)
 
-        # If USB is disconnected, assume we lose device power, thus remove Wi-Fi as well
+        # If USB is disconnected, assume we lose device power, thus remove WiFi as well
         if transport_type == Device.Transport.USB:
             if Device.Transport.WIFI in self._connected_transports:
                 self._connected_transports.remove(Device.Transport.WIFI)
@@ -198,7 +198,7 @@ class Device:
         """
         Chooses which transport should be active based on:
             1) _requested_transport (if it is actually connected)
-            2) transport_priority (e.g., Wi-Fi first, then USB)
+            2) transport_priority (e.g., WiFi first, then USB)
             3) or None if no transport is currently available
         Notifies handlers if the active transport changes.
         """
@@ -284,7 +284,7 @@ class Device:
 
     def _send_to_device(self, message: Message):
         """
-        Sends an encoded message to the currently active transport (USB or Wi-Fi).
+        Sends an encoded message to the currently active transport (USB or WiFi).
         """
         json_str = self._encode_device_message(message)
         if self.active_transport == Device.Transport.WIFI:
@@ -373,7 +373,7 @@ class SerialTransport(BaseTransport):
 
 class WebsocketTransport(BaseTransport):
     """
-    WebSocket (Wi-Fi) transport implementation using asyncio and websockets library.
+    WebSocket (WiFi) transport implementation using asyncio and websockets library.
     """
     def __init__(self, device: Device):
         super().__init__(device)

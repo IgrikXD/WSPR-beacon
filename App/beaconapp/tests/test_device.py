@@ -68,8 +68,8 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
         # Incoming: ACTIVE_TRANSPORT: USB
         ({"type": "ACTIVE_TRANSPORT", "data": "USB"},
          Device.Message.Incoming.ACTIVE_TRANSPORT, Device.Transport.USB),
-        # Incoming: ACTIVE_TRANSPORT: Wi-Fi
-        ({"type": "ACTIVE_TRANSPORT", "data": "Wi-Fi"},
+        # Incoming: ACTIVE_TRANSPORT: WiFi
+        ({"type": "ACTIVE_TRANSPORT", "data": "WiFi"},
          Device.Message.Incoming.ACTIVE_TRANSPORT, Device.Transport.WIFI),
         # Incoming: ACTIVE_TX_MODE: ActiveTXMode
         ({"type": "ACTIVE_TX_MODE",
@@ -333,7 +333,7 @@ def test_on_transport_disconnected(initial, disconnected, expected_active, expec
     """
     Checks that _on_transport_disconnected properly updates _connected_transports
     and calls _decide_active_transport, considering the special rule:
-    "If USB is disconnected, assume device power is lost, thus remove Wi-Fi as well."
+    "If USB is disconnected, assume device power is lost, thus remove WiFi as well."
     """
     device = Device()
     device._connected_transports = set(initial)

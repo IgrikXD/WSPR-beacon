@@ -101,11 +101,11 @@ class SettingsWidget:
             optimize_for_scrollable=True
         )
 
-        # Settings -> Device connection settings -> Auto-connect to Wi-Fi on startup
+        # Settings -> Device connection settings -> Auto-connect to WiFi on startup
         self.wifi_auto_connect_at_startup_option = Widgets.create_option_menu_with_background_frame(
             self.general_frame,
             row=7,
-            text="Auto-connect to Wi-Fi on startup:",
+            text="Auto-connect to WiFi on startup:",
             values=["Enabled", "Disabled"],
             default_value="Enabled",
             state="disabled",
@@ -158,7 +158,7 @@ class SettingsWidget:
         self.cal_option.configure(state="disabled" if is_generated else "normal")
 
         if not is_generated:
-            # Wi-Fi management is allowed if the calibration frequency is not being generated.
+            # WiFi management is allowed if the calibration frequency is not being generated.
             self._wifi_change_state("normal")
 
         self.cal_frequency_button.configure(
@@ -181,13 +181,13 @@ class SettingsWidget:
 
     def set_wifi_data(self, data: WiFiData):
         """
-        Updates the Wi-Fi paremeters in the UI with the provided Wi-Fi data.
+        Updates the WiFi paremeters in the UI with the provided WiFi data.
 
         Args:
-            data (WiFiData): An object containing the Wi-Fi data to be set, including:
-                - ssid (str): The name of the Wi-Fi network.
-                - password (str): The password of the Wi-Fi network.
-                - connect_at_startup (bool): Whether to auto-connect to this Wi-Fi network at startup.
+            data (WiFiData): An object containing the WiFi data to be set, including:
+                - ssid (str): The name of the WiFi network.
+                - password (str): The password of the WiFi network.
+                - connect_at_startup (bool): Whether to auto-connect to this WiFi network at startup.
         """
         self._wifi_change_state("normal")
 
@@ -203,10 +203,10 @@ class SettingsWidget:
 
     def update_wifi_status(self, status: ConnectionStatus):
         """
-        Updates the Wi-Fi connection button based on the current Wi-Fi connection status.
+        Updates the WiFi connection button based on the current WiFi connection status.
 
         Args:
-            status (ConnectionStatus): The current Wi-Fi connection status.
+            status (ConnectionStatus): The current WiFi connection status.
         """
         connection_actions = {
             ConnectionStatus.CONNECTED: self._wifi_connection_pass,
@@ -271,7 +271,7 @@ class SettingsWidget:
         self.cal_frequency_button.focus_set()
         # The calibration mode cannot be changed while generating the calibration frequency.
         self.cal_option.configure(state="disabled")
-        # Disabling the ability to control Wi-Fi while generating the calibration frequency
+        # Disabling the ability to control WiFi while generating the calibration frequency
         self._wifi_change_state("disabled")
 
         if self.cal_frequency_button.cget("text") == "Terminate":
@@ -359,20 +359,20 @@ class SettingsWidget:
 
     def _wifi_auto_connect_at_startup_option_event(self, value):
         """
-        Event handler for changing the Wi-Fi connection at device startup option.
+        Event handler for changing the WiFi connection at device startup option.
 
         Args:
-            value (str): Selected option for Wi-Fi connection at device startup ("Enabled" or "Disabled").
+            value (str): Selected option for WiFi connection at device startup ("Enabled" or "Disabled").
         """
         self.device.set_ssid_connect_at_startup(True if value == "Enabled" else False)
 
     def _wifi_connection_button_pressed(self):
         """
-        Handle the logic when the Wi-Fi connection button is pressed.
+        Handle the logic when the WiFi connection button is pressed.
         Attempt to connect to the specified SSID or disconnect from the currently connected network.
         """
         self.wifi_connection_button.focus_set()
-        # Disabling the calibration feature while establishing a Wi-Fi connection.
+        # Disabling the calibration feature while establishing a WiFi connection.
         self._calibration_change_state("disabled")
 
         self.device.set_wifi_connection(
@@ -390,7 +390,7 @@ class SettingsWidget:
 
     def _wifi_connection_error_handle(self):
         """
-        Handle UI changes when the Wi-Fi connection attempt fails.
+        Handle UI changes when the WiFi connection attempt fails.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
             state="disabled",
@@ -403,7 +403,7 @@ class SettingsWidget:
 
     def _wifi_disconnected(self):
         """
-        Handle UI changes when the Wi-Fi connection is terminated.
+        Handle UI changes when the WiFi connection is terminated.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
             state="normal",
@@ -416,7 +416,7 @@ class SettingsWidget:
 
     def _wifi_connection_pass(self):
         """
-        Handle UI changes when the Wi-Fi connection attempt is successful.
+        Handle UI changes when the WiFi connection attempt is successful.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
             state="normal",
@@ -429,7 +429,7 @@ class SettingsWidget:
 
     def _wifi_update_connection_button_state(self, event=None):
         """
-        Dynamically enable or disable the Wi-Fi connect button depending on whether the SSID
+        Dynamically enable or disable the WiFi connect button depending on whether the SSID
         and password fields are filled.
         """
         if (self.ssid_entry.get().strip() and self.password_entry.get().strip()):
