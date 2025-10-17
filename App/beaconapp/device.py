@@ -9,6 +9,7 @@ import threading
 import websockets
 
 from abc import ABC, abstractmethod
+from colorama import Fore, Style
 from beaconapp.data_wrappers import ActiveTXMode, CalibrationType, ConnectionStatus, WiFiCredentials, WiFiData
 from dataclasses import dataclass
 from enum import Enum
@@ -358,7 +359,7 @@ class SerialTransport(BaseTransport):
         Sends message bytes via the established Serial connection.
         """
         if self.transport:
-            logger.debug(f"TX (USB): {message.strip()}")
+            logger.debug(f"{Fore.GREEN}TX (USB): {message.strip()}{Style.RESET_ALL}")
             self.transport.write(message.encode('utf-8'))
 
     def _find_device_port(self):
@@ -401,7 +402,7 @@ class WebsocketTransport(BaseTransport):
         Sends a text message via the active WebSocket connection.
         """
         if self.websocket is not None:
-            logger.debug(f"TX (WebSocket): {message.strip()}")
+            logger.debug(f"{Fore.GREEN}TX (WebSocket): {message.strip()}{Style.RESET_ALL}")
             asyncio.create_task(self.websocket.send(message))
 
     async def _websocket_receiver(self):
@@ -416,7 +417,7 @@ class WebsocketTransport(BaseTransport):
                 message = message.strip()
                 if message:
                     msg = self.device._decode_device_message(message)
-                    logger.debug(f"RX (WebSocket): {message}")
+                    logger.debug(f"{Fore.MAGENTA}RX (WebSocket): {message}{Style.RESET_ALL}")
                     self.device._call_handlers(msg.type, msg.data)
         except websockets.exceptions.ConnectionClosedError:
             self.websocket = None
@@ -453,7 +454,7 @@ class DeviceProtocol(asyncio.Protocol):
             message = line.decode('utf-8', errors='ignore').strip()
             if message:
                 msg = self.device._decode_device_message(message)
-                logger.debug(f"RX (USB): {message}")
+                logger.debug(f"{Fore.MAGENTA}RX (USB): {message}{Style.RESET_ALL}")
                 self.device._call_handlers(msg.type, msg.data)
 
     def connection_lost(self, exc):
