@@ -337,7 +337,7 @@ class BaseTransport(ABC):
 class SerialTransport(BaseTransport):
     """
     Serial (USB) transport implementation using serial_asyncio.
-    
+
     Note: We use serial.Serial directly instead of only serial_asyncio because:
     1. serial_asyncio does not support setting DTR/RTS to None via constructor parameters
     2. We need to set dtr=None and rts=None before opening the port to prevent ESP32 reset
@@ -362,7 +362,7 @@ class SerialTransport(BaseTransport):
             device_port = self._find_device_port()
             if device_port:
                 await asyncio.sleep(1)
-                
+
                 self.serial_port = serial.Serial()
                 self.serial_port.port = device_port
                 self.serial_port.baudrate = 115200
@@ -371,7 +371,7 @@ class SerialTransport(BaseTransport):
                 self.serial_port.dtr = None
                 self.serial_port.rts = None
                 self.serial_port.open()
-                
+
                 self.transport, _ = await serial_asyncio.connection_for_serial(
                     asyncio.get_running_loop(),
                     lambda: DeviceProtocol(self.device, self),

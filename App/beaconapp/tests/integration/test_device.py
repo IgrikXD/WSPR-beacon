@@ -33,7 +33,7 @@ def device():
     # Cleanup: ensure device is disconnected after each test
     device_instance.disconnect()
     # Ensure serial port is released before next test
-    time.sleep(1) 
+    time.sleep(1)
 
 
 @pytest.fixture
@@ -61,18 +61,18 @@ def wait_for_connection():
 @pytest.mark.skipif(not find_esp32_device(), reason="WSPR-beacon device not connected!")
 def test_serial_connection_and_dtr_rts_control(device, wait_for_connection):
     """
-    Checks that DTR/RTS functionality initialized correctly and didn't cause device reset 
+    Checks that DTR/RTS functionality initialized correctly and didn't cause device reset
     after closing serial connection.
 
     Note: Manual verification (power on LED inspection) may be required to confirm device did not reset.
     """
     device.connect()
-    
+
     # Wait for connection to be established
     assert wait_for_connection(device)
     # Verify that serial transport determined correctly
     assert device.active_transport is Device.Transport.USB
-    
+
     # Small delay to ensure serial port is ready
     time.sleep(1.0)
 
@@ -82,7 +82,7 @@ def test_serial_connection_and_dtr_rts_control(device, wait_for_connection):
     assert serial_port.is_open
     assert serial_port.dtr is None
     assert serial_port.rts is None
-    
+
     device.disconnect()
 
     print("[INFO] Please verify manually that device did not reset (check power on LED)!")
@@ -96,18 +96,18 @@ def test_reconnection_after_disconnect(device, wait_for_connection):
     """
     # First device connection
     device.connect()
-    
+
     # Verify first connection
     assert wait_for_connection(device)
     assert device.active_transport is Device.Transport.USB
-    
+
     # Terminate device connection
     device.disconnect()
 
     # Create new Device instance for device reconnection
     reconnected_device = Device()
     reconnected_device.connect()
-    
+
     # Verify reconnection
     assert wait_for_connection(reconnected_device)
     assert reconnected_device.active_transport is Device.Transport.USB
@@ -121,7 +121,7 @@ def test_reconnection_after_disconnect(device, wait_for_connection):
 def test_device_info_request_after_connection(device, wait_for_connection):
     """
     Checks that device info can be requested after connection is established.
-    
+
     Verifies that all expected message types are received from device:
     - ACTIVE_TX_MODE
     - WIFI_SSID_DATA
@@ -145,7 +145,7 @@ def test_device_info_request_after_connection(device, wait_for_connection):
         'FIRMWARE_INFO': False,
         'HARDWARE_INFO': False,
     }
-    
+
     # Register callbacks for all response types
     device.set_device_response_handlers({
         Device.Message.Incoming.ACTIVE_TX_MODE:     [lambda data: responses.update(ACTIVE_TX_MODE=True)],
@@ -158,7 +158,7 @@ def test_device_info_request_after_connection(device, wait_for_connection):
         Device.Message.Incoming.FIRMWARE_INFO:      [lambda data: responses.update(FIRMWARE_INFO=True)],
         Device.Message.Incoming.HARDWARE_INFO:      [lambda data: responses.update(HARDWARE_INFO=True)],
     })
-    
+
     # Connect and request device info
     device.connect()
     assert wait_for_connection(device)
@@ -166,7 +166,7 @@ def test_device_info_request_after_connection(device, wait_for_connection):
 
     # Wait for device response
     time.sleep(2.0)
-    
+
     # Assert: We should have received all expected responses
     assert responses['ACTIVE_TX_MODE']
     assert responses['WIFI_SSID_DATA']
