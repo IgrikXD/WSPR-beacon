@@ -32,5 +32,4 @@ jobs:
 
       - name: Run unit tests
         run: |
-          cd App
-          pytest -m unit -vv
+          pytest App -m unit -vv
