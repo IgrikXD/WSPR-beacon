@@ -23,20 +23,20 @@ class BeaconApp(customtkinter.CTk):
         super().__init__()
 
         # Create a device instance
-        device = Device()
+        self.device = Device()
         # Load the default configuration from a file
-        config = Config("config.json")
-        self.app_configuration(config, device)
+        self.config = Config("config.json")
+        self.app_configuration(self.config, self.device)
         # Create the navigation widget
         navigation_frame = NavigationWidget(self)
         # Create the "Transmission" widget
-        transmission_frame = TransmissionWidget(self, device, config)
+        transmission_frame = TransmissionWidget(self, self.device, self.config)
         # Create the "Spots database" widget
         spots_database_frame = SpotsDatabaseWidget(self)
         # Create the "Self-check" widget
-        self_check_frame = SelfCheckWidget(self, device)
+        self_check_frame = SelfCheckWidget(self, self.device)
         # Create the "Settings" widget
-        settings_frame = SettingsWidget(self, device, config)
+        settings_frame = SettingsWidget(self, self.device, self.config)
 
         # Frames for navigation by buttons
         navigation_frame.set_navigated_frames(
@@ -47,7 +47,7 @@ class BeaconApp(customtkinter.CTk):
         )
 
         # Set handlers for incoming messages from the device
-        device.set_device_response_handlers({
+        self.device.set_device_response_handlers({
             Device.Message.Incoming.ACTIVE_TRANSPORT:   [navigation_frame.set_connection_status,
                                                          lambda transport: transmission_frame.change_state(
                                                             "disabled" if transport is None else "normal"),
@@ -85,7 +85,7 @@ class BeaconApp(customtkinter.CTk):
         })
 
         # Establish the connection to the device
-        device.connect()
+        self.device.connect()
         # Select the default frame
         navigation_frame.select_frame_by_name("transmission")
 
@@ -110,14 +110,15 @@ class BeaconApp(customtkinter.CTk):
         self.grid_columnconfigure(1, weight=1)
 
         # Handle the window close event
-        self.protocol("WM_DELETE_WINDOW",
-                      lambda: self.update_default_config_and_close_app(config, device))
+        self.protocol("WM_DELETE_WINDOW", self.update_default_config_and_close_app)
 
-    def update_default_config_and_close_app(self, config: Config, device: Device):
+    def update_default_config_and_close_app(self):
         """
-        Save the current configuration and close the app.
+        Save the current configuration, properly disconnect from device, and close the app.
         """
-        config.save()
+        self.config.save()
+        # Properly close all active connections to the device
+        self.device.disconnect()
         self.destroy()
 
 
