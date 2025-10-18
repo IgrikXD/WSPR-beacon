@@ -58,7 +58,22 @@ Unit tests are available to verify the application's core functionality, and the
 To run the unit tests, install `pytest` and execute:
 ```powershell
 pip install pytest==8.3.4
-pytest
+python -m pytest -m unit
+```
+
+### Integration tests
+> [!WARNING]  
+> These tests require a physical WSPR beacon device connected via USB!
+
+Integration tests are available to verify the device core functionality, and they verify:
+- Proper DTR/RTS control to prevent device reset when closing serial connection
+- Successful device reconnection after disconnect
+- Complete device info retrieval (_active TX mode, WiFi data, GPS status, calibration value, firmware/hardware info_)
+
+To run the integration tests, install `pytest` and execute:
+```powershell
+pip install pytest==8.3.4
+python -m pytest -m integration
 ```
 
 ### Hardware self-check

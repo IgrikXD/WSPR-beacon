@@ -14,6 +14,7 @@ from beaconapp.data_validation import DataValidation
     ("ABCDEF1", False),   # 7 characters long - too long
     ("AB@12", False),     # Invalid character '@'
 ])
+@pytest.mark.unit
 def test_validate_tx_call_input(input_value, expected_value):
     assert DataValidation.validate_tx_call_input(input_value) == expected_value
 
@@ -33,6 +34,7 @@ def test_validate_tx_call_input(input_value, expected_value):
     ("A12B", False),  # Letter after digits is not allowed
     ("1234", False),  # More than 2 digits when no letters are present
 ])
+@pytest.mark.unit
 def test_validate_qth_locator_input(input_value, expected_value):
     assert DataValidation.validate_qth_locator_input(input_value) == expected_value
 
@@ -48,6 +50,7 @@ def test_validate_qth_locator_input(input_value, expected_value):
     ("a", False),   # Not a digit
     ("1a", False),  # Mixed characters are not allowed
 ])
+@pytest.mark.unit
 def test_validate_output_power_input(input_value, expected_value):
     assert DataValidation.validate_output_power_input(input_value) == expected_value
 
@@ -67,6 +70,7 @@ def test_validate_output_power_input(input_value, expected_value):
     ("+123", False),    # Only minus sign is allowed, plus is not permitted
     ("12-3", False),    # The sign must be at the beginning
 ])
+@pytest.mark.unit
 def test_validate_cal_value_input(input_value, expected_value):
     assert DataValidation.validate_cal_value_input(input_value) == expected_value
 
@@ -90,6 +94,7 @@ def test_validate_cal_value_input(input_value, expected_value):
     ("abc", False),     # Not a number
     ("1.1234", False),  # More than 3 decimal places
 ])
+@pytest.mark.unit
 def test_validate_cal_frequency_input(input_value, expected_value):
     assert DataValidation.validate_cal_frequency_input(
         input_value) == expected_value

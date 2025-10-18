@@ -47,6 +47,7 @@ from beaconapp.data_wrappers import CalibrationType, ConnectionStatus, WiFiData,
          [Device.Transport.USB, Device.Transport.WIFI], Device.Transport.USB),
     ]
 )
+@pytest.mark.unit
 def test_decide_active_transport(connected_transports, requested_transport, priority, expected_active):
     """
     Checks that _decide_active_transport chooses the correct active transport
@@ -165,6 +166,7 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
          Device.Message.Incoming.WIFI_STATUS, ConnectionStatus("fail")),
     ]
 )
+@pytest.mark.unit
 def test_decode_device_message(incoming_json, expected_type, expected_data):
     """
     Checks that _decode_device_message correctly decodes JSON into a Device.Message
@@ -237,6 +239,7 @@ def test_decode_device_message(incoming_json, expected_type, expected_data):
          '{"type": "SET_SSID_CONNECT_AT_STARTUP", "data": false}'),
     ]
 )
+@pytest.mark.unit
 def test_encode_device_message(msg_type, data, expected_json_substring):
     """
     Checks that _encode_device_message produces valid JSON containing the correct type
@@ -298,6 +301,7 @@ def dummy_handler2(x):
         ),
     ]
 )
+@pytest.mark.unit
 def test_set_device_response_handlers(existing_handlers, new_handlers, expected_amount):
     """
     Checks that set_device_response_handlers attaches new callbacks without duplication.
@@ -329,6 +333,7 @@ def test_set_device_response_handlers(existing_handlers, new_handlers, expected_
          Device.Transport.USB, None, set()),
     ]
 )
+@pytest.mark.unit
 def test_on_transport_disconnected(initial, disconnected, expected_active, expected_connected):
     """
     Checks that _on_transport_disconnected properly updates _connected_transports

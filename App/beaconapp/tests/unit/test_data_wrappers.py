@@ -17,6 +17,7 @@ from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode, W
         }
     )
 ])
+@pytest.mark.unit
 def test_active_tx_mode_defaults_param(input_value, expected_value):
     active_tx_mode = ActiveTXMode(**input_value)
     result = {
@@ -41,6 +42,7 @@ def test_active_tx_mode_defaults_param(input_value, expected_value):
         "active_band": Band.BAND_2200M
     }
 ])
+@pytest.mark.unit
 def test_active_tx_mode_clear_param(input_value):
     active_tx_mode = ActiveTXMode(**input_value)
     active_tx_mode.clear()
@@ -93,6 +95,7 @@ def test_active_tx_mode_clear_param(input_value):
         }
     )
 ])
+@pytest.mark.unit
 def test_active_tx_mode_to_json_param(input_value, expected_value):
     active_tx_mode = ActiveTXMode(**input_value)
     assert active_tx_mode.to_json() == expected_value
@@ -130,6 +133,7 @@ def test_active_tx_mode_to_json_param(input_value, expected_value):
         }
     )
 ])
+@pytest.mark.unit
 def test_active_tx_mode_from_json_param(json_data, expected_value):
     active_tx_mode = ActiveTXMode.from_json(json_data)
     assert active_tx_mode.tx_mode == expected_value["tx_mode"]
@@ -145,6 +149,7 @@ def test_active_tx_mode_from_json_param(json_data, expected_value):
     ("Name", "secret"),
     ("TestSSID", "TestPass"),
 ])
+@pytest.mark.unit
 def test_wifi_credentials_to_json_param(ssid, password):
     wifi = WiFiCredentials(ssid=ssid, password=password)
     expected_value = {
@@ -189,6 +194,7 @@ def test_wifi_credentials_to_json_param(ssid, password):
         }
     )
 ])
+@pytest.mark.unit
 def test_wifi_data_from_json_param(json_data, expected_value):
     wifi_data = WiFiData.from_json(json_data)
     assert wifi_data.ssid == expected_value["ssid"]

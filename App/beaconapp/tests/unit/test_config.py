@@ -107,6 +107,7 @@ def temp_config_file(tmp_path):
         ),
     ]
 )
+@pytest.mark.unit
 def test_config_load(patch_get_config_path, temp_config_file, config_file_exists, file_content, expected_defaults):
     """
     Verifies that when the config file is absent or partially filled, Config loads default values.
@@ -140,6 +141,7 @@ def test_config_load(patch_get_config_path, temp_config_file, config_file_exists
         ("N0CALL", "MYCALL")
     ]
 )
+@pytest.mark.unit
 def test_set_get_active_mode_parameters(patch_get_config_path, temp_config_file, initial_call, new_call):
     """
     Checks that set_active_mode_parameters updates Config correctly,
@@ -168,6 +170,7 @@ def test_set_get_active_mode_parameters(patch_get_config_path, temp_config_file,
         (10.000, 14.055),
     ]
 )
+@pytest.mark.unit
 def test_set_get_cal_frequency(patch_get_config_path, temp_config_file, initial_val, new_val):
     """
     Checks that set_cal_frequency and get_cal_frequency consistently set and retrieve the calibration frequency.
@@ -189,6 +192,7 @@ def test_set_get_cal_frequency(patch_get_config_path, temp_config_file, initial_
         ("Light", "Dark")
     ]
 )
+@pytest.mark.unit
 def test_set_get_ui_theme(patch_get_config_path, temp_config_file, initial_theme, new_theme):
     """
     Checks that set_ui_theme and get_ui_theme are consistent.
@@ -210,6 +214,7 @@ def test_set_get_ui_theme(patch_get_config_path, temp_config_file, initial_theme
         (2, 0.8),
     ]
 )
+@pytest.mark.unit
 def test_set_get_ui_scaling(patch_get_config_path, temp_config_file, initial_scale, new_scale):
     """
     Checks that set_ui_scaling and get_ui_scaling are consistent.
@@ -224,6 +229,7 @@ def test_set_get_ui_scaling(patch_get_config_path, temp_config_file, initial_sca
     assert config.get_ui_scaling() == new_scale
 
 
+@pytest.mark.unit
 def test_config_save_and_reload(patch_get_config_path, temp_config_file):
     """
     Ensures that after calling save(), the data is indeed written to the file,

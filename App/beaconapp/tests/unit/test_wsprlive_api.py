@@ -45,6 +45,7 @@ def urlopen_no_connection_mock(url):
     raise urllib.error.URLError("No internet connection")
 
 
+@pytest.mark.unit
 def test_invalid_band_raises_error():
     """
     Test that get_wspr_spots_data raises ValueError when an invalid band is provided.
@@ -53,6 +54,7 @@ def test_invalid_band_raises_error():
         WsprLiveApi.get_wspr_spots_data("1m", "N0CALL", "time", "DESC", 10)
 
 
+@pytest.mark.unit
 def test_get_wspr_spots_data_no_internet(monkeypatch):
     """
     Test that get_wspr_spots_data raises URLError when there is no internet connection.
@@ -63,6 +65,7 @@ def test_get_wspr_spots_data_no_internet(monkeypatch):
         WsprLiveApi.get_wspr_spots_data(2, "N0CALL", "time", "DESC", 10)
 
 
+@pytest.mark.unit
 def test_get_wspr_spots_data_returns_empty_list_when_no_data(monkeypatch):
     """
     Test that get_wspr_spots_data returns an empty list when the JSON response is empty.
@@ -72,6 +75,7 @@ def test_get_wspr_spots_data_returns_empty_list_when_no_data(monkeypatch):
     assert WsprLiveApi.get_wspr_spots_data(2, "N0CALL", "time", "DESC", 10) == []
 
 
+@pytest.mark.unit
 def test_get_wspr_spots_data_constructs_correct_query(monkeypatch):
     """
     Test that get_wspr_spots_data constructs the correct SQL query and returns expected data.
