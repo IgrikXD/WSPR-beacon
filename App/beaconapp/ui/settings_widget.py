@@ -372,8 +372,8 @@ class SettingsWidget:
         Attempt to connect to the specified SSID or disconnect from the currently connected network.
         """
         self.wifi_connection_button.focus_set()
-        # Disabling the calibration feature while establishing a WiFi connection.
-        self._calibration_change_state("disabled")
+        # Disabling possibility to change settings while WiFi connecting/disconnecting
+        self.change_state("disabled")
 
         self.device.set_wifi_connection(
             None if self.wifi_connection_button.cget("text") == "Disconnect"
@@ -412,7 +412,7 @@ class SettingsWidget:
             hover_color=["#36719F", "#144870"],
             text_color_disabled=["#BDBDBD", "#999999"]
         ))
-        self._calibration_change_state("normal")
+        self.change_state("normal")
 
     def _wifi_connection_pass(self):
         """
@@ -425,7 +425,7 @@ class SettingsWidget:
             hover_color=["#9A2A2A", "#7A2A28"],
             text_color_disabled=["#BDBDBD", "#999999"]
         ))
-        self._calibration_change_state("normal")
+        self.change_state("normal")
 
     def _wifi_update_connection_button_state(self, event=None):
         """
