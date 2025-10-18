@@ -455,7 +455,7 @@ class SettingsWidget:
         """
         if self.on_wifi_state_change_callback is None:
             return
-        
+
         if isinstance(self.on_wifi_state_change_callback, list):
             for callback in self.on_wifi_state_change_callback:
                 callback(state)
