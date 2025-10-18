@@ -21,6 +21,7 @@ class SettingsWidget:
         """
         self.device = device
         self.config = config
+        self.on_wifi_state_change_callback = None
 
         self.general_frame = Widgets.create_general_frame(parent, scrollable=True)
 
@@ -146,6 +147,18 @@ class SettingsWidget:
         """
         self._calibration_change_state(state)
         self._wifi_change_state(state)
+
+    def set_wifi_state_change_callback(self, callback):
+        """
+        Set a callback function to be called when WiFi connection state changes.
+
+        Args:
+            callback (callable): A function that accepts a single argument - the new state
+                ("disabled" or "normal"). This callback will be invoked when WiFi connection
+                process starts or completes. Can also be a list of callables to notify
+                multiple components.
+        """
+        self.on_wifi_state_change_callback = callback
 
     def set_calibration_freq_status(self, is_generated: bool):
         """
@@ -374,6 +387,8 @@ class SettingsWidget:
         self.wifi_connection_button.focus_set()
         # Disabling possibility to change settings while WiFi connecting/disconnecting
         self.change_state("disabled")
+        # Notify handlers about WiFi connection process start via callback
+        self._call_wifi_state_callback("disabled")
 
         self.device.set_wifi_connection(
             None if self.wifi_connection_button.cget("text") == "Disconnect"
@@ -413,6 +428,8 @@ class SettingsWidget:
             text_color_disabled=["#BDBDBD", "#999999"]
         ))
         self.change_state("normal")
+        # Notify handlers about WiFi connection process finish via callback
+        self._call_wifi_state_callback("normal")
 
     def _wifi_connection_pass(self):
         """
@@ -426,6 +443,24 @@ class SettingsWidget:
             text_color_disabled=["#BDBDBD", "#999999"]
         ))
         self.change_state("normal")
+        # Notify handlers about WiFi connection process finish via callback
+        self._call_wifi_state_callback("normal")
+
+    def _call_wifi_state_callback(self, state):
+        """
+        Call the WiFi state change callback(s).
+
+        Args:
+            state (str): The new state ("disabled" or "normal").
+        """
+        if self.on_wifi_state_change_callback is None:
+            return
+        
+        if isinstance(self.on_wifi_state_change_callback, list):
+            for callback in self.on_wifi_state_change_callback:
+                callback(state)
+        else:
+            self.on_wifi_state_change_callback(state)
 
     def _wifi_update_connection_button_state(self, event=None):
         """

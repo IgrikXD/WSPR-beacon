@@ -38,6 +38,12 @@ class BeaconApp(customtkinter.CTk):
         # Create the "Settings" widget
         settings_frame = SettingsWidget(self, self.device, self.config)
 
+        # Set callback for WiFi state changes in Settings to control Self-check and Transmission widgets
+        settings_frame.set_wifi_state_change_callback([
+            self_check_frame.change_state,
+            transmission_frame.change_state
+        ])
+
         # Frames for navigation by buttons
         navigation_frame.set_navigated_frames(
             transmission=transmission_frame,
