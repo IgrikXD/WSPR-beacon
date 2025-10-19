@@ -66,9 +66,10 @@ python -m pytest -m unit
 > These tests require a physical WSPR beacon device connected via USB!
 
 Integration tests are available to verify the device core functionality, and they verify:
-- Proper DTR/RTS control to prevent device reset when closing serial connection
+- Thread-safe concurrent `Device.connect()` operations without race conditions
 - Successful device reconnection after disconnect
 - Complete device info retrieval (_active TX mode, WiFi data, GPS status, calibration value, firmware/hardware info_)
+- Correct setting and confirmation of active transmission mode parameters
 
 To run the integration tests, install `pytest` and execute:
 ```powershell
