@@ -88,8 +88,11 @@ class Device:
     __TX_QUEUE_MAX_SIZE = 10
 
     def __init__(self):
+        # Queue for outgoing messages transmission to the device
         self.tx_queue: Optional[asyncio.Queue] = None
+        # Event loop for running asynchronous tasks (Serial/WebSocket connections)
         self.asyncio_loop: Optional[asyncio.AbstractEventLoop] = None
+        # Thread for running the event loop
         self.asyncio_thread: Optional[threading.Thread] = None
         # Stop flag to signal transports and loops to terminate
         self._stop_flag = False
@@ -108,6 +111,7 @@ class Device:
         # Transports that are currently connected (USB (Serial)/WebSocket)
         self._connected_transports: Set[Device.Transport] = set()
 
+        # Mapping of incoming message types to lists of registered callback handlers
         self.mapped_callbacks: Dict[Device.Message.Incoming, List[Callable]] = {}
 
         self.serial_transport = SerialTransport(self)
@@ -137,6 +141,9 @@ class Device:
             loop_started = threading.Event()
 
             def run_loop():
+                """
+                Run the asyncio event loop.
+                """
                 asyncio.set_event_loop(self.asyncio_loop)
                 self.asyncio_loop.call_soon(loop_started.set)
                 self.asyncio_loop.run_forever()
@@ -325,9 +332,9 @@ class Device:
     def _decide_active_transport(self):
         """
         Chooses which transport should be active based on:
-            1) _requested_transport (if it is actually connected)
-            2) transport_priority (e.g., WiFi first, then USB)
-            3) or None if no transport is currently available
+            1. _requested_transport (if it is actually connected)
+            2. transport_priority (e.g., WiFi first, then USB)
+            3. or None if no transport is currently available
         Notifies handlers if the active transport changes.
         """
         old_transport = self.active_transport
@@ -504,9 +511,9 @@ class SerialTransport(BaseTransport):
     4. Therefore, we create Serial object manually, configure it, then use connection_for_serial()
 
     DTR/RTS handling:
-    - Before open(): Configure dsrdtr=False, rtscts=False
-    - After open(): Immediately set DTR=False, RTS=False
-    - Before close(): DTR/RTS leave as False to prevent reset
+    1. Before open(): Configure dsrdtr=False, rtscts=False
+    2. After open(): Immediately set DTR=False, RTS=False
+    3. Before close(): DTR/RTS leave as False to prevent reset
     """
     def __init__(self, device: Device):
         super().__init__(device)
