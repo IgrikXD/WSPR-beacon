@@ -1,6 +1,7 @@
 import pytest
 import serial.tools.list_ports
 import time
+import threading
 
 from beaconapp.device import Device
 from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
@@ -22,18 +23,42 @@ def find_device():
     return None
 
 
-@pytest.fixture(scope="function")
-def device():
+@pytest.mark.integration
+@pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
+def test_concurrent_connect_calls():
     """
-    Create a fresh Device instance for testing.
+    Checks that concurrent connect() calls don't cause race conditions.
     """
-    device_instance = Device()
-    device_instance.connect()
-    # Allow more time for device to be ready and transport to be established
-    time.sleep(2.0)  
-    yield device_instance
-    # Cleanup: ensure device is disconnected after each test
-    device_instance.disconnect()
+    device = Device()
+    results = []
+    
+    def attempt_connect():
+        """
+        Each thread attempts to connect. Lock ensures only one succeeds.
+        """
+        try:
+            device.connect()
+            results.append(True)
+        except Device.AlreadyConnectedError:
+            results.append(False)
+    
+    # Launch multiple threads that attempt to connect simultaneously
+    num_threads = 3
+    threads = [threading.Thread(target=attempt_connect) for _ in range(num_threads)]
+    
+    # Start all threads and wait for completion
+    [thread.start() for thread in threads]
+    [thread.join() for thread in threads]
+    
+    # All threads completed successfully
+    assert len(results) == num_threads
+    
+    # Only one thread should have connected successfully
+    assert results.count(True) == 1
+    assert results.count(False) == 2
+    
+    # Terminate device connection
+    device.disconnect()
 
 
 @pytest.mark.integration
@@ -65,6 +90,20 @@ def test_device_reconnection():
     assert device.active_transport is Device.Transport.USB
     # Terminate device connection
     device.disconnect()
+
+
+@pytest.fixture(scope="function")
+def device():
+    """
+    Create a fresh Device instance for testing.
+    """
+    device_instance = Device()
+    device_instance.connect()
+    # Allow more time for device to be ready and transport to be established
+    time.sleep(2.0)  
+    yield device_instance
+    # Cleanup: ensure device is disconnected after each test
+    device_instance.disconnect()
 
 
 @pytest.mark.integration

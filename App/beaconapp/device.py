@@ -24,6 +24,12 @@ logger.setLevel(logging.DEBUG if ('--debug' in sys.argv) else logging.CRITICAL)
 
 
 class Device:
+    class AlreadyConnectedError(Exception):
+        """
+        Raised when attempting to connect a device that is already connected.
+        """
+        pass
+
     class Transport(Enum):
         USB = "USB"
         WIFI = "WiFi"
@@ -73,6 +79,9 @@ class Device:
         self.asyncio_thread: Optional[threading.Thread] = None
         # Stop flag to signal transports and loops to terminate
         self._stop_flag = False
+        
+        # Lock to prevent concurrent connect/disconnect calls
+        self._connection_lock = threading.Lock()
 
         # Active transport, None until a transport actually connects
         self.active_transport: Optional[Device.Transport] = None
@@ -93,95 +102,108 @@ class Device:
     def connect(self):
         """
         Create a new event loop in a separate thread and run Serial and WebSocket connections in parallel.
+        Thread-safe: uses lock to prevent concurrent connect/disconnect calls.
+        
+        Raises:
+            Device.AlreadyConnectedError: If device is already connected.
         """
-        self._stop_flag = False
-        
-        # Create new asyncio loop and queue for this connection
-        self.asyncio_loop = asyncio.new_event_loop()
-        self.tx_queue = asyncio.Queue()
-        self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
-        
-        # Event to ensure the loop is running before scheduling coroutines
-        loop_started = threading.Event()
-        
-        def run_loop():
-            asyncio.set_event_loop(self.asyncio_loop)
-            self.asyncio_loop.call_soon(loop_started.set)
-            self.asyncio_loop.run_forever()
-        
-        self.asyncio_thread = threading.Thread(target=run_loop, daemon=True)
-        self.asyncio_thread.start()
-        
-        # Wait for the event loop to actually start
-        loop_started.wait(timeout=5.0)
+        with self._connection_lock:
+            # Prevent connecting if already connected
+            if self.asyncio_loop is not None and self.asyncio_loop.is_running():
+                raise Device.AlreadyConnectedError("Device is already connected")
+            
+            self._stop_flag = False
+            
+            # Create new asyncio loop and queue for this connection
+            self.asyncio_loop = asyncio.new_event_loop()
+            self.tx_queue = asyncio.Queue()
+            self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
+            
+            # Event to ensure the loop is running before scheduling coroutines
+            loop_started = threading.Event()
+            
+            def run_loop():
+                asyncio.set_event_loop(self.asyncio_loop)
+                self.asyncio_loop.call_soon(loop_started.set)
+                self.asyncio_loop.run_forever()
+            
+            self.asyncio_thread = threading.Thread(target=run_loop, daemon=True)
+            self.asyncio_thread.start()
+            
+            # Wait for the event loop to actually start
+            loop_started.wait(timeout=5.0)
 
-        # In parallel try to connect via serial and websocket
-        asyncio.run_coroutine_threadsafe(self.serial_transport.connect(), self.asyncio_loop)
-        asyncio.run_coroutine_threadsafe(self.ws_transport.connect(), self.asyncio_loop)
-        asyncio.run_coroutine_threadsafe(self._handle_outgoing_messages(), self.asyncio_loop)
+            # In parallel try to connect via serial and websocket
+            asyncio.run_coroutine_threadsafe(self.serial_transport.connect(), self.asyncio_loop)
+            asyncio.run_coroutine_threadsafe(self.ws_transport.connect(), self.asyncio_loop)
+            
+            # Start message handler (tracked via cancel_tasks in disconnect)
+            asyncio.run_coroutine_threadsafe(self._handle_outgoing_messages(), self.asyncio_loop)
 
     def disconnect(self):
         """
         Properly closes all connections (Serial and WebSocket).
         Serial connections are closed without triggering DTR/RTS signals.
+        Thread-safe: uses lock to prevent concurrent connect/disconnect calls.
         """
-        if not self.asyncio_loop:
-            return
-        
-        self._stop_flag = True
-        
-        # Cancel all pending tasks to stop all operations
-        if self.asyncio_loop.is_running():
-            async def cancel_tasks():
-                tasks = [t for t in asyncio.all_tasks() 
-                        if not t.done() and t != asyncio.current_task()]
-                for task in tasks:
-                    task.cancel()
-                if tasks:
-                    await asyncio.gather(*tasks, return_exceptions=True)
+        with self._connection_lock:
+            if not self.asyncio_loop:
+                return
             
+            self._stop_flag = True
+            
+            # Cancel all pending tasks to stop all operations
+            if self.asyncio_loop.is_running():
+                async def cancel_tasks():
+                    tasks = [t for t in asyncio.all_tasks() 
+                            if not t.done() and t != asyncio.current_task()]
+                    for task in tasks:
+                        task.cancel()
+                    if tasks:
+                        await asyncio.gather(*tasks, return_exceptions=True)
+                
+                try:
+                    asyncio.run_coroutine_threadsafe(cancel_tasks(), self.asyncio_loop).result(timeout=0.3)
+                except Exception:
+                    pass
+            
+            # Close Serial transport and port (non-blocking)
             try:
-                asyncio.run_coroutine_threadsafe(cancel_tasks(), self.asyncio_loop).result(timeout=0.3)
+                if self.serial_transport.transport:
+                    self.serial_transport.transport.close()
+                    self.serial_transport.transport = None
+                if self.serial_transport.serial_port:
+                    self.serial_transport.serial_port.timeout = 0
+                    self.serial_transport.serial_port.write_timeout = 0
+                    if self.serial_transport.serial_port.is_open:
+                        self.serial_transport.serial_port.close()
+                    self.serial_transport.serial_port = None
             except Exception:
                 pass
-        
-        # Close Serial transport and port (non-blocking)
-        try:
-            if self.serial_transport.transport:
-                self.serial_transport.transport.close()
-                self.serial_transport.transport = None
-            if self.serial_transport.serial_port:
-                self.serial_transport.serial_port.timeout = 0
-                self.serial_transport.serial_port.write_timeout = 0
-                if self.serial_transport.serial_port.is_open:
-                    self.serial_transport.serial_port.close()
-                self.serial_transport.serial_port = None
-        except Exception:
-            pass
-        
-        # Close WebSocket
-        if self.asyncio_loop.is_running() and self.ws_transport.websocket:
-            try:
-                asyncio.run_coroutine_threadsafe(
-                    self.ws_transport.close(), self.asyncio_loop).result(timeout=0.3)
-            except Exception:
-                self.ws_transport.websocket = None
-        
-        # Stop event loop and wait briefly for thread
-        if self.asyncio_loop.is_running():
-            try:
-                self.asyncio_loop.call_soon_threadsafe(self.asyncio_loop.stop)
-            except RuntimeError:
-                pass
-        
-        if self.asyncio_thread and self.asyncio_thread.is_alive():
-            self.asyncio_thread.join(timeout=0.1)
-        
-        # Reset state
-        self.active_transport = None
-        self._connected_transports.clear()
-        self.asyncio_loop = None
-        self.asyncio_thread = None
+            
+            # Close WebSocket
+            if self.asyncio_loop.is_running() and self.ws_transport.websocket:
+                try:
+                    asyncio.run_coroutine_threadsafe(
+                        self.ws_transport.close(), self.asyncio_loop).result(timeout=0.3)
+                except Exception:
+                    self.ws_transport.websocket = None
+            
+            # Stop event loop and wait briefly for thread
+            if self.asyncio_loop.is_running():
+                try:
+                    self.asyncio_loop.call_soon_threadsafe(self.asyncio_loop.stop)
+                except RuntimeError:
+                    pass
+            
+            if self.asyncio_thread and self.asyncio_thread.is_alive():
+                self.asyncio_thread.join(timeout=0.1)
+            
+            # Reset state
+            self.active_transport = None
+            self._connected_transports.clear()
+            self.asyncio_loop = None
+            self.asyncio_thread = None
 
     def set_device_response_handlers(self, mapped_callbacks: Dict[Message.Incoming, List[Callable]]):
         """
