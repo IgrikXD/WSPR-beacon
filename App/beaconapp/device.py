@@ -304,11 +304,16 @@ class Device:
     def _on_transport_disconnected(self, transport_type: Transport):
         """
         Called by a transport class (Serial/WebSocket) when a connection is lost or closed.
+        If USB is disconnected, we assume the device has lost power, so we also drop the Wi-Fi 
+        connection. When connected to a PC via USB, both USB and Wi-Fi are available. When 
+        powered externally (e.g., via power bank), USB (Serial) is not physically present,
+        and only WiFi is available. Removing WiFi on USB disconnect reflects the
+        expected hardware behavior.
         """
         if transport_type in self._connected_transports:
             self._connected_transports.remove(transport_type)
 
-        # If USB is disconnected, assume we lose device power, thus remove WiFi as well
+        # If USB is disconnected, we assume the device has lost power, and remove WiFi as well
         if transport_type == Device.Transport.USB:
             if Device.Transport.WIFI in self._connected_transports:
                 self._connected_transports.remove(Device.Transport.WIFI)
