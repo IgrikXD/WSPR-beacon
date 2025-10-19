@@ -347,9 +347,17 @@ class Device:
         """
         Decodes a message from JSON into a Device.Message, including special handling for known
         data types (ActiveTXMode, WiFiData, etc.).
+        Returns None if message type is unknown.
         """
         obj = json.loads(message)
-        msg_type = Device.Message.Incoming(obj.get("type"))
+        msg_type_str = obj.get("type")
+        
+        try:
+            msg_type = Device.Message.Incoming(msg_type_str)
+        except ValueError:
+            logger.error(f"{Fore.RED}[ERROR] Unknown message type received: {msg_type_str}{Style.RESET_ALL}")
+            return None
+        
         raw_data = obj.get("data")
 
         if msg_type == Device.Message.Incoming.ACTIVE_TX_MODE:
@@ -620,9 +628,15 @@ class WebsocketTransport(BaseTransport):
             async for message in self.websocket:
                 message = message.strip()
                 if message:
-                    msg = self.device._decode_device_message(message)
-                    logger.debug(f"{Fore.MAGENTA}RX (WebSocket): {message}{Style.RESET_ALL}")
-                    self.device._call_handlers(msg.type, msg.data)
+                    try:
+                        msg = self.device._decode_device_message(message)
+                        if msg:  # Check if decoding was successful
+                            logger.debug(f"{Fore.MAGENTA}RX (WebSocket): {message}{Style.RESET_ALL}")
+                            self.device._call_handlers(msg.type, msg.data)
+                    except json.JSONDecodeError:
+                        logger.debug(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
+                    except Exception as e:
+                        logger.error(f"{Fore.RED}[ERROR] Error decoding message: {e}{Style.RESET_ALL}")
         except websockets.exceptions.ConnectionClosedError:
             self.websocket = None
             self.device._on_transport_disconnected(Device.Transport.WIFI)
@@ -661,8 +675,9 @@ class DeviceProtocol(asyncio.Protocol):
             if message:
                 try:
                     msg = self.device._decode_device_message(message)
-                    logger.debug(f"{Fore.MAGENTA}RX (USB): {message}{Style.RESET_ALL}")
-                    self.device._call_handlers(msg.type, msg.data)
+                    if msg:  # Check if decoding was successful
+                        logger.debug(f"{Fore.MAGENTA}RX (USB): {message}{Style.RESET_ALL}")
+                        self.device._call_handlers(msg.type, msg.data)
                 except json.JSONDecodeError:
                     logger.debug(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
                 except Exception as e:
