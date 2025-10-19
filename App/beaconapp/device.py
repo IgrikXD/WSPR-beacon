@@ -408,10 +408,16 @@ class Device:
             logger.warning(f"{Fore.YELLOW}[WARNING] Cannot send message {message.type}: device is not connected or initialized!{Style.RESET_ALL}")
             return
         
-        try:
-            self.asyncio_loop.call_soon_threadsafe(self.tx_queue.put_nowait, message)
-        except asyncio.QueueFull:
-            logger.error(f"{Fore.RED}[ERROR] TX queue is full ({self.__TX_QUEUE_MAX_SIZE} messages), message discarded: {message.type}{Style.RESET_ALL}")
+        def try_put():
+            """
+            Wrapper that handles QueueFull exception in the event loop thread.
+            """
+            try:
+                self.tx_queue.put_nowait(message)
+            except asyncio.QueueFull:
+                logger.error(f"{Fore.RED}[ERROR] TX queue is full ({self.__TX_QUEUE_MAX_SIZE} messages), message discarded: {message.type}{Style.RESET_ALL}")
+        
+        self.asyncio_loop.call_soon_threadsafe(try_put)
 
     def _send_to_device(self, message: Message):
         """
