@@ -17,8 +17,10 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
-# Add handler that writes logs to sys.stdout
-logger.addHandler(logging.StreamHandler())
+# Add handler that writes logs to sys.stdout only if not already present
+# This prevents duplicate handlers when the module is re-imported
+if not logger.handlers:
+    logger.addHandler(logging.StreamHandler())
 # Set logger level to DEBUG if `--debug` is present in the command line arguments, otherwise to CRITICAL
 logger.setLevel(logging.DEBUG if ('--debug' in sys.argv) else logging.CRITICAL)
 
@@ -430,8 +432,10 @@ class Device:
             )
             return
 
-        # Lambda that handles QueueFull exception in the event loop thread
         def try_put():
+            """
+            Wrapper that handles QueueFull exception in the event loop thread.
+            """
             try:
                 self.tx_queue.put_nowait(message)
             except asyncio.QueueFull:
