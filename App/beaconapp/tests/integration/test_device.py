@@ -29,8 +29,8 @@ def device():
     """
     device_instance = Device()
     device_instance.connect()
-    # Allow some time for device to be ready
-    time.sleep(10.0)  
+    # Allow more time for device to be ready and transport to be established
+    time.sleep(2.0)  
     yield device_instance
     # Cleanup: ensure device is disconnected after each test
     device_instance.disconnect()
@@ -38,7 +38,7 @@ def device():
 
 @pytest.mark.integration
 @pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
-def test_device_reconnection(device):
+def test_device_reconnection():
     """
     Checks that device can reconnect without issues.
     """
@@ -46,16 +46,22 @@ def test_device_reconnection(device):
 
     # First device connection
     device.connect()
-    # Verify first connection
+    time.sleep(2.0)
+    # Verify first connection is via USB
     assert device.active_transport is Device.Transport.USB
     # Terminate device connection
     device.disconnect()
 
+    # Verify transport is reset after disconnect
     assert device.active_transport is None
+
+    # Wait for the serial port to be fully released
+    time.sleep(2.0)
 
     # Second device connection
     device.connect()
-    # Verify reconnection
+    time.sleep(2.0)
+    # Verify reconnection via USB
     assert device.active_transport is Device.Transport.USB
     # Terminate device connection
     device.disconnect()

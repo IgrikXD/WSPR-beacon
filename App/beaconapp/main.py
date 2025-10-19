@@ -126,6 +126,8 @@ class BeaconApp(customtkinter.CTk):
         # Properly close all active connections to the device
         self.device.disconnect()
         self.destroy()
+        # Force exit to prevent hanging on resource cleanup
+        os._exit(0)
 
 
 def check_already_running() -> bool:
