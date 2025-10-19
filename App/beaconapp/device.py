@@ -86,7 +86,7 @@ class Device:
     __TX_QUEUE_MAX_SIZE = 10
 
     def __init__(self):
-        self.tx_queue = asyncio.Queue(maxsize=self.__TX_QUEUE_MAX_SIZE)
+        self.tx_queue: Optional[asyncio.Queue] = None
         self.asyncio_loop: Optional[asyncio.AbstractEventLoop] = None
         self.asyncio_thread: Optional[threading.Thread] = None
         # Stop flag to signal transports and loops to terminate
@@ -430,10 +430,8 @@ class Device:
             )
             return
 
+        # Lambda that handles QueueFull exception in the event loop thread
         def try_put():
-            """
-            Wrapper that handles QueueFull exception in the event loop thread.
-            """
             try:
                 self.tx_queue.put_nowait(message)
             except asyncio.QueueFull:
