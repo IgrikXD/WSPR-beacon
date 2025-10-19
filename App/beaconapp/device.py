@@ -386,7 +386,7 @@ class Device:
                 # Timeout is expected, just continue to check stop flag
                 continue
             except Exception as e:
-                logger.error(f"Error handling outgoing message: {e}")
+                logger.error(f"{Fore.RED}[ERROR] Outgoing message sending failed: {e}{Style.RESET_ALL}")
 
     def _put(self, message: Message):
         """
