@@ -1,6 +1,8 @@
 **/__pycache__/
 build/
 dist/
+htmlcov/
 *.egg-info
 *.exe
 *.spec
+.coverage

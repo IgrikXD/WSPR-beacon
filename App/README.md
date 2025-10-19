@@ -55,9 +55,9 @@ Unit tests are available to verify the application's core functionality, and the
 - Correct operation of data wrappers used for data exchange during device communication
 - Correct saving and loading of the application's configuration file
 
-To run the unit tests, install `pytest` and execute:
+To run the unit tests, install development dependencies and execute:
 ```powershell
-pip install pytest==8.3.4
+pip install -r requirements-dev.txt
 python -m pytest -m unit
 ```
 
@@ -71,11 +71,24 @@ Integration tests are available to verify the device core functionality, and the
 - Complete device info retrieval (_active TX mode, WiFi data, GPS status, calibration value, firmware/hardware info_)
 - Correct setting and confirmation of active transmission mode parameters
 
-To run the integration tests, install `pytest` and execute:
+To run the integration tests, install development dependencies and execute:
 ```powershell
-pip install pytest==8.3.4
+pip install -r requirements-dev.txt
 python -m pytest -m integration
 ```
+
+### Code coverage
+> [!WARNING]  
+> By default, coverage runs both [unit](#unit-tests) and [integration](#integration-tests) tests. Integration tests require a physical WSPR beacon device connected via USB!
+
+To measure test coverage and identify untested code paths, you can generate a coverage report:
+
+```powershell
+pip install -r requirements-dev.txt
+python -m pytest --cov=beaconapp --cov-config=pytest.ini
+```
+
+The coverage report excludes test files, `__init__.py`, and the `main.py` file (_application entry point_) to focus on actual business logic coverage.
 
 ### Hardware self-check
 After flashing the firmware onto the device, it is recommended to run the hardware self-check to ensure that all components are functioning correctly (_LEDs, SI5351, GPS, Wi-Fi_) and the device is ready for operation.
