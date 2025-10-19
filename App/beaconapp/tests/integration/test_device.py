@@ -47,8 +47,10 @@ def test_concurrent_connect_calls():
     threads = [threading.Thread(target=attempt_connect) for _ in range(num_threads)]
 
     # Start all threads and wait for completion
-    [thread.start() for thread in threads]
-    [thread.join() for thread in threads]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
 
     # All threads completed successfully
     assert len(results) == num_threads
