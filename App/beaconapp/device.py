@@ -70,6 +70,7 @@ class Device:
     def __init__(self):
         self.tx_queue = asyncio.Queue()
         self.asyncio_loop: Optional[asyncio.AbstractEventLoop] = None
+        self._stop_flag = False
 
         # Active transport, USB (Serial) by default
         self.active_transport: Optional[Device.Transport] = Device.Transport.USB
@@ -91,11 +92,22 @@ class Device:
         """
         Create a new event loop in a separate thread and run Serial and WebSocket connections in parallel.
         """
+        self._stop_flag = False
         self.asyncio_loop = asyncio.new_event_loop()
         self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
-        asyncio.set_event_loop(self.asyncio_loop)
-
-        threading.Thread(target=lambda: self.asyncio_loop.run_forever(), daemon=True).start()
+        
+        # Event to ensure the loop is running before scheduling coroutines
+        loop_started = threading.Event()
+        
+        def run_loop():
+            asyncio.set_event_loop(self.asyncio_loop)
+            self.asyncio_loop.call_soon(loop_started.set)
+            self.asyncio_loop.run_forever()
+        
+        threading.Thread(target=run_loop, daemon=True).start()
+        
+        # Wait for the event loop to actually start
+        loop_started.wait(timeout=5.0)
 
         # In parallel try to connect via serial and websocket
         asyncio.run_coroutine_threadsafe(self.serial_transport.connect(), self.asyncio_loop)
@@ -107,8 +119,41 @@ class Device:
         Properly closes all connections (Serial and WebSocket).
         Serial connections are closed without triggering DTR/RTS signals.
         """
-        asyncio.run_coroutine_threadsafe(self.serial_transport.close(), self.asyncio_loop)
-        asyncio.run_coroutine_threadsafe(self.ws_transport.close(), self.asyncio_loop)
+        if not self.asyncio_loop:
+            return
+        
+        self._stop_flag = True
+        
+        # Close serial port synchronously (fast path)
+        try:
+            if self.serial_transport.transport:
+                self.serial_transport.transport.close()
+            if self.serial_transport.serial_port and self.serial_transport.serial_port.is_open:
+                self.serial_transport.serial_port.close()
+        except Exception as e:
+            logger.debug(f"{Fore.RED}[ERROR] Serial port close: {e}{Style.RESET_ALL}")
+        
+        # Cancel all pending tasks
+        if self.asyncio_loop.is_running():
+            async def cancel_tasks():
+                tasks = [t for t in asyncio.all_tasks(self.asyncio_loop) 
+                        if not t.done() and t != asyncio.current_task()]
+                for task in tasks:
+                    task.cancel()
+                if tasks:
+                    await asyncio.gather(*tasks, return_exceptions=True)
+            
+            try:
+                asyncio.run_coroutine_threadsafe(cancel_tasks(), self.asyncio_loop).result(timeout=0.3)
+            except:
+                pass
+        
+        # Stop the event loop
+        if self.asyncio_loop.is_running():
+            try:
+                self.asyncio_loop.call_soon_threadsafe(self.asyncio_loop.stop)
+            except RuntimeError:
+                pass
 
     def set_device_response_handlers(self, mapped_callbacks: Dict[Message.Incoming, List[Callable]]):
         """
@@ -282,9 +327,16 @@ class Device:
         """
         Continuously takes messages from tx_queue and sends them to the currently active transport.
         """
-        while True:
-            message = await self.tx_queue.get()
-            self._send_to_device(message)
+        while not self._stop_flag:
+            try:
+                # Use wait_for with timeout to allow checking stop flag
+                message = await asyncio.wait_for(self.tx_queue.get(), timeout=1.0)
+                self._send_to_device(message)
+            except asyncio.TimeoutError:
+                # Timeout is expected, just continue to check stop flag
+                continue
+            except Exception as e:
+                logger.error(f"Error handling outgoing message: {e}")
 
     def _put(self, message: Message):
         """
@@ -358,7 +410,7 @@ class SerialTransport(BaseTransport):
         Continuously looks for a matching COM port (ESP32-C3 PID/VID),
         and tries to establish a Serial connection.
         """
-        while True:
+        while not self.device._stop_flag:
             device_port = self._find_device_port()
             if device_port:
                 await asyncio.sleep(1)
@@ -386,11 +438,19 @@ class SerialTransport(BaseTransport):
         The key is to not change DTR/RTS state before closing - any change triggers a reset.
         """
         if self.transport:
-            self.transport.close()
+            try:
+                self.transport.close()
+            except Exception as e:
+                logger.debug(f"{Fore.RED}[ERROR] Closing serial transport: {e}{Style.RESET_ALL}")
             self.transport = None
 
         if self.serial_port and self.serial_port.is_open:
-            self.serial_port.close()
+            try:
+                self.serial_port.dtr = None
+                self.serial_port.rts = None
+                self.serial_port.close()
+            except Exception as e:
+                logger.debug(f"{Fore.RED}[ERROR] Closing serial port: {e}{Style.RESET_ALL}")
             self.serial_port = None
 
     def send(self, message: str):
@@ -425,7 +485,7 @@ class WebsocketTransport(BaseTransport):
         """
         Continuously tries to connect to the WebSocket.
         """
-        while True:
+        while not self.device._stop_flag:
             try:
                 self.websocket = await websockets.connect(f"ws://{self.hostname}:{self.port}")
                 self.device._on_transport_connected(Device.Transport.WIFI)
@@ -441,7 +501,10 @@ class WebsocketTransport(BaseTransport):
         Properly closes the WebSocket connection.
         """
         if self.websocket:
-            await self.websocket.close()
+            try:
+                await self.websocket.close()
+            except Exception as e:
+                logger.debug(f"{Fore.RED}[ERROR] Closing WebSocket: {e}{Style.RESET_ALL}")
             self.websocket = None
 
     def send(self, message: str):
@@ -469,7 +532,9 @@ class WebsocketTransport(BaseTransport):
         except websockets.exceptions.ConnectionClosedError:
             self.websocket = None
             self.device._on_transport_disconnected(Device.Transport.WIFI)
-            asyncio.create_task(self.connect())
+            # Only try to reconnect if we're not shutting down
+            if not self.device._stop_flag:
+                asyncio.create_task(self.connect())
 
 
 class DeviceProtocol(asyncio.Protocol):
@@ -510,4 +575,6 @@ class DeviceProtocol(asyncio.Protocol):
         """
         self.serial_transport.transport = None
         self.device._on_transport_disconnected(Device.Transport.USB)
-        asyncio.create_task(self.serial_transport.connect())
+        # Only try to reconnect if we're not shutting down
+        if not self.device._stop_flag:
+            asyncio.create_task(self.serial_transport.connect())
