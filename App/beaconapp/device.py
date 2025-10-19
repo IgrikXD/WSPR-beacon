@@ -274,9 +274,13 @@ class Device:
     def _call_handlers(self, msg_type: Enum, data):
         """
         Calls all handlers associated with the given incoming message type.
+        If a handler raises an exception, it is logged but does not prevent other handlers from running.
         """
         for handler in self.mapped_callbacks.get(msg_type, []):
-            handler(data)
+            try:
+                handler(data)
+            except Exception as e:
+                logger.error(f"{Fore.RED}[ERROR] Message type \"{msg_type}\" processing failed: {e}{Style.RESET_ALL}")
 
     def _on_transport_connected(self, transport_type: Transport):
         """
