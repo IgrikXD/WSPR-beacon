@@ -31,7 +31,7 @@ def test_concurrent_connect_calls():
     """
     device = Device()
     results = []
-    
+
     def attempt_connect():
         """
         Each thread attempts to connect. Lock ensures only one succeeds.
@@ -41,22 +41,22 @@ def test_concurrent_connect_calls():
             results.append(True)
         except Device.AlreadyConnectedError:
             results.append(False)
-    
+
     # Launch multiple threads that attempt to connect simultaneously
     num_threads = 3
     threads = [threading.Thread(target=attempt_connect) for _ in range(num_threads)]
-    
+
     # Start all threads and wait for completion
     [thread.start() for thread in threads]
     [thread.join() for thread in threads]
-    
+
     # All threads completed successfully
     assert len(results) == num_threads
-    
+
     # Only one thread should have connected successfully
     assert results.count(True) == 1
     assert results.count(False) == 2
-    
+
     # Terminate device connection
     device.disconnect()
 
@@ -100,7 +100,7 @@ def device():
     device_instance = Device()
     device_instance.connect()
     # Allow more time for device to be ready and transport to be established
-    time.sleep(2.0)  
+    time.sleep(2.0)
     yield device_instance
     # Cleanup: ensure device is disconnected after each test
     device_instance.disconnect()
@@ -171,7 +171,7 @@ def test_get_device_info(device):
 def test_set_active_tx_mode(device):
     """
     Checks that setting the active transmission mode processed correctly.
-    
+
     Verifies that the device accepts and confirms the new active TX mode settings.
     """
     # Store received data for later verification
@@ -207,4 +207,3 @@ def test_set_active_tx_mode(device):
     assert received_data['active_tx_mode'].output_power == activeTxMode.output_power
     assert received_data['active_tx_mode'].transmit_every == activeTxMode.transmit_every
     assert received_data['active_tx_mode'].active_band == activeTxMode.active_band
-

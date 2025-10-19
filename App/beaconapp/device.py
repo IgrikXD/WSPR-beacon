@@ -29,7 +29,7 @@ class Device:
         Raised when attempting to connect a device that is already connected.
         """
         pass
-    
+
     class DataSendingError(Exception):
         """
         Raised when attempting to send data but no active transport is available.
@@ -78,7 +78,7 @@ class Device:
     Needed to avoid converting float -> uint64_t on the firmware side.
     """
     __CAL_FREQ_MULTIPLIER = 100_000_000
-    
+
     """
     Maximum number of outgoing messages that can be queued.
     Prevents memory overflow if messages are sent faster than they can be transmitted.
@@ -91,7 +91,7 @@ class Device:
         self.asyncio_thread: Optional[threading.Thread] = None
         # Stop flag to signal transports and loops to terminate
         self._stop_flag = False
-        
+
         # Lock to prevent concurrent connect/disconnect calls
         self._connection_lock = threading.Lock()
 
@@ -115,7 +115,7 @@ class Device:
         """
         Create a new event loop in a separate thread and run Serial and WebSocket connections in parallel.
         Thread-safe: uses lock to prevent concurrent connect/disconnect calls.
-        
+
         Raises:
             Device.AlreadyConnectedError: If device is already connected.
         """
@@ -123,32 +123,32 @@ class Device:
             # Prevent connecting if already connected
             if self.asyncio_loop is not None and self.asyncio_loop.is_running():
                 raise Device.AlreadyConnectedError("Device is already connected")
-            
+
             self._stop_flag = False
-            
+
             # Create new asyncio loop and queue for this connection
             self.asyncio_loop = asyncio.new_event_loop()
             self.tx_queue = asyncio.Queue(maxsize=self.__TX_QUEUE_MAX_SIZE)
             self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
-            
+
             # Event to ensure the loop is running before scheduling coroutines
             loop_started = threading.Event()
-            
+
             def run_loop():
                 asyncio.set_event_loop(self.asyncio_loop)
                 self.asyncio_loop.call_soon(loop_started.set)
                 self.asyncio_loop.run_forever()
-            
+
             self.asyncio_thread = threading.Thread(target=run_loop, daemon=True)
             self.asyncio_thread.start()
-            
+
             # Wait for the event loop to actually start
             loop_started.wait(timeout=5.0)
 
             # In parallel try to connect via serial and websocket
             asyncio.run_coroutine_threadsafe(self.serial_transport.connect(), self.asyncio_loop)
             asyncio.run_coroutine_threadsafe(self.ws_transport.connect(), self.asyncio_loop)
-            
+
             # Start message handler (tracked via cancel_tasks in disconnect)
             asyncio.run_coroutine_threadsafe(self._handle_outgoing_messages(), self.asyncio_loop)
 
@@ -161,24 +161,23 @@ class Device:
         with self._connection_lock:
             if not self.asyncio_loop:
                 return
-            
+
             self._stop_flag = True
-            
+
             # Cancel all pending tasks to stop all operations
             if self.asyncio_loop.is_running():
                 async def cancel_tasks():
-                    tasks = [t for t in asyncio.all_tasks() 
-                            if not t.done() and t != asyncio.current_task()]
+                    tasks = [t for t in asyncio.all_tasks() if not t.done() and t != asyncio.current_task()]
                     for task in tasks:
                         task.cancel()
                     if tasks:
                         await asyncio.gather(*tasks, return_exceptions=True)
-                
+
                 try:
                     asyncio.run_coroutine_threadsafe(cancel_tasks(), self.asyncio_loop).result(timeout=0.3)
                 except Exception:
                     pass
-            
+
             # Close Serial transport and port (non-blocking)
             try:
                 if self.serial_transport.transport:
@@ -192,7 +191,7 @@ class Device:
                     self.serial_transport.serial_port = None
             except Exception:
                 pass
-            
+
             # Close WebSocket
             if self.asyncio_loop.is_running() and self.ws_transport.websocket:
                 try:
@@ -200,17 +199,18 @@ class Device:
                         self.ws_transport.close(), self.asyncio_loop).result(timeout=0.3)
                 except Exception:
                     self.ws_transport.websocket = None
-            
+
             # Stop event loop and wait briefly for thread
             if self.asyncio_loop.is_running():
                 try:
                     self.asyncio_loop.call_soon_threadsafe(self.asyncio_loop.stop)
                 except RuntimeError:
                     pass
-            
+
+            # Wait for asyncio thread to finish
             if self.asyncio_thread and self.asyncio_thread.is_alive():
                 self.asyncio_thread.join(timeout=0.1)
-            
+
             # Reset state
             self.active_transport = None
             self._connected_transports.clear()
@@ -304,8 +304,8 @@ class Device:
     def _on_transport_disconnected(self, transport_type: Transport):
         """
         Called by a transport class (Serial/WebSocket) when a connection is lost or closed.
-        If USB is disconnected, we assume the device has lost power, so we also drop the Wi-Fi 
-        connection. When connected to a PC via USB, both USB and Wi-Fi are available. When 
+        If USB is disconnected, we assume the device has lost power, so we also drop the WiFi
+        connection. When connected to a PC via USB, both USB and WiFi are available. When
         powered externally (e.g., via power bank), USB (Serial) is not physically present,
         and only WiFi is available. Removing WiFi on USB disconnect reflects the
         expected hardware behavior.
@@ -362,13 +362,13 @@ class Device:
         """
         obj = json.loads(message)
         msg_type_str = obj.get("type")
-        
+
         try:
             msg_type = Device.Message.Incoming(msg_type_str)
         except ValueError:
             logger.error(f"{Fore.RED}[ERROR] Unknown message type received: {msg_type_str}{Style.RESET_ALL}")
             return None
-        
+
         raw_data = obj.get("data")
 
         if msg_type == Device.Message.Incoming.ACTIVE_TX_MODE:
@@ -424,9 +424,12 @@ class Device:
         If the device is not connected, the message is discarded and a warning is logged.
         """
         if self.asyncio_loop is None:
-            logger.warning(f"{Fore.YELLOW}[WARNING] Cannot send message {message.type}: device is not connected or initialized!{Style.RESET_ALL}")
+            logger.warning(
+                f"{Fore.YELLOW}[WARNING] Cannot send message {message.type}: "
+                f"device is not connected or initialized!{Style.RESET_ALL}"
+            )
             return
-        
+
         def try_put():
             """
             Wrapper that handles QueueFull exception in the event loop thread.
@@ -434,14 +437,17 @@ class Device:
             try:
                 self.tx_queue.put_nowait(message)
             except asyncio.QueueFull:
-                logger.error(f"{Fore.RED}[ERROR] TX queue is full ({self.__TX_QUEUE_MAX_SIZE} messages), message discarded: {message.type}{Style.RESET_ALL}")
-        
+                logger.error(
+                    f"{Fore.RED}[ERROR] TX queue is full ({self.__TX_QUEUE_MAX_SIZE} messages), "
+                    f"message discarded: {message.type}{Style.RESET_ALL}"
+                )
+
         self.asyncio_loop.call_soon_threadsafe(try_put)
 
     def _send_to_device(self, message: Message):
         """
         Sends an encoded message to the currently active transport (USB or WiFi).
-        
+
         Raises:
             Device.DataSendingError: If no active transport is available or transport type is unknown.
         """
@@ -494,7 +500,7 @@ class SerialTransport(BaseTransport):
     2. We need to configure flow control (dsrdtr=False, rtscts=False) before opening
     3. We must set DTR/RTS to False immediately after open() to prevent device reset
     4. Therefore, we create Serial object manually, configure it, then use connection_for_serial()
-    
+
     DTR/RTS handling:
     - Before open(): Configure dsrdtr=False, rtscts=False
     - After open(): Immediately set DTR=False, RTS=False
@@ -526,7 +532,7 @@ class SerialTransport(BaseTransport):
                 self.serial_port.baudrate = 115200
                 self.serial_port.timeout = 1
                 self.serial_port.write_timeout = 1
-                
+
                 # Disable all flow control
                 self.serial_port.dsrdtr = False
                 self.serial_port.rtscts = False
@@ -536,7 +542,7 @@ class SerialTransport(BaseTransport):
                 # This is the only way to prevent device reset on connection
                 self.serial_port.dtr = False
                 self.serial_port.rts = False
-                
+
                 # Use exclusive access if supported
                 try:
                     self.serial_port.exclusive = True
