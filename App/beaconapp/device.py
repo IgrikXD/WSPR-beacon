@@ -416,7 +416,7 @@ class Device:
         """
         Places a message into the tx_queue for asynchronous sending.
         If the queue is full, the message is discarded and an error is logged.
-        If the device is not connected, the message is discarded silently.
+        If the device is not connected, the message is discarded and a warning is logged.
         """
         if self.asyncio_loop is None:
             logger.warning(f"{Fore.YELLOW}[WARNING] Cannot send message {message.type}: device is not connected or initialized!{Style.RESET_ALL}")
