@@ -29,6 +29,12 @@ class Device:
         Raised when attempting to connect a device that is already connected.
         """
         pass
+    
+    class DataSendingError(Exception):
+        """
+        Raised when attempting to send data but no active transport is available.
+        """
+        pass
 
     class Transport(Enum):
         USB = "USB"
@@ -430,12 +436,17 @@ class Device:
     def _send_to_device(self, message: Message):
         """
         Sends an encoded message to the currently active transport (USB or WiFi).
+        
+        Raises:
+            Device.DataSendingError: If no active transport is available or transport type is unknown.
         """
         json_str = self._encode_device_message(message)
         if self.active_transport == Device.Transport.WIFI:
             self.ws_transport.send(json_str)
         elif self.active_transport == Device.Transport.USB:
             self.serial_transport.send(json_str)
+        else:
+            raise Device.DataSendingError(f"No active transport available to send message: {message.type}")
 
     def _serial_exception_handler(self, loop: asyncio.AbstractEventLoop, context: dict):
         """
