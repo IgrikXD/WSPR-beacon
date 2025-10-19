@@ -72,9 +72,15 @@ class Device:
     Needed to avoid converting float -> uint64_t on the firmware side.
     """
     __CAL_FREQ_MULTIPLIER = 100_000_000
+    
+    """
+    Maximum number of outgoing messages that can be queued.
+    Prevents memory overflow if messages are sent faster than they can be transmitted.
+    """
+    __TX_QUEUE_MAX_SIZE = 10
 
     def __init__(self):
-        self.tx_queue = asyncio.Queue()
+        self.tx_queue = asyncio.Queue(maxsize=self.__TX_QUEUE_MAX_SIZE)
         self.asyncio_loop: Optional[asyncio.AbstractEventLoop] = None
         self.asyncio_thread: Optional[threading.Thread] = None
         # Stop flag to signal transports and loops to terminate
@@ -116,7 +122,7 @@ class Device:
             
             # Create new asyncio loop and queue for this connection
             self.asyncio_loop = asyncio.new_event_loop()
-            self.tx_queue = asyncio.Queue()
+            self.tx_queue = asyncio.Queue(maxsize=self.__TX_QUEUE_MAX_SIZE)
             self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
             
             # Event to ensure the loop is running before scheduling coroutines
@@ -395,8 +401,12 @@ class Device:
     def _put(self, message: Message):
         """
         Places a message into the tx_queue for asynchronous sending.
+        If the queue is full, the message is discarded and an error is logged.
         """
-        self.asyncio_loop.call_soon_threadsafe(self.tx_queue.put_nowait, message)
+        try:
+            self.asyncio_loop.call_soon_threadsafe(self.tx_queue.put_nowait, message)
+        except asyncio.QueueFull:
+            logger.error(f"{Fore.RED}[ERROR] TX queue is full ({self.__TX_QUEUE_MAX_SIZE} messages), message discarded: {message.type}{Style.RESET_ALL}")
 
     def _send_to_device(self, message: Message):
         """
