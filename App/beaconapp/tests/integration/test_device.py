@@ -277,7 +277,7 @@ def test_set_calibration_value(device, cal_value):
 @pytest.mark.integration
 @pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
 @pytest.mark.parametrize("connect_at_startup", [True, False])
-def test_set_connect_at_startup_value(device, connect_at_startup):
+def test_set_connect_at_startup(device, connect_at_startup):
     """
     Checks that setting the connect at startup value processed correctly.
 
@@ -286,11 +286,11 @@ def test_set_connect_at_startup_value(device, connect_at_startup):
     # Store received data for later verification
     received_data = {Device.Message.Incoming.WIFI_SSID_DATA: None}
 
-    def on_connect_at_startup_received(received_connect_at_startup):
+    def on_wifi_ssid_data_received(received_connect_at_startup):
         received_data[Device.Message.Incoming.WIFI_SSID_DATA] = received_connect_at_startup
 
     device.set_device_response_handlers({
-        Device.Message.Incoming.WIFI_SSID_DATA: [on_connect_at_startup_received]
+        Device.Message.Incoming.WIFI_SSID_DATA: [on_wifi_ssid_data_received]
     })
 
     device.set_ssid_connect_at_startup(connect_at_startup)
@@ -303,3 +303,43 @@ def test_set_connect_at_startup_value(device, connect_at_startup):
     assert any([received_data[Device.Message.Incoming.WIFI_SSID_DATA].ssid])
     assert any([received_data[Device.Message.Incoming.WIFI_SSID_DATA].password])
     assert received_data[Device.Message.Incoming.WIFI_SSID_DATA].connect_at_startup == connect_at_startup
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
+@pytest.mark.parametrize("calibration_frequency", [10.0, 15.5, 28.0, 28.9])
+def test_gen_cal_frequency(device, calibration_frequency):
+    """
+    Checks that setting the calibration frequency processed correctly.
+
+    Verifies that the device accepts and confirms the new calibration frequency settings.
+    This test trigger a RF transmission functionality from the device!
+    """
+    # Store received data for later verification
+    received_data = {Device.Message.Incoming.CAL_FREQ_GENERATED: None}
+
+    def on_cal_freq_generated_received(is_freq_generated):
+        received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] = is_freq_generated
+
+    device.set_device_response_handlers({
+        Device.Message.Incoming.CAL_FREQ_GENERATED: [on_cal_freq_generated_received]
+    })
+
+    device.gen_calibration_frequency(calibration_frequency)
+
+    # Wait for device response
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
+
+    # Verify received data (calibration frequency generation activated)
+    assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is not None
+    assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] == True
+
+    device.gen_calibration_frequency(None)
+    
+    # Wait for device response
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
+
+    # Verify received data (calibration frequency generation stopped)
+    assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is not None
+    assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] == False
+    
