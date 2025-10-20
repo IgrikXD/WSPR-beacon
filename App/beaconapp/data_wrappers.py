@@ -55,27 +55,31 @@ class ActiveTXMode:
         self.__init__()
 
     def to_json(self):
-        data = asdict(self)
-
-        data["tx_mode"] = getattr(self.tx_mode, "value", None)
-        data["transmit_every"] = getattr(self.transmit_every, "value", None)
-        data["active_band"] = getattr(self.active_band, "value", None)
-
-        return data
+        return {
+            "tx_mode": self.tx_mode.value if self.tx_mode else None,
+            "tx_call": self.tx_call,
+            "qth_locator": self.qth_locator,
+            "output_power": self.output_power,
+            "transmit_every": self.transmit_every.value if self.transmit_every else None,
+            "active_band": self.active_band.value if self.active_band else None,
+        }
 
     @classmethod
     def from_json(cls, json_data):
         if not json_data:
             return cls()
 
-        json_data["tx_mode"] = TXMode(json_data["tx_mode"]) if (
-            json_data.get("tx_mode") is not None) else None
-        json_data["transmit_every"] = TransmitEvery(json_data.get("transmit_every")) if (
-            json_data.get("transmit_every") is not None) else None
-        json_data["active_band"] = Band(json_data.get("active_band")) if (
-            json_data.get("active_band") is not None) else None
-
-        return cls(**json_data)
+        return cls(
+            tx_mode=TXMode(json_data["tx_mode"]) if json_data.get(
+                "tx_mode") is not None else None,
+            tx_call=json_data.get("tx_call"),
+            qth_locator=json_data.get("qth_locator"),
+            output_power=json_data.get("output_power"),
+            transmit_every=TransmitEvery(json_data["transmit_every"]) if json_data.get(
+                "transmit_every") is not None else None,
+            active_band=Band(json_data["active_band"]) if json_data.get(
+                "active_band") is not None else None,
+        )
 
 
 @dataclass
