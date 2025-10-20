@@ -274,6 +274,7 @@ def test_set_calibration_value(device, cal_value):
     assert received_data[Device.Message.Incoming.CAL_VALUE] is not None
     assert received_data[Device.Message.Incoming.CAL_VALUE] == cal_value
 
+
 @pytest.mark.integration
 @pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
 @pytest.mark.parametrize("connect_at_startup", [True, False])
@@ -332,14 +333,13 @@ def test_gen_cal_frequency(device, calibration_frequency):
 
     # Verify received data (calibration frequency generation activated)
     assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is not None
-    assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] == True
+    assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is True
 
     device.gen_calibration_frequency(None)
-    
+
     # Wait for device response
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Verify received data (calibration frequency generation stopped)
     assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is not None
-    assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] == False
-    
+    assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is False
