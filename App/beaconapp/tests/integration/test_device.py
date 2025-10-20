@@ -222,11 +222,10 @@ def test_set_active_tx_mode(device, expected_value):
     Verifies that the device accepts and confirms the new active TX mode settings.
     """
     # Store received data for later verification
-    received_data = {'active_tx_mode': None, 'is_received': False}
+    received_data = {'active_tx_mode': None}
 
     def on_active_tx_mode_received(active_tx_mode):
         received_data['active_tx_mode'] = active_tx_mode
-        received_data['is_received'] = True
 
     device.set_device_response_handlers({
         Device.Message.Incoming.ACTIVE_TX_MODE: [on_active_tx_mode_received]
@@ -240,8 +239,6 @@ def test_set_active_tx_mode(device, expected_value):
     # Wait for device response
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
-    # Response received check
-    assert received_data['is_received'] is True
     # When expected_value is not empty, verify response was received
     assert received_data['active_tx_mode'] is not None
     # Verify all fields match
