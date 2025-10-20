@@ -63,13 +63,15 @@ python -m pytest -m unit
 
 ### Integration tests
 > [!WARNING]  
-> These tests require a physical WSPR-beacon device connected via USB!
+> These tests require a physical WSPR-beacon device connected via USB! WiFi connection and GPS antenna must be disconnected during testing.
 
 Integration tests are available to verify the device core functionality, and they verify:
 - Thread-safe concurrent `Device.connect()` operations without race conditions
 - Successful device reconnection after disconnect
 - Complete device info retrieval (_active TX mode, WiFi data, GPS status, calibration value, firmware/hardware info_)
-- Correct setting and confirmation of active transmission mode parameters
+- Correct setting of active TX mode, SI5351 calibration value and automatic SSID connection at device startup
+- Calibration frequency generation control
+- WiFi connection handling with invalid credentials
 
 To run the integration tests, install development dependencies and execute:
 ```powershell
@@ -79,7 +81,7 @@ python -m pytest -m integration
 
 ### Code coverage
 > [!WARNING]  
-> By default, coverage runs both [unit](#unit-tests) and [integration](#integration-tests) tests. Integration tests require a physical WSPR-beacon device connected via USB!
+> By default, coverage runs both [unit](#unit-tests) and [integration](#integration-tests) tests. Integration tests require a physical WSPR-beacon device connected via USB! WiFi connection and GPS antenna must be disconnected during [integration](#integration-tests) tests execution.
 
 To measure test coverage and identify untested code paths, you can generate a coverage report:
 
