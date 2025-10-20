@@ -1,5 +1,5 @@
 # BEACON.App
-A Windows GUI application for configuring and managing a [WSPR beacon](https://github.com/IgrikXD/WSPR-beacon?tab=readme-ov-file#wspr-beacon) based on an ESP32 SoC ([_PCB version 3.1_](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-3.1)). The application communicates with the device via USB or WiFi to configure transmission parameters, perform hardware self-checks, and manage device setup (_including calibration and WiFi configuration_).
+A Windows GUI application for configuring and managing a [WSPR-beacon](https://github.com/IgrikXD/WSPR-beacon?tab=readme-ov-file#wspr-beacon) based on an ESP32 SoC ([_PCB version 3.1_](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-3.1)). The application communicates with the device via USB or WiFi to configure transmission parameters, perform hardware self-checks, and manage device setup (_including calibration and WiFi configuration_).
 
 ![BeaconApp](../Resources/BeaconApp-Transmission-frame.png)
 
@@ -63,7 +63,7 @@ python -m pytest -m unit
 
 ### Integration tests
 > [!WARNING]  
-> These tests require a physical WSPR beacon device connected via USB!
+> These tests require a physical WSPR-beacon device connected via USB!
 
 Integration tests are available to verify the device core functionality, and they verify:
 - Thread-safe concurrent `Device.connect()` operations without race conditions
@@ -79,7 +79,7 @@ python -m pytest -m integration
 
 ### Code coverage
 > [!WARNING]  
-> By default, coverage runs both [unit](#unit-tests) and [integration](#integration-tests) tests. Integration tests require a physical WSPR beacon device connected via USB!
+> By default, coverage runs both [unit](#unit-tests) and [integration](#integration-tests) tests. Integration tests require a physical WSPR-beacon device connected via USB!
 
 To measure test coverage and identify untested code paths, you can generate a coverage report:
 

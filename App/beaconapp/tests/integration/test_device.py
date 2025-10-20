@@ -11,6 +11,9 @@ from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
 DEVICE_VID = 0x303A
 DEVICE_PID = 0x1001
 
+# Device response timeout in seconds
+DEVICE_RESPONSE_TIMEOUT = 2.5
+
 
 def find_device():
     """
@@ -73,7 +76,7 @@ def test_device_reconnection():
 
     # First device connection
     device.connect()
-    time.sleep(2.0)
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
     # Verify first connection is via USB
     assert device.active_transport is Device.Transport.USB
     # Terminate device connection
@@ -83,11 +86,11 @@ def test_device_reconnection():
     assert device.active_transport is None
 
     # Wait for the serial port to be fully released
-    time.sleep(2.0)
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Second device connection
     device.connect()
-    time.sleep(2.0)
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
     # Verify reconnection via USB
     assert device.active_transport is Device.Transport.USB
     # Terminate device connection
@@ -102,7 +105,7 @@ def device():
     device_instance = Device()
     device_instance.connect()
     # Allow more time for device to be ready and transport to be established
-    time.sleep(2.0)
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
     yield device_instance
     # Cleanup: ensure device is disconnected after each test
     device_instance.disconnect()
@@ -154,7 +157,7 @@ def test_get_device_info(device):
     device.get_device_info()
 
     # Wait for device response
-    time.sleep(2.0)
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Assert: We should have received all expected responses
     assert responses[Device.Message.Incoming.ACTIVE_TX_MODE]
@@ -170,42 +173,105 @@ def test_get_device_info(device):
 
 @pytest.mark.integration
 @pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
-def test_set_active_tx_mode(device):
+@pytest.mark.parametrize("expected_value", [
+    {
+        "tx_mode": None,
+        "tx_call": None,
+        "qth_locator": None,
+        "output_power": None,
+        "transmit_every": None,
+        "active_band": None
+    },
+    {
+        "tx_mode": TXMode.WSPR,
+        "tx_call": "NOCALL",
+        "qth_locator": "XX00",
+        "output_power": 23,
+        "transmit_every": TransmitEvery.MINUTES_2,
+        "active_band": Band.BAND_20M
+    },
+    {
+        "tx_mode": TXMode.WSPR,
+        "tx_call": "TEST01",
+        "qth_locator": "AA00",
+        "output_power": 10,
+        "transmit_every": TransmitEvery.MINUTES_10,
+        "active_band": Band.BAND_40M
+    },
+    {
+        "tx_mode": TXMode.WSPR,
+        "tx_call": "AB1CDE",
+        "qth_locator": "JO01",
+        "output_power": 20,
+        "transmit_every": TransmitEvery.MINUTES_30,
+        "active_band": Band.BAND_2200M
+    },
+    {
+        "tx_mode": TXMode.WSPR,
+        "tx_call": "W1AW",
+        "qth_locator": "FN31",
+        "output_power": 30,
+        "transmit_every": TransmitEvery.MINUTES_60,
+        "active_band": Band.BAND_2M
+    },
+])
+def test_set_active_tx_mode(device, expected_value):
     """
     Checks that setting the active transmission mode processed correctly.
 
     Verifies that the device accepts and confirms the new active TX mode settings.
     """
     # Store received data for later verification
-    received_data = {'active_tx_mode': None}
+    received_data = {'active_tx_mode': None, 'is_received': False}
 
     def on_active_tx_mode_received(active_tx_mode):
         received_data['active_tx_mode'] = active_tx_mode
+        received_data['is_received'] = True
 
     device.set_device_response_handlers({
         Device.Message.Incoming.ACTIVE_TX_MODE: [on_active_tx_mode_received]
     })
 
     # Create and send active transmission mode configuration
-    activeTxMode = ActiveTXMode()
-    activeTxMode.tx_mode = TXMode.WSPR
-    activeTxMode.tx_call = "NOCALL"
-    activeTxMode.qth_locator = "XX00"
-    activeTxMode.output_power = 5
-    activeTxMode.transmit_every = TransmitEvery.MINUTES_2
-    activeTxMode.active_band = Band.BAND_20M
+    activeTxMode = None if expected_value['tx_mode'] is None else ActiveTXMode(**expected_value)
 
     device.set_active_tx_mode(activeTxMode)
 
     # Wait for device response
-    time.sleep(3.0)
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
-    # Verify that data was received
+    # Response received check
+    assert received_data['is_received'] is True
+    # When expected_value is not empty, verify response was received
     assert received_data['active_tx_mode'] is not None
+    # Verify all fields match
+    for key, value in expected_value.items():
+        assert getattr(received_data['active_tx_mode'], key) == value
+        
+
+@pytest.mark.integration
+@pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
+@pytest.mark.parametrize("cal_value", [0, 2000, -2000, -9999, 9999])
+def test_set_calibration_value(device, cal_value):
+    """
+    Checks that setting the calibration value processed correctly.
+
+    Verifies that the device accepts and confirms the new calibration value settings.
+    """
+    # Store received data for later verification
+    received_data = {'cal_value': None}
+
+    def on_cal_value_received(received_cal_value):
+        received_data['cal_value'] = received_cal_value
+
+    device.set_device_response_handlers({
+        Device.Message.Incoming.CAL_VALUE: [on_cal_value_received]
+    })
+
+    device.set_calibration_value(cal_value)
+
+    # Wait for device response
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
+
     # Verify that received data matches sent data
-    assert received_data['active_tx_mode'].tx_mode == activeTxMode.tx_mode
-    assert received_data['active_tx_mode'].tx_call == activeTxMode.tx_call
-    assert received_data['active_tx_mode'].qth_locator == activeTxMode.qth_locator
-    assert received_data['active_tx_mode'].output_power == activeTxMode.output_power
-    assert received_data['active_tx_mode'].transmit_every == activeTxMode.transmit_every
-    assert received_data['active_tx_mode'].active_band == activeTxMode.active_band
+    assert received_data['cal_value'] == cal_value
