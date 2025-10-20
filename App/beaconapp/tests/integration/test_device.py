@@ -4,7 +4,7 @@ import time
 import threading
 
 from beaconapp.device import Device
-from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
+from beaconapp.data_wrappers import ActiveTXMode, Band, ConnectionStatus, TransmitEvery, TXMode, WiFiCredentials
 
 
 # VID and PID for ESP32-C3
@@ -169,6 +169,34 @@ def test_get_device_info(device):
     assert responses[Device.Message.Incoming.CAL_STATUS]
     assert responses[Device.Message.Incoming.FIRMWARE_INFO]
     assert responses[Device.Message.Incoming.HARDWARE_INFO]
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
+def test_run_wifi_connection(device):
+    """
+    Checks that WiFi connection request processed correctly.
+
+    Verifies that the device correctly handles WiFi connection request to fake SSID.
+    """
+    # Store received data for later verification
+    received_data = {Device.Message.Incoming.WIFI_STATUS: None}
+
+    def on_wifi_status_received(status):
+        received_data[Device.Message.Incoming.WIFI_STATUS] = status
+
+    device.set_device_response_handlers({
+        Device.Message.Incoming.WIFI_STATUS: [on_wifi_status_received]
+    })
+
+    device.set_wifi_connection(WiFiCredentials(ssid="SSID", password="PASSWORD"))
+
+    # Wait for device response
+    time.sleep(13.0)  # Allow more time for WiFi connection attempt
+
+    # Verify received data
+    assert received_data[Device.Message.Incoming.WIFI_STATUS] is not None
+    assert received_data[Device.Message.Incoming.WIFI_STATUS] is ConnectionStatus.FAIL
 
 
 @pytest.mark.integration
