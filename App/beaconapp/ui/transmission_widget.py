@@ -186,7 +186,12 @@ class TransmissionWidget:
         self.wspr_output_power_entry.after(0, lambda: self.wspr_output_power_entry.configure(state=state))
         self.wspr_transmit_every_option.after(0, lambda: self.wspr_transmit_every_option.configure(state=state))
         self.wspr_active_band_option.after(0, lambda: self.wspr_active_band_option.configure(state=state))
-        self.wspr_set_as_active_mode_button.after(0, lambda: self.wspr_set_as_active_mode_button.configure(state=state))
+
+        if self.active_tx_mode.tx_mode is None:
+            self.wspr_set_as_active_mode_button.after(
+                0, lambda: self.wspr_set_as_active_mode_button.configure(state=state))
+        else:
+            self.reset_mode_button.after(0, lambda: self.reset_mode_button.configure(state=state))
 
     def set_active_tx_mode(self, active_tx_mode: ActiveTXMode):
         """
