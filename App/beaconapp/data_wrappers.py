@@ -20,6 +20,17 @@ class Band(Enum):
     BAND_2M = 2
 
 
+class CalibrationType(Enum):
+    AUTO = "auto"
+    MANUAL = "manual"
+
+
+class ConnectionStatus(Enum):
+    CONNECTED = "connected"
+    DISCONNECTED = "disconnected"
+    FAIL = "fail"
+
+
 class TransmitEvery(Enum):
     MINUTES_60 = 60
     MINUTES_30 = 30
@@ -47,8 +58,8 @@ class ActiveTXMode:
         data = asdict(self)
 
         data["tx_mode"] = getattr(self.tx_mode, "value", None)
-        data["transmit_every"] = self.transmit_every.value
-        data["active_band"] = self.active_band.value
+        data["transmit_every"] = getattr(self.transmit_every, "value", None)
+        data["active_band"] = getattr(self.active_band, "value", None)
 
         return data
 
@@ -57,22 +68,14 @@ class ActiveTXMode:
         if not json_data:
             return cls()
 
-        json_data["tx_mode"] = TXMode(json_data["tx_mode"]) if (json_data.get("tx_mode") is not None) else None
-        json_data["transmit_every"] = TransmitEvery(json_data.get("transmit_every"))
-        json_data["active_band"] = Band(json_data.get("active_band"))
+        json_data["tx_mode"] = TXMode(json_data["tx_mode"]) if (
+            json_data.get("tx_mode") is not None) else None
+        json_data["transmit_every"] = TransmitEvery(json_data.get("transmit_every")) if (
+            json_data.get("transmit_every") is not None) else None
+        json_data["active_band"] = Band(json_data.get("active_band")) if (
+            json_data.get("active_band") is not None) else None
 
         return cls(**json_data)
-
-
-class CalibrationType(Enum):
-    AUTO = "auto"
-    MANUAL = "manual"
-
-
-class ConnectionStatus(Enum):
-    CONNECTED = "connected"
-    DISCONNECTED = "disconnected"
-    FAIL = "fail"
 
 
 @dataclass
