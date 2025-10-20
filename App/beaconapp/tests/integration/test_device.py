@@ -153,13 +153,13 @@ def test_get_device_info(device):
         ]
     })
 
-    # device.connect()
     device.get_device_info()
 
     # Wait for device response
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
-    # Assert: We should have received all expected responses
+    # Verify received data
+    # We should have received all expected responses
     assert responses[Device.Message.Incoming.ACTIVE_TX_MODE]
     assert responses[Device.Message.Incoming.WIFI_SSID_DATA]
     assert responses[Device.Message.Incoming.WIFI_STATUS]
@@ -222,10 +222,10 @@ def test_set_active_tx_mode(device, expected_value):
     Verifies that the device accepts and confirms the new active TX mode settings.
     """
     # Store received data for later verification
-    received_data = {'active_tx_mode': None}
+    received_data = {Device.Message.Incoming.ACTIVE_TX_MODE: None}
 
     def on_active_tx_mode_received(active_tx_mode):
-        received_data['active_tx_mode'] = active_tx_mode
+        received_data[Device.Message.Incoming.ACTIVE_TX_MODE] = active_tx_mode
 
     device.set_device_response_handlers({
         Device.Message.Incoming.ACTIVE_TX_MODE: [on_active_tx_mode_received]
@@ -239,12 +239,12 @@ def test_set_active_tx_mode(device, expected_value):
     # Wait for device response
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
-    # When expected_value is not empty, verify response was received
-    assert received_data['active_tx_mode'] is not None
+    # Verify received data
+    assert received_data[Device.Message.Incoming.ACTIVE_TX_MODE] is not None
     # Verify all fields match
     for key, value in expected_value.items():
-        assert getattr(received_data['active_tx_mode'], key) == value
-        
+        assert getattr(received_data[Device.Message.Incoming.ACTIVE_TX_MODE], key) == value
+
 
 @pytest.mark.integration
 @pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
@@ -256,10 +256,10 @@ def test_set_calibration_value(device, cal_value):
     Verifies that the device accepts and confirms the new calibration value settings.
     """
     # Store received data for later verification
-    received_data = {'cal_value': None}
+    received_data = {Device.Message.Incoming.CAL_VALUE: None}
 
     def on_cal_value_received(received_cal_value):
-        received_data['cal_value'] = received_cal_value
+        received_data[Device.Message.Incoming.CAL_VALUE] = received_cal_value
 
     device.set_device_response_handlers({
         Device.Message.Incoming.CAL_VALUE: [on_cal_value_received]
@@ -270,5 +270,36 @@ def test_set_calibration_value(device, cal_value):
     # Wait for device response
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
-    # Verify that received data matches sent data
-    assert received_data['cal_value'] == cal_value
+    # Verify received data
+    assert received_data[Device.Message.Incoming.CAL_VALUE] is not None
+    assert received_data[Device.Message.Incoming.CAL_VALUE] == cal_value
+
+@pytest.mark.integration
+@pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
+@pytest.mark.parametrize("connect_at_startup", [True, False])
+def test_set_connect_at_startup_value(device, connect_at_startup):
+    """
+    Checks that setting the connect at startup value processed correctly.
+
+    Verifies that the device accepts and confirms the new connect at startup value settings.
+    """
+    # Store received data for later verification
+    received_data = {Device.Message.Incoming.WIFI_SSID_DATA: None}
+
+    def on_connect_at_startup_received(received_connect_at_startup):
+        received_data[Device.Message.Incoming.WIFI_SSID_DATA] = received_connect_at_startup
+
+    device.set_device_response_handlers({
+        Device.Message.Incoming.WIFI_SSID_DATA: [on_connect_at_startup_received]
+    })
+
+    device.set_ssid_connect_at_startup(connect_at_startup)
+
+    # Wait for device response
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
+
+    # Verify received data
+    assert received_data[Device.Message.Incoming.WIFI_SSID_DATA] is not None
+    assert any([received_data[Device.Message.Incoming.WIFI_SSID_DATA].ssid])
+    assert any([received_data[Device.Message.Incoming.WIFI_SSID_DATA].password])
+    assert received_data[Device.Message.Incoming.WIFI_SSID_DATA].connect_at_startup == connect_at_startup
