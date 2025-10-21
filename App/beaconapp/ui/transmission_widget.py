@@ -233,13 +233,14 @@ class TransmissionWidget:
 
     def update_qth_locator(self, qth_locator):
         """
-        Update the QTH locator entry.
+        Update the QTH locator entry (if not empty string received).
 
         Args:
             qth_locator: New QTH locator value.
         """
-        self.wspr_qth_locator_entry.after(0, lambda: self.wspr_qth_locator_entry.delete(0, "end"))
-        self.wspr_qth_locator_entry.after(0, lambda: self.wspr_qth_locator_entry.insert(0, qth_locator))
+        if qth_locator:
+            self.wspr_qth_locator_entry.after(0, lambda: self.wspr_qth_locator_entry.delete(0, "end"))
+            self.wspr_qth_locator_entry.after(0, lambda: self.wspr_qth_locator_entry.insert(0, qth_locator))
 
     def update_tx_message_action_status(self, text):
         """
