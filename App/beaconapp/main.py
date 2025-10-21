@@ -60,7 +60,12 @@ class BeaconApp(customtkinter.CTk):
                                                          lambda transport: self_check_frame.change_state(
                                                             "disabled" if transport is None else "normal"),
                                                          lambda transport: settings_frame.change_state(
-                                                            "disabled" if transport is None else "normal")],
+                                                            "disabled" if transport is None else "normal"),
+                                                         lambda transport: (
+                                                            transmission_frame.update_gps_status(False),
+                                                            transmission_frame.update_cal_status(False),
+                                                            transmission_frame.update_tx_status(False)
+                                                         ) if transport is None else None],
             Device.Message.Incoming.ACTIVE_TX_MODE:     [transmission_frame.set_active_tx_mode,
                                                          spots_database_frame.set_active_tx_mode,
                                                          lambda active_tx_mode: self_check_frame.change_state(
