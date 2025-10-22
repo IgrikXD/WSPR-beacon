@@ -161,9 +161,12 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
         # Incoming: WIFI_STATUS: ConnectionStatus("disconnected")
         ({"type": "WIFI_STATUS", "data": "disconnected"},
          Device.Message.Incoming.WIFI_STATUS, ConnectionStatus("disconnected")),
-        # Incoming: WIFI_STATUS: ConnectionStatus("fail")
-        ({"type": "WIFI_STATUS", "data": "fail"},
-         Device.Message.Incoming.WIFI_STATUS, ConnectionStatus("fail")),
+        # Incoming: WIFI_STATUS: ConnectionStatus("initiated")
+        ({"type": "WIFI_STATUS", "data": "initiated"},
+         Device.Message.Incoming.WIFI_STATUS, ConnectionStatus("initiated")),
+        # Incoming: WIFI_STATUS: ConnectionStatus("failed")
+        ({"type": "WIFI_STATUS", "data": "failed"},
+         Device.Message.Incoming.WIFI_STATUS, ConnectionStatus("failed")),
     ]
 )
 @pytest.mark.unit

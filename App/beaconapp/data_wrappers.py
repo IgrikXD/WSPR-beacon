@@ -27,9 +27,9 @@ class CalibrationType(Enum):
 
 class ConnectionStatus(Enum):
     CONNECTED = "connected"
-    CONNECTING = "connecting"
     DISCONNECTED = "disconnected"
-    FAIL = "fail"
+    INITIATED = "initiated"
+    FAILED = "failed"
 
 
 class TransmitEvery(Enum):

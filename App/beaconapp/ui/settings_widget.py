@@ -212,9 +212,9 @@ class SettingsWidget:
         """
         connection_actions = {
             ConnectionStatus.CONNECTED: self._wifi_connection_pass,
-            ConnectionStatus.CONNECTING: lambda: None,
             ConnectionStatus.DISCONNECTED: self._wifi_disconnected,
-            ConnectionStatus.FAIL: self._wifi_connection_error_handle,
+            ConnectionStatus.INITIATED: self._wifi_conection_initiated,
+            ConnectionStatus.FAILED: self._wifi_connection_error_handle,
         }
         connection_actions[status]()
 
@@ -390,6 +390,18 @@ class SettingsWidget:
             hover_color=["#3B8ED0", "#1F6AA5"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"]
         )
+
+    def _wifi_conection_initiated(self):
+        """
+        Handle UI changes when the WiFi connection attempt is initiated.
+        """
+        self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
+            state="disabled",
+            text="Connecting...",
+            fg_color=["#3B8ED0", "#1F6AA5"],
+            hover_color=["#3B8ED0", "#1F6AA5"],
+            text_color_disabled=["#DCE4EE", "#DCE4EE"]
+        ))
 
     def _wifi_connection_error_handle(self):
         """

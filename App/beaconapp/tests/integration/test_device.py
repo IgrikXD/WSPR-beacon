@@ -192,11 +192,18 @@ def test_run_wifi_connection(device):
     device.set_wifi_connection(WiFiCredentials(ssid="SSID", password="PASSWORD"))
 
     # Wait for device response
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
+
+    # Verify received data
+    assert received_data[Device.Message.Incoming.WIFI_STATUS] is not None
+    assert received_data[Device.Message.Incoming.WIFI_STATUS] is ConnectionStatus.INITIATED
+
+    # Wait for device response
     time.sleep(13.0)  # Allow more time for WiFi connection attempt
 
     # Verify received data
     assert received_data[Device.Message.Incoming.WIFI_STATUS] is not None
-    assert received_data[Device.Message.Incoming.WIFI_STATUS] is ConnectionStatus.FAIL
+    assert received_data[Device.Message.Incoming.WIFI_STATUS] is ConnectionStatus.FAILED
 
 
 @pytest.mark.integration
