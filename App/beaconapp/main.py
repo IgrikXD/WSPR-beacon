@@ -86,14 +86,14 @@ class BeaconApp(customtkinter.CTk):
             Device.Message.Incoming.TX_STATUS:          [transmission_frame.update_tx_status],
             Device.Message.Incoming.WIFI_SSID_DATA:     [settings_frame.set_wifi_data],
             Device.Message.Incoming.WIFI_STATUS:        [settings_frame.update_wifi_status,
-                                                         lambda status: transmission_frame.change_state(
-                                                            "disabled" if status is
+                                                         lambda wifi_status: transmission_frame.change_state(
+                                                            "disabled" if wifi_status is
                                                             ConnectionStatus.INITIATED else "normal"),
-                                                         lambda status: self_check_frame.change_state(
-                                                            "disabled" if status is
+                                                         lambda wifi_status: self_check_frame.change_state(
+                                                            "disabled" if wifi_status is
                                                             ConnectionStatus.INITIATED else "normal"),
-                                                         lambda status: settings_frame.change_state(
-                                                            "disabled" if status is
+                                                         lambda wifi_status: settings_frame.change_state(
+                                                            "disabled" if wifi_status is
                                                             ConnectionStatus.INITIATED else "normal")]
         })
 
