@@ -187,11 +187,21 @@ class TransmissionWidget:
         self.wspr_transmit_every_option.after(0, lambda: self.wspr_transmit_every_option.configure(state=state))
         self.wspr_active_band_option.after(0, lambda: self.wspr_active_band_option.configure(state=state))
 
-        if self.active_tx_mode.tx_mode is None:
+        if self.active_tx_mode.tx_mode == TXMode.WSPR and state == "normal":
+            self.reset_mode_button.after(
+                0, lambda: self.reset_mode_button.configure(state="normal"))
             self.wspr_set_as_active_mode_button.after(
-                0, lambda: self.wspr_set_as_active_mode_button.configure(state=state))
+                0, lambda: self.wspr_set_as_active_mode_button.configure(state="disabled"))
+        elif self.active_tx_mode.tx_mode is None and state == "normal":
+            self.reset_mode_button.after(
+                0, lambda: self.reset_mode_button.configure(state="disabled"))
+            self.wspr_set_as_active_mode_button.after(
+                0, lambda: self.wspr_set_as_active_mode_button.configure(state="normal"))
         else:
-            self.reset_mode_button.after(0, lambda: self.reset_mode_button.configure(state=state))
+            self.reset_mode_button.after(
+                0, lambda: self.reset_mode_button.configure(state="disabled"))
+            self.wspr_set_as_active_mode_button.after(
+                0, lambda: self.wspr_set_as_active_mode_button.configure(state="disabled"))
 
     def set_active_tx_mode(self, active_tx_mode: ActiveTXMode):
         """
@@ -200,14 +210,14 @@ class TransmissionWidget:
         Args:
             active_tx_mode: An instance of ActiveTXMode containing the transmission mode parameters.
         """
-        self.change_state("normal")
         self.active_tx_mode = copy.deepcopy(active_tx_mode)
+
+        self.change_state("normal")
 
         self.general_frame.after(0, self._print_active_mode_details)
 
         if self.active_tx_mode.tx_mode == TXMode.WSPR:
             self.general_frame.after(0, self._print_wspr_active_mode_parameters)
-            self.reset_mode_button.after(0, lambda: self.reset_mode_button.configure(state="normal"))
 
         self.wspr_set_as_active_mode_button.after(0, self._check_if_wspr_mode_parameters_changed)
 

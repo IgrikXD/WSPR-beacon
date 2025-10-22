@@ -1,4 +1,5 @@
 from beaconapp.config import Config
+from beaconapp.data_wrappers import ConnectionStatus
 from beaconapp.device import Device
 from beaconapp.ui.navigation_widget import NavigationWidget
 from beaconapp.ui.self_check_widget import SelfCheckWidget
@@ -38,12 +39,6 @@ class BeaconApp(customtkinter.CTk):
         # Create the "Settings" widget
         settings_frame = SettingsWidget(self, self.device, self.config)
 
-        # Set callback for WiFi state changes in Settings to control Self-check and Transmission widgets
-        settings_frame.set_wifi_state_change_callback([
-            self_check_frame.change_state,
-            transmission_frame.change_state
-        ])
-
         # Frames for navigation by buttons
         navigation_frame.set_navigated_frames(
             transmission=transmission_frame,
@@ -55,16 +50,14 @@ class BeaconApp(customtkinter.CTk):
         # Set handlers for incoming messages from the device
         self.device.set_device_response_handlers({
             Device.Message.Incoming.ACTIVE_TRANSPORT:   [navigation_frame.set_connection_status,
-                                                         lambda transport: transmission_frame.change_state(
-                                                            "disabled" if transport is None else "normal"),
-                                                         lambda transport: self_check_frame.change_state(
-                                                            "disabled" if transport is None else "normal"),
-                                                         lambda transport: settings_frame.change_state(
-                                                            "disabled" if transport is None else "normal"),
                                                          lambda transport: (
                                                             transmission_frame.update_gps_status(False),
                                                             transmission_frame.update_cal_status(False),
-                                                            transmission_frame.update_tx_status(False)
+                                                            transmission_frame.update_tx_status(False),
+                                                            transmission_frame.change_state("disabled"),
+                                                            spots_database_frame.change_state("disabled"),
+                                                            self_check_frame.change_state("disabled"),
+                                                            settings_frame.change_state("disabled")
                                                          ) if transport is None else None],
             Device.Message.Incoming.ACTIVE_TX_MODE:     [transmission_frame.set_active_tx_mode,
                                                          spots_database_frame.set_active_tx_mode,
@@ -92,7 +85,16 @@ class BeaconApp(customtkinter.CTk):
             Device.Message.Incoming.TX_ACTION_STATUS:   [transmission_frame.update_tx_message_action_status],
             Device.Message.Incoming.TX_STATUS:          [transmission_frame.update_tx_status],
             Device.Message.Incoming.WIFI_SSID_DATA:     [settings_frame.set_wifi_data],
-            Device.Message.Incoming.WIFI_STATUS:        [settings_frame.update_wifi_status]
+            Device.Message.Incoming.WIFI_STATUS:        [settings_frame.update_wifi_status,
+                                                         lambda status: transmission_frame.change_state(
+                                                            "disabled" if status is
+                                                            ConnectionStatus.CONNECTING else "normal"),
+                                                         lambda status: self_check_frame.change_state(
+                                                            "disabled" if status is
+                                                            ConnectionStatus.CONNECTING else "normal"),
+                                                         lambda status: settings_frame.change_state(
+                                                            "disabled" if status is
+                                                            ConnectionStatus.CONNECTING else "normal")]
         })
 
         # Establish the connection to the device
