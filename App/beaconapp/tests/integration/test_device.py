@@ -210,18 +210,10 @@ def test_run_wifi_connection(device):
 @pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
 @pytest.mark.parametrize("expected_value", [
     {
-        "tx_mode": None,
-        "tx_call": None,
-        "qth_locator": None,
-        "output_power": None,
-        "transmit_every": None,
-        "active_band": None
-    },
-    {
         "tx_mode": TXMode.WSPR,
         "tx_call": "NOCALL",
         "qth_locator": "XX00",
-        "output_power": 23,
+        "output_power": 30,
         "transmit_every": TransmitEvery.MINUTES_2,
         "active_band": Band.BAND_20M
     },
@@ -231,7 +223,7 @@ def test_run_wifi_connection(device):
         "qth_locator": "AA00",
         "output_power": 10,
         "transmit_every": TransmitEvery.MINUTES_10,
-        "active_band": Band.BAND_40M
+        "active_band": Band.BAND_2M
     },
     {
         "tx_mode": TXMode.WSPR,
@@ -245,10 +237,18 @@ def test_run_wifi_connection(device):
         "tx_mode": TXMode.WSPR,
         "tx_call": "W1AW",
         "qth_locator": "FN31",
-        "output_power": 30,
+        "output_power": 23,
         "transmit_every": TransmitEvery.MINUTES_60,
-        "active_band": Band.BAND_2M
+        "active_band": Band.BAND_40M
     },
+    {
+        "tx_mode": None,
+        "tx_call": None,
+        "qth_locator": None,
+        "output_power": None,
+        "transmit_every": None,
+        "active_band": None
+    }
 ])
 def test_set_active_tx_mode(device, expected_value):
     """
@@ -283,7 +283,7 @@ def test_set_active_tx_mode(device, expected_value):
 
 @pytest.mark.integration
 @pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
-@pytest.mark.parametrize("cal_value", [0, 2000, -2000, -9999, 9999])
+@pytest.mark.parametrize("cal_value", [0, -9999, 9999, -2000, 2000])
 def test_set_calibration_value(device, cal_value):
     """
     Checks that setting the calibration value processed correctly.
