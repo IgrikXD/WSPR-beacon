@@ -27,7 +27,7 @@ class BeaconApp(customtkinter.CTk):
         self.device = Device()
         # Load the default configuration from a file
         self.config = Config("config.json")
-        self.app_configuration(self.config, self.device)
+        self.app_configuration(self.config)
         # Create the navigation widget
         navigation_frame = NavigationWidget(self)
         # Create the "Transmission" widget
@@ -102,7 +102,7 @@ class BeaconApp(customtkinter.CTk):
         # Select the default frame
         navigation_frame.select_frame_by_name("transmission")
 
-    def app_configuration(self, config: Config, device: Device):
+    def app_configuration(self, config: Config):
         """
         Configure the application: title, icon, minimum window size, theme, and UI scaling.
         """
