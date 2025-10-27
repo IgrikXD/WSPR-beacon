@@ -178,9 +178,9 @@ def test_get_device_info(device):
 @pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
 def test_run_wifi_connection(device):
     """
-    Checks that WiFi connection request processed correctly.
+    Checks that Wi-Fi connection request processed correctly.
 
-    Verifies that the device correctly handles WiFi connection request to fake SSID.
+    Verifies that the device correctly handles Wi-Fi connection request to fake SSID.
     """
     # Store received data for later verification
     received_data = {Device.Message.Incoming.WIFI_STATUS: None}
@@ -202,7 +202,7 @@ def test_run_wifi_connection(device):
     assert received_data[Device.Message.Incoming.WIFI_STATUS] is ConnectionStatus.INITIATED
 
     # Wait for device response
-    time.sleep(13.0)  # Allow more time for WiFi connection attempt
+    time.sleep(13.0)  # Allow more time for Wi-Fi connection attempt
 
     # Verify received data
     assert received_data[Device.Message.Incoming.WIFI_STATUS] is not None

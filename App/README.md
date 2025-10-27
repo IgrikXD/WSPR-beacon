@@ -1,5 +1,5 @@
 # BEACON.App
-A Windows GUI application for configuring and managing a [WSPR-beacon](https://github.com/IgrikXD/WSPR-beacon?tab=readme-ov-file#wspr-beacon) based on an ESP32 SoC ([_PCB version 3.1_](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-3.1)). The application communicates with the device via USB or WiFi to configure transmission parameters, perform hardware self-checks, and manage device setup (_including calibration and WiFi configuration_).
+A Windows GUI application for configuring and managing a [WSPR-beacon](https://github.com/IgrikXD/WSPR-beacon?tab=readme-ov-file#wspr-beacon) based on an ESP32 SoC ([_PCB version 3.1_](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-3.1)). The application communicates with the device via USB or Wi-Fi to configure transmission parameters, perform hardware self-checks, and manage device setup (_including calibration and Wi-Fi configuration_).
 
 ![BeaconApp](../Resources/BeaconApp-Transmission-frame.png)
 
@@ -63,15 +63,15 @@ python -m pytest -m unit
 
 ### Integration tests
 > [!WARNING]  
-> These tests require a physical WSPR-beacon device connected via USB! WiFi connection and GPS antenna must be disconnected during testing.
+> These tests require a physical WSPR-beacon device connected via USB! Wi-Fi connection and GPS antenna must be disconnected during testing.
 
 Integration tests are available to verify the device core functionality, and they verify:
 - Thread-safe concurrent `Device.connect()` operations without race conditions
 - Successful device reconnection after disconnect
-- Complete device info retrieval (_active TX mode, WiFi data, GPS status, calibration value, firmware/hardware info_)
+- Complete device info retrieval (_active TX mode, Wi-Fi data, GPS status, calibration value, firmware/hardware info_)
 - Correct setting of active TX mode, SI5351 calibration value and automatic SSID connection at device startup
 - Calibration frequency generation control
-- WiFi connection handling with invalid credentials
+- Wi-Fi connection handling with invalid credentials
 
 To run the integration tests, install development dependencies and execute:
 ```powershell
@@ -81,7 +81,7 @@ python -m pytest -m integration
 
 ### Code coverage
 > [!WARNING]  
-> By default, coverage runs both [unit](#unit-tests) and [integration](#integration-tests) tests. Integration tests require a physical WSPR-beacon device connected via USB! WiFi connection and GPS antenna must be disconnected during [integration](#integration-tests) tests execution.
+> By default, coverage runs both [unit](#unit-tests) and [integration](#integration-tests) tests. Integration tests require a physical WSPR-beacon device connected via USB! Wi-Fi connection and GPS antenna must be disconnected during [integration](#integration-tests) tests execution.
 
 To measure test coverage, install development dependencies and execute:
 ```powershell

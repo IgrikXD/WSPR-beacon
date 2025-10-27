@@ -40,7 +40,7 @@ class Device:
 
     class Transport(Enum):
         USB = "USB"
-        WIFI = "WiFi"
+        WIFI = "Wi-Fi"
 
     @dataclass
     class Message:
@@ -104,7 +104,7 @@ class Device:
         # Active transport, None until a transport actually connects
         self.active_transport: Optional[Device.Transport] = None
         # Transport priority (if we cannot satisfy _requested_transport)
-        # WiFi: priority 0 (high)
+        # Wi-Fi: priority 0 (high)
         # USB (Serial): priority 1 (low)
         self.transport_priority = [Device.Transport.WIFI, Device.Transport.USB]
         # Current "requested" (from the device) transport (default to USB preference)
@@ -289,7 +289,7 @@ class Device:
 
     def set_wifi_connection(self, wifi_credentials: WiFiCredentials | None):
         """
-        Sends a request to run WiFi connection with given credentials.
+        Sends a request to run Wi-Fi connection with given credentials.
         """
         self._put(Device.Message(Device.Message.Outgoing.RUN_WIFI_CONNECTION, wifi_credentials))
 
@@ -314,16 +314,16 @@ class Device:
     def _on_transport_disconnected(self, transport_type: Transport):
         """
         Called by a transport class (Serial/WebSocket) when a connection is lost or closed.
-        If USB is disconnected, we assume the device has lost power, so we also drop the WiFi
-        connection. When connected to a PC via USB, both USB and WiFi are available. When
+        If USB is disconnected, we assume the device has lost power, so we also drop the Wi-Fi
+        connection. When connected to a PC via USB, both USB and Wi-Fi are available. When
         powered externally (e.g., via power bank), USB (Serial) is not physically present,
-        and only WiFi is available. Removing WiFi on USB disconnect reflects the
+        and only Wi-Fi is available. Removing Wi-Fi on USB disconnect reflects the
         expected hardware behavior.
         """
         if transport_type in self._connected_transports:
             self._connected_transports.remove(transport_type)
 
-        # If USB is disconnected, we assume the device has lost power, and remove WiFi as well
+        # If USB is disconnected, we assume the device has lost power, and remove Wi-Fi as well
         if transport_type == Device.Transport.USB:
             if Device.Transport.WIFI in self._connected_transports:
                 self._connected_transports.remove(Device.Transport.WIFI)
@@ -334,7 +334,7 @@ class Device:
         """
         Chooses which transport should be active based on:
             1. _requested_transport (if it is actually connected)
-            2. transport_priority (e.g., WiFi first, then USB)
+            2. transport_priority (e.g., Wi-Fi first, then USB)
             3. or None if no transport is currently available
         Notifies handlers if the active transport changes.
         """
@@ -456,7 +456,7 @@ class Device:
 
     def _send_to_device(self, message: Message):
         """
-        Sends an encoded message to the currently active transport (USB or WiFi).
+        Sends an encoded message to the currently active transport (USB or Wi-Fi).
 
         Raises:
             Device.DataSendingError: If no active transport is available or transport type is unknown.
@@ -607,7 +607,7 @@ class SerialTransport(BaseTransport):
 
 class WebsocketTransport(BaseTransport):
     """
-    WebSocket (WiFi) transport implementation using asyncio and websockets library.
+    WebSocket (Wi-Fi) transport implementation using asyncio and websockets library.
     """
     def __init__(self, device: Device):
         super().__init__(device)
