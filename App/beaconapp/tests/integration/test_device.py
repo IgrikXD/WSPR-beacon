@@ -5,6 +5,7 @@ import threading
 
 from beaconapp.device import Device
 from beaconapp.data_wrappers import ActiveTXMode, Band, ConnectionStatus, TransmitEvery, TXMode, WiFiCredentials
+from enum import Enum
 
 
 # VID and PID for ESP32-C3
@@ -381,3 +382,33 @@ def test_gen_cal_frequency(device, calibration_frequency):
     # Verify received data (calibration frequency generation stopped)
     assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is not None
     assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is False
+
+@pytest.mark.integration
+@pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
+def test_incorrect_request_type(device):
+    """
+    Checks that incorrect request type processed correctly.
+
+    Verifies that the device correctly handles incorrect request type.
+    """
+    # Store received data for later verification
+    received_data = {Device.Message.Incoming.PROTOCOL_ERROR: None}
+
+    def on_protocol_error_received(error):
+        received_data[Device.Message.Incoming.PROTOCOL_ERROR] = error
+
+    device.set_device_response_handlers({
+        Device.Message.Incoming.PROTOCOL_ERROR: [on_protocol_error_received]
+    })
+
+    class DummyMessageType(Enum):
+        INVALID_TYPE = "INVALID_TYPE"
+
+    device._put(Device.Message(DummyMessageType.INVALID_TYPE))
+
+    # Wait for device response
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
+
+    # Verify received data
+    assert received_data[Device.Message.Incoming.PROTOCOL_ERROR] is not None
+    assert received_data[Device.Message.Incoming.PROTOCOL_ERROR] == "Invalid message type!"
