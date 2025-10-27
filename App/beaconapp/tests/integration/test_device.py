@@ -119,38 +119,40 @@ def test_get_device_info(device):
     """
     # Arrange: Set up flags to track all expected responses
     responses = {
-        Device.Message.Incoming.ACTIVE_TX_MODE:     False,
-        Device.Message.Incoming.WIFI_SSID_DATA:     False,
-        Device.Message.Incoming.WIFI_STATUS:        False,
         Device.Message.Incoming.ACTIVE_TRANSPORT:   False,
-        Device.Message.Incoming.GPS_STATUS:         False,
         Device.Message.Incoming.CAL_VALUE:          False,
         Device.Message.Incoming.CAL_STATUS:         False,
+        Device.Message.Incoming.GPS_STATUS:         False,
+        Device.Message.Incoming.TX_STATUS:          False,
+        Device.Message.Incoming.WIFI_SSID_DATA:     False,
+        Device.Message.Incoming.WIFI_STATUS:        False,
         Device.Message.Incoming.FIRMWARE_INFO:      False,
-        Device.Message.Incoming.HARDWARE_INFO:      False
+        Device.Message.Incoming.HARDWARE_INFO:      False,
+        Device.Message.Incoming.ACTIVE_TX_MODE:     False
     }
 
     # Register callbacks for all response types
     device.set_device_response_handlers({
-        Device.Message.Incoming.ACTIVE_TX_MODE:     [
-            lambda _: responses.update({Device.Message.Incoming.ACTIVE_TX_MODE: True})],
-        Device.Message.Incoming.WIFI_SSID_DATA:     [
-            lambda _: responses.update({Device.Message.Incoming.WIFI_SSID_DATA: True})],
-        Device.Message.Incoming.WIFI_STATUS:        [
-            lambda _: responses.update({Device.Message.Incoming.WIFI_STATUS: True})],
         Device.Message.Incoming.ACTIVE_TRANSPORT:   [
             lambda _: responses.update({Device.Message.Incoming.ACTIVE_TRANSPORT: True})],
-        Device.Message.Incoming.GPS_STATUS:         [
-            lambda _: responses.update({Device.Message.Incoming.GPS_STATUS: True})],
         Device.Message.Incoming.CAL_VALUE:          [
             lambda _: responses.update({Device.Message.Incoming.CAL_VALUE: True})],
         Device.Message.Incoming.CAL_STATUS:         [
             lambda _: responses.update({Device.Message.Incoming.CAL_STATUS: True})],
+        Device.Message.Incoming.GPS_STATUS:         [
+            lambda _: responses.update({Device.Message.Incoming.GPS_STATUS: True})],
+        Device.Message.Incoming.TX_STATUS:         [
+            lambda _: responses.update({Device.Message.Incoming.TX_STATUS: True})],
+        Device.Message.Incoming.WIFI_SSID_DATA:     [
+            lambda _: responses.update({Device.Message.Incoming.WIFI_SSID_DATA: True})],
+        Device.Message.Incoming.WIFI_STATUS:        [
+            lambda _: responses.update({Device.Message.Incoming.WIFI_STATUS: True})],
         Device.Message.Incoming.FIRMWARE_INFO:      [
             lambda _: responses.update({Device.Message.Incoming.FIRMWARE_INFO: True})],
         Device.Message.Incoming.HARDWARE_INFO:      [
-            lambda _: responses.update({Device.Message.Incoming.HARDWARE_INFO: True})
-        ]
+            lambda _: responses.update({Device.Message.Incoming.HARDWARE_INFO: True})],
+        Device.Message.Incoming.ACTIVE_TX_MODE:     [
+            lambda _: responses.update({Device.Message.Incoming.ACTIVE_TX_MODE: True})]
     })
 
     device.get_device_info()
@@ -160,15 +162,16 @@ def test_get_device_info(device):
 
     # Verify received data
     # We should have received all expected responses
-    assert responses[Device.Message.Incoming.ACTIVE_TX_MODE]
-    assert responses[Device.Message.Incoming.WIFI_SSID_DATA]
-    assert responses[Device.Message.Incoming.WIFI_STATUS]
     assert responses[Device.Message.Incoming.ACTIVE_TRANSPORT]
-    assert responses[Device.Message.Incoming.GPS_STATUS]
     assert responses[Device.Message.Incoming.CAL_VALUE]
     assert responses[Device.Message.Incoming.CAL_STATUS]
+    assert responses[Device.Message.Incoming.GPS_STATUS]
+    assert responses[Device.Message.Incoming.TX_STATUS]
+    assert responses[Device.Message.Incoming.WIFI_SSID_DATA]
+    assert responses[Device.Message.Incoming.WIFI_STATUS]
     assert responses[Device.Message.Incoming.FIRMWARE_INFO]
     assert responses[Device.Message.Incoming.HARDWARE_INFO]
+    assert responses[Device.Message.Incoming.ACTIVE_TX_MODE]
 
 
 @pytest.mark.integration
