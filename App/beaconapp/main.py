@@ -11,7 +11,6 @@ import atexit
 import customtkinter
 import os
 import psutil
-import sys
 import tkinter.messagebox
 
 
@@ -76,6 +75,7 @@ class BeaconApp(customtkinter.CTk):
             Device.Message.Incoming.GPS_STATUS:         [transmission_frame.update_gps_status],
             Device.Message.Incoming.HARDWARE_INFO:      [self_check_frame.update_hardware_info],
             Device.Message.Incoming.QTH_LOCATOR:        [transmission_frame.update_qth_locator],
+            Device.Message.Incoming.PROTOCOL_ERROR:     [self.protocol_error_handler],
             Device.Message.Incoming.SELF_CHECK_ACTION:  [self_check_frame.update_self_check_action_status],
             Device.Message.Incoming.SELF_CHECK_ACTIVE:  [lambda self_check_active: transmission_frame.change_state(
                                                             "disabled" if self_check_active else "normal"),
@@ -124,6 +124,17 @@ class BeaconApp(customtkinter.CTk):
 
         # Handle the window close event
         self.protocol("WM_DELETE_WINDOW", self.update_default_config_and_close_app)
+
+    def protocol_error_handler(self, error_message: str):
+        """
+        Handle protocol error messages received from the device by displaying a warning message box.
+        """
+        tkinter.messagebox.showwarning(
+            "BEACON.App - Protocol Error",
+            f"Received from device: {error_message}\n\n"
+            "Please ensure that you are using the latest version of BEACON.App "
+            "and that your device firmware is up to date."
+        )
 
     def update_default_config_and_close_app(self):
         """
@@ -180,10 +191,10 @@ def main():
     # Check if the application is already running
     if check_already_running():
         tkinter.messagebox.showerror(
-            "BEACON.App Error!",
+            "BEACON.App - Error",
             "The application is already running!"
         )
-        sys.exit(1)
+        os._exit(1)
 
     # Create the lock file if not running
     create_lock_file()
