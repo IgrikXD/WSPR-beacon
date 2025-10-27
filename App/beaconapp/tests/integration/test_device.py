@@ -383,6 +383,7 @@ def test_gen_cal_frequency(device, calibration_frequency):
     assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is not None
     assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is False
 
+
 @pytest.mark.integration
 @pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
 def test_incorrect_request_type(device):
