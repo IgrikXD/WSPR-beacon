@@ -129,7 +129,8 @@ def test_get_device_info(device):
         Device.Message.Incoming.WIFI_STATUS:        False,
         Device.Message.Incoming.FIRMWARE_INFO:      False,
         Device.Message.Incoming.HARDWARE_INFO:      False,
-        Device.Message.Incoming.ACTIVE_TX_MODE:     False
+        Device.Message.Incoming.ACTIVE_TX_MODE:     False,
+        Device.Message.Incoming.TX_ACTION_STATUS:   False
     }
 
     # Register callbacks for all response types
@@ -153,7 +154,9 @@ def test_get_device_info(device):
         Device.Message.Incoming.HARDWARE_INFO:      [
             lambda _: responses.update({Device.Message.Incoming.HARDWARE_INFO: True})],
         Device.Message.Incoming.ACTIVE_TX_MODE:     [
-            lambda _: responses.update({Device.Message.Incoming.ACTIVE_TX_MODE: True})]
+            lambda _: responses.update({Device.Message.Incoming.ACTIVE_TX_MODE: True})],
+        Device.Message.Incoming.TX_ACTION_STATUS:   [
+            lambda _: responses.update({Device.Message.Incoming.TX_ACTION_STATUS: True})]
     })
 
     device.get_device_info()
@@ -173,6 +176,7 @@ def test_get_device_info(device):
     assert responses[Device.Message.Incoming.FIRMWARE_INFO]
     assert responses[Device.Message.Incoming.HARDWARE_INFO]
     assert responses[Device.Message.Incoming.ACTIVE_TX_MODE]
+    assert responses[Device.Message.Incoming.TX_ACTION_STATUS]
 
 
 @pytest.mark.integration
