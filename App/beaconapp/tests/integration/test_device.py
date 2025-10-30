@@ -166,17 +166,17 @@ def test_get_device_info(device):
 
     # Verify received data
     # We should have received all expected responses
-    assert responses[Device.Message.Incoming.ACTIVE_TRANSPORT]
-    assert responses[Device.Message.Incoming.CAL_VALUE]
-    assert responses[Device.Message.Incoming.CAL_STATUS]
-    assert responses[Device.Message.Incoming.GPS_STATUS]
-    assert responses[Device.Message.Incoming.TX_STATUS]
-    assert responses[Device.Message.Incoming.WIFI_SSID_DATA]
-    assert responses[Device.Message.Incoming.WIFI_STATUS]
-    assert responses[Device.Message.Incoming.FIRMWARE_INFO]
-    assert responses[Device.Message.Incoming.HARDWARE_INFO]
-    assert responses[Device.Message.Incoming.ACTIVE_TX_MODE]
-    assert responses[Device.Message.Incoming.TX_ACTION_STATUS]
+    assert responses[Device.Message.Incoming.ACTIVE_TRANSPORT] is True
+    assert responses[Device.Message.Incoming.CAL_VALUE] is True
+    assert responses[Device.Message.Incoming.CAL_STATUS] is True
+    assert responses[Device.Message.Incoming.GPS_STATUS] is True
+    assert responses[Device.Message.Incoming.TX_STATUS] is True
+    assert responses[Device.Message.Incoming.WIFI_SSID_DATA] is True
+    assert responses[Device.Message.Incoming.WIFI_STATUS] is True
+    assert responses[Device.Message.Incoming.FIRMWARE_INFO] is True
+    assert responses[Device.Message.Incoming.HARDWARE_INFO] is True
+    assert responses[Device.Message.Incoming.ACTIVE_TX_MODE] is True
+    assert responses[Device.Message.Incoming.TX_ACTION_STATUS] is True
 
 
 @pytest.mark.integration
@@ -190,11 +190,9 @@ def test_run_wifi_connection(device):
     # Store received data for later verification
     received_data = {Device.Message.Incoming.WIFI_STATUS: None}
 
-    def on_wifi_status_received(status):
-        received_data[Device.Message.Incoming.WIFI_STATUS] = status
-
     device.set_device_response_handlers({
-        Device.Message.Incoming.WIFI_STATUS: [on_wifi_status_received]
+        Device.Message.Incoming.WIFI_STATUS: [
+            lambda status: received_data.update({Device.Message.Incoming.WIFI_STATUS: status})]
     })
 
     device.set_wifi_connection(WiFiCredentials(ssid="SSID", password="PASSWORD"))
@@ -203,14 +201,12 @@ def test_run_wifi_connection(device):
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Verify received data
-    assert received_data[Device.Message.Incoming.WIFI_STATUS] is not None
     assert received_data[Device.Message.Incoming.WIFI_STATUS] is ConnectionStatus.INITIATED
 
     # Wait for device response
     time.sleep(13.0)  # Allow more time for Wi-Fi connection attempt
 
     # Verify received data
-    assert received_data[Device.Message.Incoming.WIFI_STATUS] is not None
     assert received_data[Device.Message.Incoming.WIFI_STATUS] is ConnectionStatus.FAILED
 
 
@@ -267,11 +263,9 @@ def test_set_active_tx_mode(device, expected_value):
     # Store received data for later verification
     received_data = {Device.Message.Incoming.ACTIVE_TX_MODE: None}
 
-    def on_active_tx_mode_received(active_tx_mode):
-        received_data[Device.Message.Incoming.ACTIVE_TX_MODE] = active_tx_mode
-
     device.set_device_response_handlers({
-        Device.Message.Incoming.ACTIVE_TX_MODE: [on_active_tx_mode_received]
+        Device.Message.Incoming.ACTIVE_TX_MODE: [
+            lambda active_tx_mode: received_data.update({Device.Message.Incoming.ACTIVE_TX_MODE: active_tx_mode})]
     })
 
     # Create and send active transmission mode configuration
@@ -282,8 +276,6 @@ def test_set_active_tx_mode(device, expected_value):
     # Wait for device response
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
-    # Verify received data
-    assert received_data[Device.Message.Incoming.ACTIVE_TX_MODE] is not None
     # Verify all fields match
     for key, value in expected_value.items():
         assert getattr(received_data[Device.Message.Incoming.ACTIVE_TX_MODE], key) == value
@@ -301,11 +293,9 @@ def test_set_calibration_value(device, cal_value):
     # Store received data for later verification
     received_data = {Device.Message.Incoming.CAL_VALUE: None}
 
-    def on_cal_value_received(received_cal_value):
-        received_data[Device.Message.Incoming.CAL_VALUE] = received_cal_value
-
     device.set_device_response_handlers({
-        Device.Message.Incoming.CAL_VALUE: [on_cal_value_received]
+        Device.Message.Incoming.CAL_VALUE: [
+            lambda value: received_data.update({Device.Message.Incoming.CAL_VALUE: value})]
     })
 
     device.set_calibration_value(cal_value)
@@ -314,7 +304,6 @@ def test_set_calibration_value(device, cal_value):
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Verify received data
-    assert received_data[Device.Message.Incoming.CAL_VALUE] is not None
     assert received_data[Device.Message.Incoming.CAL_VALUE] == cal_value
 
 
@@ -360,13 +349,16 @@ def test_gen_cal_frequency(device, calibration_frequency):
     This test trigger a RF transmission functionality from the device!
     """
     # Store received data for later verification
-    received_data = {Device.Message.Incoming.CAL_FREQ_GENERATED: None}
-
-    def on_cal_freq_generated_received(is_freq_generated):
-        received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] = is_freq_generated
+    received_data = {
+        Device.Message.Incoming.TX_STATUS:          None,
+        Device.Message.Incoming.CAL_FREQ_GENERATED: None
+    }
 
     device.set_device_response_handlers({
-        Device.Message.Incoming.CAL_FREQ_GENERATED: [on_cal_freq_generated_received]
+        Device.Message.Incoming.TX_STATUS:          [
+            lambda status: received_data.update({Device.Message.Incoming.TX_STATUS: status})],
+        Device.Message.Incoming.CAL_FREQ_GENERATED: [
+            lambda status: received_data.update({Device.Message.Incoming.CAL_FREQ_GENERATED: status})]
     })
 
     device.gen_calibration_frequency(calibration_frequency)
@@ -375,7 +367,7 @@ def test_gen_cal_frequency(device, calibration_frequency):
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Verify received data (calibration frequency generation activated)
-    assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is not None
+    assert received_data[Device.Message.Incoming.TX_STATUS] is True
     assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is True
 
     device.gen_calibration_frequency(None)
@@ -384,7 +376,7 @@ def test_gen_cal_frequency(device, calibration_frequency):
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Verify received data (calibration frequency generation stopped)
-    assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is not None
+    assert received_data[Device.Message.Incoming.TX_STATUS] is False
     assert received_data[Device.Message.Incoming.CAL_FREQ_GENERATED] is False
 
 
@@ -399,11 +391,9 @@ def test_incorrect_request_type(device):
     # Store received data for later verification
     received_data = {Device.Message.Incoming.PROTOCOL_ERROR: None}
 
-    def on_protocol_error_received(error):
-        received_data[Device.Message.Incoming.PROTOCOL_ERROR] = error
-
     device.set_device_response_handlers({
-        Device.Message.Incoming.PROTOCOL_ERROR: [on_protocol_error_received]
+        Device.Message.Incoming.PROTOCOL_ERROR: [
+            lambda error: received_data.update({Device.Message.Incoming.PROTOCOL_ERROR: error})]
     })
 
     class DummyMessageType(Enum):
@@ -415,5 +405,4 @@ def test_incorrect_request_type(device):
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Verify received data
-    assert received_data[Device.Message.Incoming.PROTOCOL_ERROR] is not None
     assert received_data[Device.Message.Incoming.PROTOCOL_ERROR] == "Invalid message type!"
