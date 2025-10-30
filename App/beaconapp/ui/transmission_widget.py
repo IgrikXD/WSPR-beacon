@@ -50,7 +50,9 @@ class TransmissionWidget:
             default_value=self.active_tx_mode.tx_call,
             state="disabled",
             validation=DataValidation.validate_tx_call_input,
-            bind_action=["<KeyRelease>", self._check_if_wspr_mode_parameters_changed]
+            bind_action=[
+                ("<KeyRelease>", self._check_if_wspr_mode_parameters_changed),
+                ("<Return>", self._wspr_set_as_active_mode_button_pressed)]
         )
 
         # WSPR _changedmode -> QTH locator
@@ -61,7 +63,9 @@ class TransmissionWidget:
             default_value=self.active_tx_mode.qth_locator,
             state="disabled",
             validation=DataValidation.validate_qth_locator_input,
-            bind_action=["<KeyRelease>", self._check_if_wspr_mode_parameters_changed]
+            bind_action=[
+                ("<KeyRelease>", self._check_if_wspr_mode_parameters_changed),
+                ("<Return>", self._wspr_set_as_active_mode_button_pressed)]
         )
 
         # WSPR _changedmode -> Output power
@@ -72,7 +76,9 @@ class TransmissionWidget:
             default_value=self.active_tx_mode.output_power,
             state="disabled",
             validation=DataValidation.validate_output_power_input,
-            bind_action=["<KeyRelease>", self._check_if_wspr_mode_parameters_changed]
+            bind_action=[
+                ("<KeyRelease>", self._check_if_wspr_mode_parameters_changed),
+                ("<Return>", self._wspr_set_as_active_mode_button_pressed)]
         )
 
         # WSPR mode -> Transmit every
@@ -358,7 +364,7 @@ class TransmissionWidget:
         # Send active TX mode to device
         self.device.set_active_tx_mode(None)
 
-    def _wspr_set_as_active_mode_button_pressed(self):
+    def _wspr_set_as_active_mode_button_pressed(self, event=None):
         """
         Activate the WSPR mode with the current parameters and update the UI.
         """
