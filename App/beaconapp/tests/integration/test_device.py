@@ -4,7 +4,8 @@ import time
 import threading
 
 from beaconapp.device import Device
-from beaconapp.data_wrappers import ActiveTXMode, Band, ConnectionStatus, TransmitEvery, TXMode, WiFiCredentials
+from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
+from beaconapp.data_wrappers import ConnectionStatus, WiFiCredentials, WiFiData
 from enum import Enum
 
 
@@ -13,7 +14,7 @@ DEVICE_VID = 0x303A
 DEVICE_PID = 0x1001
 
 # Device response timeout in seconds
-DEVICE_RESPONSE_TIMEOUT = 2.5
+DEVICE_RESPONSE_TIMEOUT = 2.0
 
 
 def find_device():
@@ -120,43 +121,43 @@ def test_get_device_info(device):
     """
     # Arrange: Set up flags to track all expected responses
     responses = {
-        Device.Message.Incoming.ACTIVE_TRANSPORT:   False,
-        Device.Message.Incoming.CAL_VALUE:          False,
-        Device.Message.Incoming.CAL_STATUS:         False,
-        Device.Message.Incoming.GPS_STATUS:         False,
-        Device.Message.Incoming.TX_STATUS:          False,
-        Device.Message.Incoming.WIFI_SSID_DATA:     False,
-        Device.Message.Incoming.WIFI_STATUS:        False,
-        Device.Message.Incoming.FIRMWARE_INFO:      False,
-        Device.Message.Incoming.HARDWARE_INFO:      False,
-        Device.Message.Incoming.ACTIVE_TX_MODE:     False,
-        Device.Message.Incoming.TX_ACTION_STATUS:   False
+        Device.Message.Incoming.ACTIVE_TRANSPORT:   None,
+        Device.Message.Incoming.CAL_VALUE:          None,
+        Device.Message.Incoming.CAL_STATUS:         None,
+        Device.Message.Incoming.GPS_STATUS:         None,
+        Device.Message.Incoming.TX_STATUS:          None,
+        Device.Message.Incoming.WIFI_SSID_DATA:     None,
+        Device.Message.Incoming.WIFI_STATUS:        None,
+        Device.Message.Incoming.FIRMWARE_INFO:      None,
+        Device.Message.Incoming.HARDWARE_INFO:      None,
+        Device.Message.Incoming.ACTIVE_TX_MODE:     None,
+        Device.Message.Incoming.TX_ACTION_STATUS:   None
     }
 
     # Register callbacks for all response types
     device.set_device_response_handlers({
         Device.Message.Incoming.ACTIVE_TRANSPORT:   [
-            lambda _: responses.update({Device.Message.Incoming.ACTIVE_TRANSPORT: True})],
+            lambda transport: responses.update({Device.Message.Incoming.ACTIVE_TRANSPORT: transport})],
         Device.Message.Incoming.CAL_VALUE:          [
-            lambda _: responses.update({Device.Message.Incoming.CAL_VALUE: True})],
+            lambda value: responses.update({Device.Message.Incoming.CAL_VALUE: value})],
         Device.Message.Incoming.CAL_STATUS:         [
-            lambda _: responses.update({Device.Message.Incoming.CAL_STATUS: True})],
+            lambda status: responses.update({Device.Message.Incoming.CAL_STATUS: status})],
         Device.Message.Incoming.GPS_STATUS:         [
-            lambda _: responses.update({Device.Message.Incoming.GPS_STATUS: True})],
+            lambda status: responses.update({Device.Message.Incoming.GPS_STATUS: status})],
         Device.Message.Incoming.TX_STATUS:         [
-            lambda _: responses.update({Device.Message.Incoming.TX_STATUS: True})],
+            lambda status: responses.update({Device.Message.Incoming.TX_STATUS: status})],
         Device.Message.Incoming.WIFI_SSID_DATA:     [
-            lambda _: responses.update({Device.Message.Incoming.WIFI_SSID_DATA: True})],
+            lambda data: responses.update({Device.Message.Incoming.WIFI_SSID_DATA: data})],
         Device.Message.Incoming.WIFI_STATUS:        [
-            lambda _: responses.update({Device.Message.Incoming.WIFI_STATUS: True})],
+            lambda status: responses.update({Device.Message.Incoming.WIFI_STATUS: status})],
         Device.Message.Incoming.FIRMWARE_INFO:      [
-            lambda _: responses.update({Device.Message.Incoming.FIRMWARE_INFO: True})],
+            lambda data: responses.update({Device.Message.Incoming.FIRMWARE_INFO: data})],
         Device.Message.Incoming.HARDWARE_INFO:      [
-            lambda _: responses.update({Device.Message.Incoming.HARDWARE_INFO: True})],
+            lambda data: responses.update({Device.Message.Incoming.HARDWARE_INFO: data})],
         Device.Message.Incoming.ACTIVE_TX_MODE:     [
-            lambda _: responses.update({Device.Message.Incoming.ACTIVE_TX_MODE: True})],
+            lambda data: responses.update({Device.Message.Incoming.ACTIVE_TX_MODE: data})],
         Device.Message.Incoming.TX_ACTION_STATUS:   [
-            lambda _: responses.update({Device.Message.Incoming.TX_ACTION_STATUS: True})]
+            lambda data: responses.update({Device.Message.Incoming.TX_ACTION_STATUS: data})]
     })
 
     device.get_device_info()
@@ -166,17 +167,17 @@ def test_get_device_info(device):
 
     # Verify received data
     # We should have received all expected responses
-    assert responses[Device.Message.Incoming.ACTIVE_TRANSPORT] is True
-    assert responses[Device.Message.Incoming.CAL_VALUE] is True
-    assert responses[Device.Message.Incoming.CAL_STATUS] is True
-    assert responses[Device.Message.Incoming.GPS_STATUS] is True
-    assert responses[Device.Message.Incoming.TX_STATUS] is True
-    assert responses[Device.Message.Incoming.WIFI_SSID_DATA] is True
-    assert responses[Device.Message.Incoming.WIFI_STATUS] is True
-    assert responses[Device.Message.Incoming.FIRMWARE_INFO] is True
-    assert responses[Device.Message.Incoming.HARDWARE_INFO] is True
-    assert responses[Device.Message.Incoming.ACTIVE_TX_MODE] is True
-    assert responses[Device.Message.Incoming.TX_ACTION_STATUS] is True
+    assert responses[Device.Message.Incoming.ACTIVE_TRANSPORT] is Device.Transport.USB
+    assert isinstance(responses[Device.Message.Incoming.CAL_VALUE], int)
+    assert isinstance(responses[Device.Message.Incoming.CAL_STATUS], bool)
+    assert isinstance(responses[Device.Message.Incoming.GPS_STATUS], bool)
+    assert isinstance(responses[Device.Message.Incoming.TX_STATUS], bool)
+    assert isinstance(responses[Device.Message.Incoming.WIFI_SSID_DATA], WiFiData)
+    assert isinstance(responses[Device.Message.Incoming.WIFI_STATUS], ConnectionStatus)
+    assert isinstance(responses[Device.Message.Incoming.FIRMWARE_INFO], str)
+    assert isinstance(responses[Device.Message.Incoming.HARDWARE_INFO], float)
+    assert isinstance(responses[Device.Message.Incoming.ACTIVE_TX_MODE], ActiveTXMode)
+    assert isinstance(responses[Device.Message.Incoming.TX_ACTION_STATUS], str)
 
 
 @pytest.mark.integration
@@ -201,12 +202,14 @@ def test_run_wifi_connection(device):
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Verify received data
+    assert isinstance(received_data[Device.Message.Incoming.WIFI_STATUS], ConnectionStatus)
     assert received_data[Device.Message.Incoming.WIFI_STATUS] is ConnectionStatus.INITIATED
 
     # Wait for device response
-    time.sleep(13.0)  # Allow more time for Wi-Fi connection attempt
+    time.sleep(10.0)  # Allow more time for Wi-Fi connection attempt
 
     # Verify received data
+    assert isinstance(received_data[Device.Message.Incoming.WIFI_STATUS], ConnectionStatus)
     assert received_data[Device.Message.Incoming.WIFI_STATUS] is ConnectionStatus.FAILED
 
 
@@ -277,6 +280,7 @@ def test_set_active_tx_mode(device, expected_value):
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Verify all fields match
+    assert isinstance(received_data[Device.Message.Incoming.ACTIVE_TX_MODE], ActiveTXMode)
     for key, value in expected_value.items():
         assert getattr(received_data[Device.Message.Incoming.ACTIVE_TX_MODE], key) == value
 
@@ -332,7 +336,7 @@ def test_set_connect_at_startup(device, connect_at_startup):
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Verify received data
-    assert received_data[Device.Message.Incoming.WIFI_SSID_DATA] is not None
+    assert isinstance(received_data[Device.Message.Incoming.WIFI_SSID_DATA], WiFiData)
     assert any([received_data[Device.Message.Incoming.WIFI_SSID_DATA].ssid])
     assert any([received_data[Device.Message.Incoming.WIFI_SSID_DATA].password])
     assert received_data[Device.Message.Incoming.WIFI_SSID_DATA].connect_at_startup == connect_at_startup
