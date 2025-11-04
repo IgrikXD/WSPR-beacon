@@ -410,3 +410,30 @@ def test_incorrect_request_type(device):
 
     # Verify received data
     assert received_data[Device.Message.Incoming.PROTOCOL_ERROR] == "Invalid message type!"
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
+def test_incorrect_message(device):
+    """
+    Checks that non JSON messages are processed correctly.
+
+    Verifies that the device correctly handles non JSON messages.
+    """
+    # Store received data for later verification
+    received_data = {Device.Message.Incoming.PROTOCOL_ERROR: None}
+
+    device.set_device_response_handlers({
+        Device.Message.Incoming.PROTOCOL_ERROR: [
+            lambda error: received_data.update({Device.Message.Incoming.PROTOCOL_ERROR: error})]
+    })
+
+    # Send a non-JSON message + line ending symbol directly via serial transport
+    # This bypasses the usual message encoding/decoding by Device class
+    device.serial_transport.send("UNEXPECTED NON-JSON MESSAGE" + "\n")
+
+    # Wait for device response
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
+
+    # Verify received data
+    assert received_data[Device.Message.Incoming.PROTOCOL_ERROR] == "Non-JSON data received!"
