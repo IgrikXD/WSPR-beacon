@@ -215,6 +215,39 @@ def test_run_wifi_connection(device):
 
 @pytest.mark.integration
 @pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
+def test_run_wifi_disconnection(device):
+    """
+    Checks that Wi-Fi disconnection request processed correctly.
+
+    Verifies that the device correctly handles Wi-Fi disconnection request.
+    """
+    # Store received data for later verification
+    received_data = {
+        Device.Message.Incoming.WIFI_STATUS: None,
+        Device.Message.Incoming.ACTIVE_TRANSPORT: None
+    }
+
+    device.set_device_response_handlers({
+        Device.Message.Incoming.WIFI_STATUS: [
+            lambda status: received_data.update({Device.Message.Incoming.WIFI_STATUS: status})],
+        Device.Message.Incoming.ACTIVE_TRANSPORT: [
+            lambda transport: received_data.update({Device.Message.Incoming.ACTIVE_TRANSPORT: transport})]
+    })
+
+    device.set_wifi_connection(None)
+
+    # Wait for device response
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
+
+    # Verify received data
+    assert isinstance(received_data[Device.Message.Incoming.WIFI_STATUS], ConnectionStatus)
+    assert received_data[Device.Message.Incoming.WIFI_STATUS] is ConnectionStatus.DISCONNECTED
+    assert isinstance(received_data[Device.Message.Incoming.ACTIVE_TRANSPORT], Device.Transport)
+    assert received_data[Device.Message.Incoming.ACTIVE_TRANSPORT] is Device.Transport.USB
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
 @pytest.mark.parametrize("expected_value", [
     {
         "tx_mode": TXMode.WSPR,
@@ -287,7 +320,7 @@ def test_set_active_tx_mode(device, expected_value):
 
 @pytest.mark.integration
 @pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
-@pytest.mark.parametrize("cal_value", [0, -9999, 9999, -2000, 2000])
+@pytest.mark.parametrize("cal_value", [-9999, 9999, -2000, 2000, 0])
 def test_set_calibration_value(device, cal_value):
     """
     Checks that setting the calibration value processed correctly.
