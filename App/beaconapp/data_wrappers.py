@@ -20,11 +20,6 @@ class Band(Enum):
     BAND_2M = 2
 
 
-class CalibrationType(Enum):
-    AUTO = "auto"
-    MANUAL = "manual"
-
-
 class ConnectionStatus(Enum):
     CONNECTED = "connected"
     DISCONNECTED = "disconnected"

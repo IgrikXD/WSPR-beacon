@@ -11,7 +11,7 @@ import websockets
 
 from abc import ABC, abstractmethod
 from colorama import Fore, Style
-from beaconapp.data_wrappers import ActiveTXMode, CalibrationType, ConnectionStatus, WiFiCredentials, WiFiData
+from beaconapp.data_wrappers import ActiveTXMode, ConnectionStatus, WiFiCredentials, WiFiData
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
@@ -69,7 +69,6 @@ class Device:
             RUN_SELF_CHECK = "RUN_SELF_CHECK"
             RUN_WIFI_CONNECTION = "RUN_WIFI_CONNECTION"
             SET_ACTIVE_TX_MODE = "SET_ACTIVE_TX_MODE"
-            SET_CAL_METHOD = "SET_CAL_METHOD"
             SET_CAL_VALUE = "SET_CAL_VALUE"
             SET_SSID_CONNECT_AT_STARTUP = "SET_SSID_CONNECT_AT_STARTUP"
 
@@ -268,12 +267,6 @@ class Device:
         Sends a request to set the active TX mode.
         """
         self._put(Device.Message(Device.Message.Outgoing.SET_ACTIVE_TX_MODE, active_tx_mode))
-
-    def set_calibration_type(self, calibration_type: CalibrationType):
-        """
-        Sends a request to set the calibration type (auto, manual).
-        """
-        self._put(Device.Message(Device.Message.Outgoing.SET_CAL_METHOD, calibration_type))
 
     def set_calibration_value(self, value: int):
         """

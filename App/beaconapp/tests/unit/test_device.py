@@ -3,7 +3,7 @@ import json
 
 from beaconapp.device import Device
 from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
-from beaconapp.data_wrappers import CalibrationType, ConnectionStatus, WiFiData, WiFiCredentials
+from beaconapp.data_wrappers import ConnectionStatus, WiFiData, WiFiCredentials
 
 
 @pytest.mark.parametrize(
@@ -222,12 +222,6 @@ def test_decode_device_message(incoming_json, expected_type, expected_data):
         # Outgoing: SET_ACTIVE_TX_MODE: None
         (Device.Message.Outgoing.SET_ACTIVE_TX_MODE, None,
          '{"type": "SET_ACTIVE_TX_MODE", "data": null}'),
-        # Outgoing: SET_CAL_METHOD: CalibrationType.AUTO
-        (Device.Message.Outgoing.SET_CAL_METHOD, CalibrationType.AUTO,
-         '{"type": "SET_CAL_METHOD", "data": "auto"}'),
-        # Outgoing: SET_CAL_METHOD: CalibrationType.MANUAL
-        (Device.Message.Outgoing.SET_CAL_METHOD, CalibrationType.MANUAL,
-         '{"type": "SET_CAL_METHOD", "data": "manual"}'),
         # Outgoing: SET_CAL_VALUE: positive int
         (Device.Message.Outgoing.SET_CAL_VALUE, 2000,
          '{"type": "SET_CAL_VALUE", "data": 2000}'),

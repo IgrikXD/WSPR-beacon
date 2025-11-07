@@ -1,6 +1,6 @@
 from beaconapp.config import Config
 from beaconapp.data_validation import DataValidation
-from beaconapp.data_wrappers import CalibrationType, ConnectionStatus, WiFiCredentials, WiFiData
+from beaconapp.data_wrappers import ConnectionStatus, WiFiCredentials, WiFiData
 from beaconapp.device import Device
 from beaconapp.ui.widgets import Widgets
 
@@ -27,23 +27,11 @@ class SettingsWidget:
         # Device calibration label
         Widgets.create_block_label(self.general_frame, row=0, text="Device calibration")
 
-        # Settings -> Device calibration -> SI5351 calibration mode
-        self.cal_option = Widgets.create_option_menu_with_background_frame(
-            self.general_frame,
-            row=1,
-            text="SI5351 calibration mode:",
-            values=["Auto (by GPS)", "Manual"],
-            default_value="Manual",
-            state="disabled",
-            command=self._calibration_change_option_event,
-            optimize_for_scrollable=True
-        )
-
         # Settings -> Device calibration -> Calibration value
         self.cal_value_entry, self.inc_cal_value_button, self.dec_cal_value_button = (
             Widgets.create_entry_with_background_frame_and_control_buttons(
                 self.general_frame,
-                row=2,
+                row=1,
                 text="Calibration value:",
                 state="disabled",
                 validation=DataValidation.validate_cal_value_input,
@@ -59,7 +47,7 @@ class SettingsWidget:
         # Settings -> Device calibration -> Calibration frequency
         self.cal_frequency_button, self.cal_frequency_entry = Widgets.create_entry_with_button(
             self.general_frame,
-            row=3,
+            row=2,
             text="Calibration frequency, MHz:",
             entry_default_value=self.config.get_cal_frequency(),
             entry_state="disabled",
@@ -75,12 +63,12 @@ class SettingsWidget:
         )
 
         # Device connection settings label
-        Widgets.create_block_label(self.general_frame, row=4, text="Device connection settings")
+        Widgets.create_block_label(self.general_frame, row=3, text="Device connection settings")
 
         # Settings -> Device connection settings -> SSID
         self.wifi_connection_button, self.ssid_entry = Widgets.create_entry_with_button(
             self.general_frame,
-            row=5,
+            row=4,
             text="SSID:",
             entry_state="disabled",
             entry_bind_action=["<KeyRelease>", self._wifi_update_connection_button_state],
@@ -93,7 +81,7 @@ class SettingsWidget:
         # Settings -> Device connection settings -> Password
         self.password_entry = Widgets.create_entry_with_background_frame(
             self.general_frame,
-            row=6,
+            row=5,
             text="Password:",
             state="disabled",
             show="●",
@@ -104,7 +92,7 @@ class SettingsWidget:
         # Settings -> Device connection settings -> Auto-connect to Wi-Fi on startup
         self.wifi_auto_connect_at_startup_option = Widgets.create_option_menu_with_background_frame(
             self.general_frame,
-            row=7,
+            row=6,
             text="Auto-connect to Wi-Fi on startup:",
             values=["Enabled", "Disabled"],
             default_value="Enabled",
@@ -114,12 +102,12 @@ class SettingsWidget:
         )
 
         # App settings label
-        Widgets.create_block_label(self.general_frame, row=8, text="App settings")
+        Widgets.create_block_label(self.general_frame, row=7, text="App settings")
 
         # Settings -> App settings -> App theme
         self.ui_theme = Widgets.create_option_menu_with_background_frame(
             self.general_frame,
-            row=9,
+            row=8,
             text="UI theme:",
             values=["Dark", "Light"],
             default_value=self.config.get_ui_theme(),
@@ -130,7 +118,8 @@ class SettingsWidget:
         # Settings -> App settings -> UI scaling
         self.ui_scaling_option = Widgets.create_option_menu_with_background_frame(
             self.general_frame,
-            row=10, text="UI scaling:",
+            row=9, 
+            text="UI scaling:",
             values=["80%", "90%", "100%", "110%", "120%"],
             default_value=f"{int(self.config.get_ui_scaling() * 100)}%",
             command=self._change_ui_scaling_event,
@@ -154,9 +143,6 @@ class SettingsWidget:
         Args:
             is_generated (bool): Indicates if the calibration frequency is currently being generated.
         """
-        # The calibration mode cannot be changed while generating the calibration frequency.
-        self.cal_option.configure(state="disabled" if is_generated else "normal")
-
         if not is_generated:
             # Wi-Fi management is allowed if the calibration frequency is not being generated.
             self._wifi_change_state("normal")
@@ -218,24 +204,6 @@ class SettingsWidget:
         }
         connection_actions[status]()
 
-    def _calibration_change_option_event(self, calibration_option):
-        """
-        Event handler for changing the calibration mode.
-
-        Args:
-            calibration_option (str): Selected option for calibration ("Auto (by GPS)" or "Manual").
-        """
-        self.cal_option.focus_set()
-        # The state of the "Calibration value" and "Calibration frequency" blocks depends on
-        # the selected "SI5351 calibration mode" option value.
-        if calibration_option == "Auto (by GPS)":
-            self._calibration_elements_change_state("disabled")
-            self.device.set_calibration_type(CalibrationType.AUTO)
-        else:
-            self._calibration_elements_change_state("normal")
-            self._calibration_frequency_update_generate_button_state()
-            self.device.set_calibration_type(CalibrationType.MANUAL)
-
     def _calibration_change_state(self, state):
         """
         Change the state of the calibration-related UI components.
@@ -243,13 +211,8 @@ class SettingsWidget:
         Args:
             state (str): The desired state ("normal" or "disabled").
         """
-        self.cal_option.after(0, lambda: self.cal_option.configure(state=state))
         if state == "normal":
-            # The state of the "Calibration value" and "Calibration frequency" blocks depends on the selected
-            # "SI5351 calibration mode" option value.
-            self._calibration_elements_change_state(
-                "normal" if self.cal_option.get() == "Manual" else "disabled"
-            )
+            self._calibration_elements_change_state("normal")
             self._calibration_frequency_update_generate_button_state()
         else:
             self._calibration_elements_change_state("disabled")
@@ -272,8 +235,6 @@ class SettingsWidget:
         Handle the logic when the calibration frequency button is pressed (Generate or Terminate).
         """
         self.cal_frequency_button.focus_set()
-        # The calibration mode cannot be changed while generating the calibration frequency.
-        self.cal_option.configure(state="disabled")
         # Disabling the ability to control Wi-Fi while generating the calibration frequency
         self._wifi_change_state("disabled")
 
