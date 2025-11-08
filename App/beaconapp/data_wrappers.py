@@ -2,6 +2,16 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 
 
+# General device status enums
+class Status(Enum):
+    CALIBRATED = "calibrated"
+    CONNECTED = "connected"
+    DISCONNECTED = "disconnected"
+    INITIATED = "initiated"
+    FAILED = "failed"
+
+
+# ActiveTXMode related enums
 class Band(Enum):
     BAND_2200M = 2200
     BAND_600M = 600
@@ -18,13 +28,6 @@ class Band(Enum):
     BAND_6M = 6
     BAND_4M = 4
     BAND_2M = 2
-
-
-class ConnectionStatus(Enum):
-    CONNECTED = "connected"
-    DISCONNECTED = "disconnected"
-    INITIATED = "initiated"
-    FAILED = "failed"
 
 
 class TransmitEvery(Enum):

@@ -5,7 +5,7 @@ import threading
 
 from beaconapp.device import Device
 from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
-from beaconapp.data_wrappers import ConnectionStatus, WiFiCredentials, WiFiData
+from beaconapp.data_wrappers import Status, WiFiCredentials, WiFiData
 from enum import Enum
 
 
@@ -173,7 +173,7 @@ def test_get_device_info(device):
     assert isinstance(responses[Device.Message.Incoming.GPS_STATUS], bool)
     assert isinstance(responses[Device.Message.Incoming.TX_STATUS], bool)
     assert isinstance(responses[Device.Message.Incoming.WIFI_SSID_DATA], WiFiData)
-    assert isinstance(responses[Device.Message.Incoming.WIFI_STATUS], ConnectionStatus)
+    assert isinstance(responses[Device.Message.Incoming.WIFI_STATUS], Status)
     assert isinstance(responses[Device.Message.Incoming.FIRMWARE_INFO], str)
     assert isinstance(responses[Device.Message.Incoming.HARDWARE_INFO], float)
     assert isinstance(responses[Device.Message.Incoming.ACTIVE_TX_MODE], ActiveTXMode)
@@ -202,15 +202,15 @@ def test_run_wifi_connection(device):
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Verify received data
-    assert isinstance(received_data[Device.Message.Incoming.WIFI_STATUS], ConnectionStatus)
-    assert received_data[Device.Message.Incoming.WIFI_STATUS] is ConnectionStatus.INITIATED
+    assert isinstance(received_data[Device.Message.Incoming.WIFI_STATUS], Status)
+    assert received_data[Device.Message.Incoming.WIFI_STATUS] is Status.INITIATED
 
     # Wait for device response
     time.sleep(10.0)  # Allow more time for Wi-Fi connection attempt
 
     # Verify received data
-    assert isinstance(received_data[Device.Message.Incoming.WIFI_STATUS], ConnectionStatus)
-    assert received_data[Device.Message.Incoming.WIFI_STATUS] is ConnectionStatus.FAILED
+    assert isinstance(received_data[Device.Message.Incoming.WIFI_STATUS], Status)
+    assert received_data[Device.Message.Incoming.WIFI_STATUS] is Status.FAILED
 
 
 @pytest.mark.integration
@@ -240,8 +240,8 @@ def test_run_wifi_disconnection(device):
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Verify received data
-    assert isinstance(received_data[Device.Message.Incoming.WIFI_STATUS], ConnectionStatus)
-    assert received_data[Device.Message.Incoming.WIFI_STATUS] is ConnectionStatus.DISCONNECTED
+    assert isinstance(received_data[Device.Message.Incoming.WIFI_STATUS], Status)
+    assert received_data[Device.Message.Incoming.WIFI_STATUS] is Status.DISCONNECTED
     assert isinstance(received_data[Device.Message.Incoming.ACTIVE_TRANSPORT], Device.Transport)
     assert received_data[Device.Message.Incoming.ACTIVE_TRANSPORT] is Device.Transport.USB
 

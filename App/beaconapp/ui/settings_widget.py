@@ -1,6 +1,6 @@
 from beaconapp.config import Config
 from beaconapp.data_validation import DataValidation
-from beaconapp.data_wrappers import ConnectionStatus, WiFiCredentials, WiFiData
+from beaconapp.data_wrappers import Status, WiFiCredentials, WiFiData
 from beaconapp.device import Device
 from beaconapp.ui.widgets import Widgets
 
@@ -21,6 +21,9 @@ class SettingsWidget:
         """
         self.device = device
         self.config = config
+        # Locally cached GPS status used to enable/disable GPS calibration
+        # button depending on GPS availability
+        self.gps_status = False
 
         self.general_frame = Widgets.create_general_frame(parent, scrollable=True)
 
@@ -28,7 +31,8 @@ class SettingsWidget:
         Widgets.create_block_label(self.general_frame, row=0, text="Device calibration")
 
         # Settings -> Device calibration -> Calibration value
-        self.cal_value_entry, self.inc_cal_value_button, self.dec_cal_value_button = (
+        self.cal_value_var = customtkinter.StringVar()
+        self.cal_value_entry, cal_value_buttons = (
             Widgets.create_entry_with_background_frame_and_control_buttons(
                 self.general_frame,
                 row=1,
@@ -36,13 +40,24 @@ class SettingsWidget:
                 state="disabled",
                 validation=DataValidation.validate_cal_value_input,
                 bind_action=["<Return>", self._calibration_value_entry_enter_pressed],
-                first_button_text="+",
-                first_button_command=self._calibration_value_inc_button_pressed,
-                second_button_text="-",
-                second_button_command=self._calibration_value_dec_button_pressed,
-                optimize_for_scrollable=True
+                buttons=[
+                    {'text': 'Auto by GPS', 'command': self._gps_calibration_button_pressed, 'width': 90},
+                    {'text': '+', 'command': self._calibration_value_inc_button_pressed},
+                    {'text': '-', 'command': self._calibration_value_dec_button_pressed}
+                ],
+                optimize_for_scrollable=True,
+                textvariable=self.cal_value_var
             )
         )
+        self.gps_cal_value_button = cal_value_buttons[0]
+        self.inc_cal_value_button = cal_value_buttons[1]
+        self.dec_cal_value_button = cal_value_buttons[2]
+
+        # GPS calibration action mappings
+        self._gps_cal_actions = {
+            Status.CALIBRATED: self._gps_calibration_finished,
+            Status.INITIATED: self._gps_calibration_initiated,
+        }
 
         # Settings -> Device calibration -> Calibration frequency
         self.cal_frequency_button, self.cal_frequency_entry = Widgets.create_entry_with_button(
@@ -66,6 +81,7 @@ class SettingsWidget:
         Widgets.create_block_label(self.general_frame, row=3, text="Device connection settings")
 
         # Settings -> Device connection settings -> SSID
+        self.ssid_var = customtkinter.StringVar()
         self.wifi_connection_button, self.ssid_entry = Widgets.create_entry_with_button(
             self.general_frame,
             row=4,
@@ -75,10 +91,20 @@ class SettingsWidget:
             button_text="Connect",
             button_state="disabled",
             button_command=self._wifi_connection_button_pressed,
-            optimize_for_scrollable=True
+            optimize_for_scrollable=True,
+            entry_textvariable=self.ssid_var
         )
 
+        # Wi-Fi connection status action mappings
+        self._wifi_status_actions = {
+            Status.CONNECTED: self._wifi_connection_pass,
+            Status.DISCONNECTED: self._wifi_disconnected,
+            Status.INITIATED: self._wifi_connection_initiated,
+            Status.FAILED: self._wifi_connection_error_handle,
+        }
+
         # Settings -> Device connection settings -> Password
+        self.password_var = customtkinter.StringVar()
         self.password_entry = Widgets.create_entry_with_background_frame(
             self.general_frame,
             row=5,
@@ -86,7 +112,8 @@ class SettingsWidget:
             state="disabled",
             show="●",
             bind_action=["<KeyRelease>", self._wifi_update_connection_button_state],
-            optimize_for_scrollable=True
+            optimize_for_scrollable=True,
+            textvariable=self.password_var
         )
 
         # Settings -> Device connection settings -> Auto-connect to Wi-Fi on startup
@@ -118,7 +145,7 @@ class SettingsWidget:
         # Settings -> App settings -> UI scaling
         self.ui_scaling_option = Widgets.create_option_menu_with_background_frame(
             self.general_frame,
-            row=9, 
+            row=9,
             text="UI scaling:",
             values=["80%", "90%", "100%", "110%", "120%"],
             default_value=f"{int(self.config.get_ui_scaling() * 100)}%",
@@ -162,10 +189,7 @@ class SettingsWidget:
         Args:
             value: Calibration value to display in the entry.
         """
-        self._calibration_change_state("normal")
-
-        self.cal_value_entry.delete(0, "end")
-        self.cal_value_entry.insert(0, value)
+        self.cal_value_var.set(value)
 
     def set_wifi_data(self, data: WiFiData):
         """
@@ -177,32 +201,40 @@ class SettingsWidget:
                 - password (str): The password of the Wi-Fi network.
                 - connect_at_startup (bool): Whether to auto-connect to this Wi-Fi network at startup.
         """
-        self._wifi_change_state("normal")
-
-        self.ssid_entry.delete(0, "end")
-        self.ssid_entry.insert(0, data.ssid)
-
-        self.password_entry.delete(0, "end")
-        self.password_entry.insert(0, data.password)
+        self.ssid_var.set(data.ssid)
+        self.password_var.set(data.password)
 
         self._wifi_update_connection_button_state()
-
         self.wifi_auto_connect_at_startup_option.set("Enabled" if data.connect_at_startup else "Disabled")
 
-    def update_wifi_status(self, status: ConnectionStatus):
+    def update_gps_cal_status(self, status: Status):
+        """
+        Updates the GPS calibration button based on the current GPS calibration status.
+
+        Args:
+            status (Status): The current GPS calibration status.
+        """
+        self._gps_cal_actions[status]()
+
+    def update_gps_status(self, status: bool):
+        """
+        Update the locally cached GPS status.
+
+        Args:
+            status (bool): The GPS status to set.
+        """
+        self.gps_status = status
+        gps_button_state = "normal" if status else "disabled"
+        self.gps_cal_value_button.after(0, lambda: self.gps_cal_value_button.configure(state=gps_button_state))
+
+    def update_wifi_status(self, status: Status):
         """
         Updates the Wi-Fi connection button based on the current Wi-Fi connection status.
 
         Args:
-            status (ConnectionStatus): The current Wi-Fi connection status.
+            status (Status): The current Wi-Fi connection status.
         """
-        connection_actions = {
-            ConnectionStatus.CONNECTED: self._wifi_connection_pass,
-            ConnectionStatus.DISCONNECTED: self._wifi_disconnected,
-            ConnectionStatus.INITIATED: self._wifi_conection_initiated,
-            ConnectionStatus.FAILED: self._wifi_connection_error_handle,
-        }
-        connection_actions[status]()
+        self._wifi_status_actions[status]()
 
     def _calibration_change_state(self, state):
         """
@@ -224,9 +256,11 @@ class SettingsWidget:
         Args:
             state (str): The desired state ("normal" or "disabled").
         """
-        self.cal_value_entry.after(0, lambda: self.cal_value_entry.configure(state=state))
+        gps_button_state = "normal" if state == "normal" and self.gps_status else "disabled"
+        self.gps_cal_value_button.after(0, lambda: self.gps_cal_value_button.configure(state=gps_button_state))
         self.dec_cal_value_button.after(0, lambda: self.dec_cal_value_button.configure(state=state))
         self.inc_cal_value_button.after(0, lambda: self.inc_cal_value_button.configure(state=state))
+        self.cal_value_entry.after(0, lambda: self.cal_value_entry.configure(state=state))
         self.cal_frequency_entry.after(0, lambda: self.cal_frequency_entry.configure(state=state))
         self.cal_frequency_button.after(0, lambda: self.cal_frequency_button.configure(state=state))
 
@@ -299,11 +333,63 @@ class SettingsWidget:
             change (int): The delta (e.g., +1 or -1) to apply to the current calibration value.
         """
         new_value = int(self.cal_value_entry.get()) + change
-
-        self.cal_value_entry.delete(0, "end")
-        self.cal_value_entry.insert(0, str(new_value))
-
+        self.cal_value_var.set(str(new_value))
         self.device.set_calibration_value(new_value)
+
+    def _gps_calibration_button_pressed(self):
+        """
+        Handle the logic when the GPS calibration button is pressed.
+        Requests the device to calculate the calibration value based on GPS data.
+        """
+        self.gps_cal_value_button.focus_set()
+        # Disabling possibility to change settings while GPS calibration is running
+        self.change_state("disabled")
+
+        self.device.run_gps_calibration()
+
+        self.gps_cal_value_button.configure(
+            state="disabled",
+            text="Waiting...",
+            fg_color=["#3B8ED0", "#1F6AA5"],
+            hover_color=["#3B8ED0", "#1F6AA5"],
+            text_color_disabled=["#DCE4EE", "#DCE4EE"]
+        )
+
+    def _gps_calibration_initiated(self):
+        """
+        Handle GPS calibration button changes when the GPS calibration process is initiated.
+        """
+        self.gps_cal_value_button.after(0, lambda: self.gps_cal_value_button.configure(
+            state="disabled",
+            text="Calibration...",
+            fg_color=["#D9534F", "#A94442"],
+            text_color_disabled=["#DCE4EE", "#DCE4EE"]
+        ))
+
+    def _gps_calibration_finished(self):
+        """
+        Handle GPS calibration button changes when the GPS calibration process is finished.
+        """
+        self.gps_cal_value_button.after(0, lambda: self.gps_cal_value_button.configure(
+            state="disabled",
+            text="Calibrated!",
+            fg_color=["#3BAA5D", "#2E8B57"],
+            text_color_disabled=["#DCE4EE", "#DCE4EE"]
+        ))
+        self.gps_cal_value_button.after(2000, self._gps_calibration_button_default_state)
+
+    def _gps_calibration_button_default_state(self):
+        """
+        Restore the GPS calibration button to its default state after calibration is complete.
+        """
+        self.gps_cal_value_button.after(0, lambda: self.gps_cal_value_button.configure(
+            state="normal",
+            text="Auto by GPS",
+            fg_color=["#3B8ED0", "#1F6AA5"],
+            hover_color=["#36719F", "#144870"],
+            text_color_disabled=["#BDBDBD", "#999999"]
+        ))
+        self.change_state("normal")
 
     def _wifi_change_state(self, state):
         """
@@ -352,9 +438,9 @@ class SettingsWidget:
             text_color_disabled=["#DCE4EE", "#DCE4EE"]
         )
 
-    def _wifi_conection_initiated(self):
+    def _wifi_connection_initiated(self):
         """
-        Handle UI changes when the Wi-Fi connection attempt is initiated.
+        Handle Wi-Fi connect button changes when the Wi-Fi connection attempt is initiated.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
             state="disabled",
@@ -366,7 +452,7 @@ class SettingsWidget:
 
     def _wifi_connection_error_handle(self):
         """
-        Handle UI changes when the Wi-Fi connection attempt fails.
+        Handle Wi-Fi connect button changes when the Wi-Fi connection attempt fails.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
             state="disabled",
@@ -379,7 +465,7 @@ class SettingsWidget:
 
     def _wifi_disconnected(self):
         """
-        Handle UI changes when the Wi-Fi connection is terminated.
+        Handle Wi-Fi connect button changes when the Wi-Fi connection is terminated.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
             state="normal",
@@ -392,7 +478,7 @@ class SettingsWidget:
 
     def _wifi_connection_pass(self):
         """
-        Handle UI changes when the Wi-Fi connection attempt is successful.
+        Handle Wi-Fi connect button changes when the Wi-Fi connection attempt is successful.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
             state="normal",

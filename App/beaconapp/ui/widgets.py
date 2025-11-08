@@ -131,14 +131,12 @@ class Widgets:
         state="normal",
         bind_action=None,
         validation=None,
-        first_button_text=None,
-        first_button_command=None,
-        second_button_text=None,
-        second_button_command=None,
-        optimize_for_scrollable=False
+        buttons=None,
+        optimize_for_scrollable=False,
+        textvariable=None
     ):
         """
-        Creates a background frame with a label, an entry field, and two control buttons.
+        Creates a background frame with a label, an entry field, and control buttons.
 
         Args:
             parent (widget): Parent widget in which to place the elements.
@@ -147,14 +145,16 @@ class Widgets:
             state (str): The state of the entry and buttons (e.g., "normal" or "disabled").
             bind_action (tuple or list): Event binding(s) for the entry.
             validation (callable): Validation function for the entry.
-            first_button_text (str): Text for the first button.
-            first_button_command (callable): Callback function for the first button.
-            second_button_text (str): Text for the second button.
-            second_button_command (callable): Callback function for the second button.
+            buttons (list of dict): List of button configurations. Each dict should contain:
+                - 'text' (str): Button text
+                - 'command' (callable): Button callback function
+                - 'width' (int, optional): Button width (default: 25)
+                Buttons are placed from right to left (last button closest to entry).
             optimize_for_scrollable (bool): If True, adjusts padding for scrollable areas.
+            textvariable (StringVar): Optional StringVar to bind to the entry.
 
         Returns:
-            tuple: (CTkEntry, CTkButton, CTkButton)
+            tuple: (CTkEntry, list of CTkButton) - Entry widget and list of created buttons
         """
         background_frame = Widgets.create_background_frame(
             parent,
@@ -163,31 +163,39 @@ class Widgets:
             optimize_for_scrollable=optimize_for_scrollable
         )
 
-        entry = customtkinter.CTkEntry(background_frame, width=160, state=state)
-        entry.grid(row=0, column=3, padx=(0, 10), pady=5)
+        # Calculate entry column based on number of buttons
+        num_buttons = len(buttons) if buttons else 0
+        entry_column = num_buttons + 1
+
+        entry = customtkinter.CTkEntry(
+            background_frame,
+            width=160,
+            state=state,
+            textvariable=textvariable
+        )
+        entry.grid(row=0, column=entry_column, padx=(0, 10), pady=5)
 
         Widgets._apply_binding(entry, bind_action)
         Widgets._apply_validation(entry, validation)
 
-        first_control_button = customtkinter.CTkButton(
-            background_frame,
-            width=25,
-            text=first_button_text,
-            state=state,
-            command=first_button_command
-        )
-        first_control_button.grid(row=0, column=2, padx=(0, 5), pady=5)
+        # Create buttons from right to left
+        created_buttons = []
+        if buttons:
+            for i, button_config in enumerate(buttons):
+                button_width = button_config.get('width', 25)
+                button = customtkinter.CTkButton(
+                    background_frame,
+                    width=button_width,
+                    text=button_config.get('text', ''),
+                    state=state,
+                    command=button_config.get('command')
+                )
+                # Place buttons in reverse order (rightmost button first)
+                button_column = num_buttons - i
+                button.grid(row=0, column=button_column, padx=(0, 5), pady=5)
+                created_buttons.append(button)
 
-        second_control_button = customtkinter.CTkButton(
-            background_frame,
-            width=25,
-            text=second_button_text,
-            state=state,
-            command=second_button_command
-        )
-        second_control_button.grid(row=0, column=1, padx=(0, 5), pady=5)
-
-        return entry, first_control_button, second_control_button
+        return entry, created_buttons
 
     @staticmethod
     def create_entry_with_background_frame(
@@ -199,7 +207,8 @@ class Widgets:
         state="normal",
         bind_action=None,
         validation=None,
-        optimize_for_scrollable=False
+        optimize_for_scrollable=False,
+        textvariable=None
     ):
         """
         Creates a background frame with a label and a single entry widget.
@@ -214,6 +223,7 @@ class Widgets:
             bind_action (tuple or list): Event binding(s) for the entry.
             validation (callable): Validation function for the entry.
             optimize_for_scrollable (bool): If True, adjusts padding for scrollable areas.
+            textvariable (StringVar): Optional StringVar to bind to the entry.
 
         Returns:
             CTkEntry: The created entry widget.
@@ -230,7 +240,8 @@ class Widgets:
             show=show,
             placeholder_text=placeholder_text,
             state=state,
-            width=160
+            width=160,
+            textvariable=textvariable
         )
         entry.grid(row=0, column=1, padx=(0, 10), pady=5, sticky="w")
 
@@ -386,7 +397,8 @@ class Widgets:
         entry_validation=None,
         entry_bind_action=None,
         entry_default_value=None,
-        optimize_for_scrollable=False
+        optimize_for_scrollable=False,
+        entry_textvariable=None
     ):
         """
         Creates a background frame with a label, an entry, and a button in one row.
@@ -403,6 +415,7 @@ class Widgets:
             entry_bind_action (tuple or list): Event binding(s) for the entry.
             entry_default_value (str): Default text inserted into the entry.
             optimize_for_scrollable (bool): If True, adjusts padding for scrollable areas.
+            entry_textvariable (StringVar): Optional StringVar to bind to the entry.
 
         Returns:
             tuple: (CTkButton, CTkEntry)
@@ -414,7 +427,7 @@ class Widgets:
             optimize_for_scrollable=optimize_for_scrollable
         )
 
-        entry = customtkinter.CTkEntry(frame, width=160)
+        entry = customtkinter.CTkEntry(frame, width=160, textvariable=entry_textvariable)
         entry.grid(row=0, column=1, padx=(0, 10), pady=5, sticky="w")
 
         Widgets._set_default_value(entry, entry_default_value)

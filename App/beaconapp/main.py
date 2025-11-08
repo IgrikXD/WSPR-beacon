@@ -1,5 +1,5 @@
 from beaconapp.config import Config
-from beaconapp.data_wrappers import ConnectionStatus
+from beaconapp.data_wrappers import Status
 from beaconapp.device import Device
 from beaconapp.ui.navigation_widget import NavigationWidget
 from beaconapp.ui.self_check_widget import SelfCheckWidget
@@ -49,6 +49,7 @@ class BeaconApp(customtkinter.CTk):
         # Set handlers for incoming messages from the device
         self.device.set_device_response_handlers({
             Device.Message.Incoming.ACTIVE_TRANSPORT:   [navigation_frame.set_connection_status,
+                                                         # Handle device disconnection
                                                          lambda transport: (
                                                             transmission_frame.update_gps_status(False),
                                                             transmission_frame.update_cal_status(False),
@@ -72,7 +73,15 @@ class BeaconApp(customtkinter.CTk):
             Device.Message.Incoming.CAL_STATUS:         [transmission_frame.update_cal_status],
             Device.Message.Incoming.CAL_VALUE:          [settings_frame.set_calibration_value],
             Device.Message.Incoming.FIRMWARE_INFO:      [self_check_frame.update_firmware_info],
-            Device.Message.Incoming.GPS_STATUS:         [transmission_frame.update_gps_status],
+            Device.Message.Incoming.GPS_CAL_STATUS:     [settings_frame.update_gps_cal_status,
+                                                         lambda gps_cal_status: transmission_frame.change_state(
+                                                            "disabled" if gps_cal_status is
+                                                            Status.INITIATED else "normal"),
+                                                         lambda gps_cal_status: self_check_frame.change_state(
+                                                            "disabled" if gps_cal_status is
+                                                            Status.INITIATED else "normal")],
+            Device.Message.Incoming.GPS_STATUS:         [transmission_frame.update_gps_status,
+                                                         settings_frame.update_gps_status],
             Device.Message.Incoming.HARDWARE_INFO:      [self_check_frame.update_hardware_info],
             Device.Message.Incoming.QTH_LOCATOR:        [transmission_frame.update_qth_locator],
             Device.Message.Incoming.PROTOCOL_ERROR:     [self.protocol_error_handler],
@@ -88,13 +97,10 @@ class BeaconApp(customtkinter.CTk):
             Device.Message.Incoming.WIFI_STATUS:        [settings_frame.update_wifi_status,
                                                          lambda wifi_status: transmission_frame.change_state(
                                                             "disabled" if wifi_status is
-                                                            ConnectionStatus.INITIATED else "normal"),
+                                                            Status.INITIATED else "normal"),
                                                          lambda wifi_status: self_check_frame.change_state(
                                                             "disabled" if wifi_status is
-                                                            ConnectionStatus.INITIATED else "normal"),
-                                                         lambda wifi_status: settings_frame.change_state(
-                                                            "disabled" if wifi_status is
-                                                            ConnectionStatus.INITIATED else "normal")]
+                                                            Status.INITIATED else "normal")]
         })
 
         # Establish the connection to the device

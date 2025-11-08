@@ -11,7 +11,7 @@ import websockets
 
 from abc import ABC, abstractmethod
 from colorama import Fore, Style
-from beaconapp.data_wrappers import ActiveTXMode, ConnectionStatus, WiFiCredentials, WiFiData
+from beaconapp.data_wrappers import ActiveTXMode, Status, WiFiCredentials, WiFiData
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
@@ -52,6 +52,7 @@ class Device:
             CAL_VALUE = "CAL_VALUE"
             FIRMWARE_INFO = "FIRMWARE_INFO"
             GPS_STATUS = "GPS_STATUS"
+            GPS_CAL_STATUS = "GPS_CAL_STATUS"
             HARDWARE_INFO = "HARDWARE_INFO"
             QTH_LOCATOR = "QTH_LOCATOR"
             PROTOCOL_ERROR = "PROTOCOL_ERROR"
@@ -66,6 +67,7 @@ class Device:
         class Outgoing(Enum):
             GEN_CAL_FREQUENCY = "GEN_CAL_FREQUENCY"
             GET_DEVICE_INFO = "GET_DEVICE_INFO"
+            RUN_GPS_CALIBRATION = "RUN_GPS_CALIBRATION"
             RUN_SELF_CHECK = "RUN_SELF_CHECK"
             RUN_WIFI_CONNECTION = "RUN_WIFI_CONNECTION"
             SET_ACTIVE_TX_MODE = "SET_ACTIVE_TX_MODE"
@@ -256,6 +258,12 @@ class Device:
         """
         self._put(Device.Message(Device.Message.Outgoing.GET_DEVICE_INFO))
 
+    def run_gps_calibration(self):
+        """
+        Sends a request to run GPS-based calibration procedure.
+        """
+        self._put(Device.Message(Device.Message.Outgoing.RUN_GPS_CALIBRATION))
+
     def run_self_check(self):
         """
         Sends a request to run a self-check procedure on the device.
@@ -382,8 +390,8 @@ class Device:
             self._set_active_transport(data)
         elif msg_type == Device.Message.Incoming.WIFI_SSID_DATA:
             data = WiFiData.from_json(raw_data)
-        elif msg_type == Device.Message.Incoming.WIFI_STATUS:
-            data = ConnectionStatus(raw_data)
+        elif msg_type in (Device.Message.Incoming.WIFI_STATUS, Device.Message.Incoming.GPS_CAL_STATUS):
+            data = Status(raw_data)
         else:
             data = raw_data
 

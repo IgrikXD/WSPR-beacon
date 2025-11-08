@@ -3,7 +3,7 @@ import json
 
 from beaconapp.device import Device
 from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
-from beaconapp.data_wrappers import ConnectionStatus, WiFiData, WiFiCredentials
+from beaconapp.data_wrappers import Status, WiFiData, WiFiCredentials
 
 
 @pytest.mark.parametrize(
@@ -155,18 +155,18 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
         # Incoming: WIFI_SSID_DATA: WifiData(..., "connect_at_startup": True)
         ({"type": "WIFI_SSID_DATA", "data": {"ssid": "Name", "password": "Pass", "connect_at_startup": True}},
          Device.Message.Incoming.WIFI_SSID_DATA, WiFiData("Name", "Pass", True)),
-        # Incoming: WIFI_STATUS: ConnectionStatus("connected")
+        # Incoming: WIFI_STATUS: Status("connected")
         ({"type": "WIFI_STATUS", "data": "connected"},
-         Device.Message.Incoming.WIFI_STATUS, ConnectionStatus("connected")),
-        # Incoming: WIFI_STATUS: ConnectionStatus("disconnected")
+         Device.Message.Incoming.WIFI_STATUS, Status("connected")),
+        # Incoming: WIFI_STATUS: Status("disconnected")
         ({"type": "WIFI_STATUS", "data": "disconnected"},
-         Device.Message.Incoming.WIFI_STATUS, ConnectionStatus("disconnected")),
-        # Incoming: WIFI_STATUS: ConnectionStatus("initiated")
+         Device.Message.Incoming.WIFI_STATUS, Status("disconnected")),
+        # Incoming: WIFI_STATUS: Status("initiated")
         ({"type": "WIFI_STATUS", "data": "initiated"},
-         Device.Message.Incoming.WIFI_STATUS, ConnectionStatus("initiated")),
-        # Incoming: WIFI_STATUS: ConnectionStatus("failed")
+         Device.Message.Incoming.WIFI_STATUS, Status("initiated")),
+        # Incoming: WIFI_STATUS: Status("failed")
         ({"type": "WIFI_STATUS", "data": "failed"},
-         Device.Message.Incoming.WIFI_STATUS, ConnectionStatus("failed")),
+         Device.Message.Incoming.WIFI_STATUS, Status("failed")),
     ]
 )
 @pytest.mark.unit
