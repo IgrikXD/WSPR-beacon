@@ -149,6 +149,8 @@ class BeaconApp(customtkinter.CTk):
         self.config.save()
         # Properly close all active connections to the device
         self.device.disconnect()
+        # Remove the lock file before closing
+        remove_lock_file()
         self.destroy()
         # Force exit to prevent hanging on resource cleanup
         os._exit(0)
@@ -164,16 +166,35 @@ def check_already_running() -> bool:
             with open(LOCK_FILE, "r", encoding="utf-8") as f:
                 old_pid = int(f.read().strip())
             # Check if a process with this PID is still running
-            if old_pid in psutil.pids():
-                # A process with this PID is still active
-                return True
-            else:
-                # The old process is not active, remove the outdated lock file
-                os.remove(LOCK_FILE)
+            if psutil.pid_exists(old_pid):
+                try:
+                    process = psutil.Process(old_pid)
+                    # Check if it's actually a Python process running BEACON.App
+                    process_name = process.name().lower()
+                    if "python" in process_name or "beaconapp" in process_name:
+                        return True
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
+            # The old process is not active or not BEACON.App, remove the outdated lock file
+            os.remove(LOCK_FILE)
         except (ValueError, OSError):
             # If PID could not be read or something went wrong, remove the file
-            os.remove(LOCK_FILE)
+            try:
+                os.remove(LOCK_FILE)
+            except OSError:
+                pass
     return False
+
+
+def remove_lock_file():
+    """
+    Removes the lock file if it exists.
+    """
+    try:
+        if os.path.exists(LOCK_FILE):
+            os.remove(LOCK_FILE)
+    except OSError:
+        pass
 
 
 def create_lock_file():
@@ -189,8 +210,8 @@ def create_lock_file():
     with open(LOCK_FILE, "w", encoding="utf-8") as f:
         f.write(str(os.getpid()))
 
-    # Remove the lock file when the program exits
-    atexit.register(lambda: os.path.exists(LOCK_FILE) and os.remove(LOCK_FILE))
+    # Remove the lock file when the program exits normally
+    atexit.register(remove_lock_file)
 
 
 def main():
