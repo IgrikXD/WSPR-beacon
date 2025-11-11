@@ -1,5 +1,5 @@
 # BEACON.App
-A Windows GUI application for configuring and managing a [WSPR-beacon](https://github.com/IgrikXD/WSPR-beacon?tab=readme-ov-file#wspr-beacon) based on an ESP32 SoC ([_PCB version 3.1_](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-3.1)). The application communicates with the device via USB or Wi-Fi to configure transmission parameters, perform hardware self-checks, and manage device setup (_including calibration and Wi-Fi configuration_).
+A Windows GUI application for configuring and managing a [WSPR-beacon](https://github.com/IgrikXD/WSPR-beacon?tab=readme-ov-file#wspr-beacon) based on an ESP32 SoC ([_PCB version 3.2_](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-3.2)). The application communicates with the device via USB or Wi-Fi to configure transmission parameters, perform hardware self-checks, and manage device setup (_including calibration and Wi-Fi configuration_).
 
 ![BeaconApp](../Resources/BeaconApp-Transmission-frame.png)
 
@@ -45,11 +45,11 @@ python -m beaconapp.main --debug
 > [!WARNING]  
 > These tests help detect potential issues early but do not replace full validation on real hardware!
 
-Unit tests are available to verify the application's core functionality, and they verify:
+Unit tests are available to verify the application's core functionality, including:
 - Correct formation of commands sent to the device
 - Proper decoding of messages received from the device
 - Correct processing of data retrieved from the [**WSPR.live API**](https://wspr.live/)
-- Automatic selection of the appropriate communication transport (_USB or WiFi_)
+- Automatic selection of the appropriate communication transport (_USB or Wi-Fi_)
 - Proper registration of message handlers for incoming device messages
 - Validation of user-configured parameters
 - Correct operation of data wrappers used for data exchange during device communication
@@ -65,13 +65,14 @@ python -m pytest -m unit
 > [!WARNING]  
 > These tests require a physical WSPR-beacon device connected via USB! Wi-Fi connection and GPS antenna must be disconnected during testing.
 
-Integration tests are available to verify the device core functionality, and they verify:
-- Thread-safe concurrent `Device.connect()` operations without race conditions
-- Successful device reconnection after disconnect
+Integration tests are available to verify the core functionality of the device, including:
+- Thread-safe concurrent `Device.connect()` calls without race conditions
+- Successful device reconnection after a disconnect
 - Complete device info retrieval (_active TX mode, Wi-Fi data, GPS status, calibration value, firmware/hardware info_)
 - Correct setting of active TX mode, SI5351 calibration value and automatic SSID connection at device startup
 - Calibration frequency generation control
 - Wi-Fi connection handling with invalid credentials
+- Handling incorrect request types and non-request messages by the device firmware
 
 To run the integration tests, install development dependencies and execute:
 ```powershell
@@ -92,11 +93,11 @@ python -m pytest --cov=beaconapp --cov-config=pytest.ini
 The coverage report excludes test files, `__init__.py`, and the `main.py` file (_application entry point_) to focus on actual business logic coverage.
 
 ### Hardware self-check
-After flashing the firmware onto the device, it is recommended to run the hardware self-check to ensure that all components are functioning correctly and the device is ready for operation.
+After flashing the firmware to the device, it is recommended to run a hardware self-check to ensure that all components are functioning correctly and that the device is ready for operation.
 
 To perform the hardware self-check:
 
-1. Navigate to the "_Self-check_" section in the application.
-2. Click the "_Run checks_" button.
+1. Navigate to the **Self-check** section in the application.
+2. Click the **Run checks** button.
 
-If the test completes with the status "**PASS!**", the device is fully operational and ready to use.
+If the test completes with the status **PASS!**, the device is fully operational and ready to use.
