@@ -57,6 +57,7 @@ class SettingsWidget:
         self._gps_cal_actions = {
             Status.CALIBRATED: self._gps_calibration_finished,
             Status.INITIATED: self._gps_calibration_initiated,
+            Status.FAILED: self._gps_calibration_error_handle,
         }
 
         # Settings -> Device calibration -> Calibration frequency
@@ -351,7 +352,6 @@ class SettingsWidget:
             state="disabled",
             text="Waiting...",
             fg_color=["#3B8ED0", "#1F6AA5"],
-            hover_color=["#3B8ED0", "#1F6AA5"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"]
         )
 
@@ -362,9 +362,21 @@ class SettingsWidget:
         self.gps_cal_value_button.after(0, lambda: self.gps_cal_value_button.configure(
             state="disabled",
             text="Calibration...",
+            fg_color=["#3B8ED0", "#1F6AA5"],
+            text_color_disabled=["#DCE4EE", "#DCE4EE"]
+        ))
+
+    def _gps_calibration_error_handle(self):
+        """
+        Handle GPS calibration button changes when the GPS calibration process is failed.
+        """
+        self.gps_cal_value_button.after(0, lambda: self.gps_cal_value_button.configure(
+            state="disabled",
+            text="Failed!",
             fg_color=["#D9534F", "#A94442"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"]
         ))
+        self.gps_cal_value_button.after(2000, self._gps_calibration_button_default_state)
 
     def _gps_calibration_finished(self):
         """
@@ -434,7 +446,6 @@ class SettingsWidget:
             state="disabled",
             text="Waiting...",
             fg_color=["#3B8ED0", "#1F6AA5"],
-            hover_color=["#3B8ED0", "#1F6AA5"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"]
         )
 
@@ -446,7 +457,6 @@ class SettingsWidget:
             state="disabled",
             text="Connecting...",
             fg_color=["#3B8ED0", "#1F6AA5"],
-            hover_color=["#3B8ED0", "#1F6AA5"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"]
         ))
 
@@ -458,7 +468,6 @@ class SettingsWidget:
             state="disabled",
             text="Failed!",
             fg_color=["#D9534F", "#A94442"],
-            hover_color=["#D9534F", "#A94442"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"]
         ))
         self.wifi_connection_button.after(2000, self._wifi_disconnected)
