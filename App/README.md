@@ -92,7 +92,7 @@ python -m pytest --cov=beaconapp --cov-config=pytest.ini
 The coverage report excludes test files, `__init__.py`, and the `main.py` file (_application entry point_) to focus on actual business logic coverage.
 
 ### Hardware self-check
-After flashing the firmware onto the device, it is recommended to run the hardware self-check to ensure that all components are functioning correctly (_LEDs, SI5351, GPS, WiFi_) and the device is ready for operation.
+After flashing the firmware onto the device, it is recommended to run the hardware self-check to ensure that all components are functioning correctly and the device is ready for operation.
 
 To perform the hardware self-check:
 
