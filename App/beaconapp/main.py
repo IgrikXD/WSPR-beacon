@@ -11,6 +11,7 @@ import atexit
 import customtkinter
 import os
 import psutil
+import sys
 import tkinter.messagebox
 
 
@@ -146,14 +147,13 @@ class BeaconApp(customtkinter.CTk):
         """
         Save the current configuration, properly disconnect from device, and close the app.
         """
+        # Close the main window
+        self.destroy()
+        # Save the current app configuration
         self.config.save()
         # Properly close all active connections to the device
         self.device.disconnect()
-        # Remove the lock file before closing
-        remove_lock_file()
-        self.destroy()
-        # Force exit to prevent hanging on resource cleanup
-        os._exit(0)
+        sys.exit(0)
 
 
 def check_already_running() -> bool:
@@ -186,17 +186,6 @@ def check_already_running() -> bool:
     return False
 
 
-def remove_lock_file():
-    """
-    Removes the lock file if it exists.
-    """
-    try:
-        if os.path.exists(LOCK_FILE):
-            os.remove(LOCK_FILE)
-    except OSError:
-        pass
-
-
 def create_lock_file():
     """
     Creates the ~/.beaconapp directory if it does not exist,
@@ -210,8 +199,8 @@ def create_lock_file():
     with open(LOCK_FILE, "w", encoding="utf-8") as f:
         f.write(str(os.getpid()))
 
-    # Remove the lock file when the program exits normally
-    atexit.register(remove_lock_file)
+    # Remove the lock file
+    atexit.register(lambda: os.remove(LOCK_FILE) if os.path.exists(LOCK_FILE) else None)
 
 
 def main():
@@ -221,7 +210,7 @@ def main():
             "BEACON.App - Error",
             "The application is already running!"
         )
-        os._exit(1)
+        sys.exit(1)
 
     # Create the lock file if not running
     create_lock_file()
