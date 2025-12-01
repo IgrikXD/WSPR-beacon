@@ -1,4 +1,4 @@
-# WSPR-beacon 3.2
+# WSPR-beacon 3.3
 
 > [!NOTE]
 >The source files for the PCB of this version of the device are not publicly available! For purchase inquiries, please [contact me directly](https://github.com/IgrikXD/WSPR-beacon#how-to-contact-me).
