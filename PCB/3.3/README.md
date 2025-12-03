@@ -11,7 +11,7 @@
 **Feed line:** 50 Ohm coaxial cable  
 **GPS antenna type:** Active, external  
 **Maximum output power:** ~23 dBm  
-**Supply voltage:** 5V (_USB-B, fuse-protected, 600 mA fuse_)  
+**Supply voltage:** 5V (_USB-B, fuse-protected, 750 mA fuse_)  
 | Mode                                                          | Current consumption |
 |---------------------------------------------------------------|---------------------|
 | Standby (_GPS antenna not connected, Wi-Fi not connected_)    |  TBD mA             |
