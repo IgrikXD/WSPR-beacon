@@ -1,4 +1,4 @@
-# Firmware instruction
+# Firmware instructions
 
 ## Select the board:
 Open [Arduino IDE](https://www.arduino.cc/en/software), go to "_Tools_" -> "_Board_", then select  "_Arduino Nano_".
