@@ -28,11 +28,11 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install pyinstaller==6.17.0
-          cd App
-          pip install -r requirements.txt
+          pip install -r App/requirements.txt
 
       - name: Build executable
         run: |
+          cd App
           pyinstaller --noconsole --onefile \
             --add-data "beaconapp/ui/resources/*:ui/resources" \
             --exclude-module beaconapp.tests \
