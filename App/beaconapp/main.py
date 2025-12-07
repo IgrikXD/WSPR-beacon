@@ -115,9 +115,17 @@ class BeaconApp(customtkinter.CTk):
         """
         # Application title
         self.title("BEACON.App")
-        # Application icon
-        self.iconbitmap(os.path.join(os.path.dirname(
-            os.path.realpath(__file__)), "ui/resources/beacon-app-logo.ico"))
+        # Application icon (use .ico on Windows, .png on Linux)
+        icon_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "ui/resources")
+        if sys.platform == "win32":
+            self.iconbitmap(os.path.join(icon_dir, "beacon-app-logo.ico"))
+        else:
+            # On Linux, use iconphoto with PNG image
+            from PIL import Image, ImageTk
+            # Keep reference to prevent garbage collection
+            self.icon_photo = ImageTk.PhotoImage(
+                Image.open(os.path.join(icon_dir, "beacon-app-logo.png")))
+            self.iconphoto(True, self.icon_photo)
         # Minimum window size
         self.minsize(1100, 600)
         # Defaulf app theme

@@ -200,6 +200,9 @@ class Device:
                     if self.serial_transport.serial_port.is_open:
                         self.serial_transport.serial_port.close()
                     self.serial_transport.serial_port = None
+                if self.serial_transport.transport:
+                    self.serial_transport.transport.close()
+                    self.serial_transport.transport = None
             except Exception:
                 pass
 
@@ -613,7 +616,7 @@ class WebsocketTransport(BaseTransport):
     def __init__(self, device: Device):
         super().__init__(device)
         self.websocket: Optional[websockets.WebSocketClientProtocol] = None
-        self.hostname = "wsprbeacon"
+        self.hostname = "wsprbeacon.local"
         self.port = 81
 
     async def connect(self):
