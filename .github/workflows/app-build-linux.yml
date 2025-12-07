@@ -1,4 +1,4 @@
-name: App build
+name: App build (Linux)
 
 on:
   push:
@@ -12,8 +12,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  app-build:
-    runs-on: windows-latest
+  app-build-linux:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
@@ -27,17 +27,17 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install pyinstaller==6.11.1
-          pip install -r App/requirements.txt
+          pip install pyinstaller==6.17.0
+          cd App
+          pip install -r requirements.txt
 
       - name: Build executable
         run: |
-          pyinstaller --noconsole --onefile `
-            --icon=App/beaconapp/ui/resources/beacon-app-logo.ico `
-            --add-data "App/beaconapp/ui/resources/*;ui/resources" `
-            --exclude-module beaconapp.tests `
-            --name BeaconApp `
-            App/beaconapp/main.py
+          pyinstaller --noconsole --onefile \
+            --add-data "beaconapp/ui/resources/*:ui/resources" \
+            --exclude-module beaconapp.tests \
+            --hidden-import PIL._tkinter_finder \
+            --name BeaconApp beaconapp/main.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
