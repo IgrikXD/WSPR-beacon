@@ -42,5 +42,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: beaconapp
+          name: beaconapp-windows
           path: dist/BeaconApp.exe
