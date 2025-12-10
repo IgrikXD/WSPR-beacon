@@ -116,6 +116,7 @@ class Device:
         # Mapping of incoming message types to lists of registered callback handlers
         self.mapped_callbacks: Dict[Device.Message.Incoming, List[Callable]] = {}
 
+        # Initialize transport implementations
         self.serial_transport = SerialTransport(self)
         self.ws_transport = WebsocketTransport(self)
 
@@ -581,14 +582,14 @@ class SerialTransport(BaseTransport):
             try:
                 self.transport.close()
             except Exception as e:
-                logger.debug(f"{Fore.RED}[ERROR] Closing serial transport: {e}{Style.RESET_ALL}")
+                logger.error(f"{Fore.RED}[ERROR] Closing serial transport: {e}{Style.RESET_ALL}")
             self.transport = None
 
         if self.serial_port and self.serial_port.is_open:
             try:
                 self.serial_port.close()
             except Exception as e:
-                logger.debug(f"{Fore.RED}[ERROR] Closing serial port: {e}{Style.RESET_ALL}")
+                logger.error(f"{Fore.RED}[ERROR] Closing serial port: {e}{Style.RESET_ALL}")
             self.serial_port = None
 
     def send(self, message: str):
@@ -642,7 +643,7 @@ class WebsocketTransport(BaseTransport):
             try:
                 await self.websocket.close()
             except Exception as e:
-                logger.debug(f"{Fore.RED}[ERROR] Closing WebSocket: {e}{Style.RESET_ALL}")
+                logger.error(f"{Fore.RED}[ERROR] Closing WebSocket: {e}{Style.RESET_ALL}")
             self.websocket = None
 
     def send(self, message: str):
@@ -670,7 +671,7 @@ class WebsocketTransport(BaseTransport):
                             logger.debug(f"{Fore.MAGENTA}RX (WebSocket): {message}{Style.RESET_ALL}")
                             self.device._call_handlers(msg.type, msg.data)
                     except json.JSONDecodeError:
-                        logger.debug(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
+                        logger.warning(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
                     except Exception as e:
                         logger.error(f"{Fore.RED}[ERROR] Error decoding message: {e}{Style.RESET_ALL}")
         except websockets.exceptions.ConnectionClosedError:
@@ -715,7 +716,7 @@ class DeviceProtocol(asyncio.Protocol):
                         logger.debug(f"{Fore.MAGENTA}RX (USB): {message}{Style.RESET_ALL}")
                         self.device._call_handlers(msg.type, msg.data)
                 except json.JSONDecodeError:
-                    logger.debug(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
+                    logger.warning(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
                 except Exception as e:
                     logger.error(f"{Fore.RED}[ERROR] Error decoding message: {e}{Style.RESET_ALL}")
 
