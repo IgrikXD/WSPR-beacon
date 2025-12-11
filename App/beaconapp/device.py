@@ -218,30 +218,25 @@ class Device:
                 except Exception:
                     pass
 
-            # Close Serial transport and port (non-blocking)
-            try:
-                if self.serial_transport.transport:
-                    self.serial_transport.transport.close()
-                    self.serial_transport.transport = None
-                if self.serial_transport.serial_port:
-                    self.serial_transport.serial_port.timeout = 0
-                    self.serial_transport.serial_port.write_timeout = 0
-                    if self.serial_transport.serial_port.is_open:
-                        self.serial_transport.serial_port.close()
-                    self.serial_transport.serial_port = None
-                if self.serial_transport.transport:
-                    self.serial_transport.transport.close()
-                    self.serial_transport.transport = None
-            except Exception:
-                pass
+            # Close Serial transport
+            if self.asyncio_loop.is_running() and self.serial_transport.serial_port:
+                try:
+                    asyncio.run_coroutine_threadsafe(
+                        self.serial_transport.disconnect(), self.asyncio_loop).result(timeout=0.3)
+                except Exception as e:
+                    logger.error(f"{Fore.RED}[ERROR]: Serial disconnect exception: {e}{Style.RESET_ALL}")
 
-            # Close WebSocket
+            # Close WebSocket transport
             if self.asyncio_loop.is_running() and self.ws_transport.websocket:
                 try:
                     asyncio.run_coroutine_threadsafe(
                         self.ws_transport.disconnect(), self.asyncio_loop).result(timeout=0.3)
-                except Exception:
-                    self.ws_transport.websocket = None
+                except Exception as e:
+                    logger.error(f"{Fore.RED}[ERROR]: WebSocket disconnect exception: {e}{Style.RESET_ALL}")
+            
+            # Reset active transport and connected transports set
+            self.active_transport = None
+            self._connected_transports.clear()
 
             # Stop event loop and wait briefly for thread
             if self.asyncio_loop.is_running():
@@ -249,16 +244,12 @@ class Device:
                     self.asyncio_loop.call_soon_threadsafe(self.asyncio_loop.stop)
                 except RuntimeError:
                     pass
+                self.asyncio_loop = None
 
             # Wait for asyncio thread to finish
-            if self.asyncio_thread and self.asyncio_thread.is_alive():
+            if self.asyncio_thread is not None and self.asyncio_thread.is_alive():
                 self.asyncio_thread.join(timeout=0.1)
-
-            # Reset state
-            self.active_transport = None
-            self._connected_transports.clear()
-            self.asyncio_loop = None
-            self.asyncio_thread = None
+                self.asyncio_thread = None
 
     def gen_calibration_frequency(self, frequency: float | None):
         """
@@ -733,6 +724,8 @@ class SerialTransport(BaseTransport):
 
         if self.serial_port and self.serial_port.is_open:
             try:
+                self.serial_port.timeout = 0
+                self.serial_port.write_timeout = 0
                 self.serial_port.close()
             except Exception as e:
                 logger.error(f"{Fore.RED}[ERROR] Closing serial port: {e}{Style.RESET_ALL}")
