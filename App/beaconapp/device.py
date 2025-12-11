@@ -98,12 +98,6 @@ class Device:
     __CAL_FREQ_MULTIPLIER = 100_000_000
 
     """
-    Maximum number of outgoing messages that can be queued.
-    Prevents memory overflow if messages are sent faster than they can be transmitted.
-    """
-    __TX_QUEUE_MAX_SIZE = 10
-
-    """
     URL to fetch the latest firmware manifest for updates.
     """
     __FIRMWARE_MANIFEST_URL = "https://raw.githubusercontent.com/IgrikXD/OTA_TEST/master/Firmware/latest-stable.json"
@@ -112,6 +106,12 @@ class Device:
     Flash memory address where the firmware should be written during update.
     """
     __FLASH_ADDR = 0x10000
+
+    """
+    Maximum number of outgoing messages that can be queued.
+    Prevents memory overflow if messages are sent faster than they can be transmitted.
+    """
+    __TX_QUEUE_MAX_SIZE = 20
 
     def __init__(self):
         # Queue for outgoing messages transmission to the device
@@ -239,7 +239,7 @@ class Device:
             if self.asyncio_loop.is_running() and self.ws_transport.websocket:
                 try:
                     asyncio.run_coroutine_threadsafe(
-                        self.ws_transport.close(), self.asyncio_loop).result(timeout=0.3)
+                        self.ws_transport.disconnect(), self.asyncio_loop).result(timeout=0.3)
                 except Exception:
                     self.ws_transport.websocket = None
 
@@ -259,32 +259,6 @@ class Device:
             self._connected_transports.clear()
             self.asyncio_loop = None
             self.asyncio_thread = None
-
-    def update_firmware_info(self, firmware_version):
-        """
-        Update the stored firmware version information.
-
-        Args:
-            firmware_version: Firmware version string reported by the device.
-        """
-        self.firmware_version = firmware_version
-
-    def set_device_response_handlers(self, mapped_callbacks: Dict[Message.Incoming, List[Callable]]):
-        """
-        Register one or more callbacks for given incoming message types.
-        Prevent duplicate callbacks for the same message type.
-        """
-        for key, value in mapped_callbacks.items():
-            if not isinstance(value, list):
-                value = [value]
-
-            # If there is no such key, initialize with an empty list
-            self.mapped_callbacks.setdefault(key, [])
-
-            # Add callbacks that are not yet in the list
-            for handler in value:
-                if handler not in self.mapped_callbacks[key]:
-                    self.mapped_callbacks[key].append(handler)
 
     def gen_calibration_frequency(self, frequency: float | None):
         """
@@ -339,6 +313,23 @@ class Device:
         """
         self._put(Device.Message(Device.Message.Outgoing.SET_CAL_VALUE, value))
 
+    def set_device_response_handlers(self, mapped_callbacks: Dict[Message.Incoming, List[Callable]]):
+        """
+        Register one or more callbacks for given incoming message types.
+        Prevent duplicate callbacks for the same message type.
+        """
+        for key, value in mapped_callbacks.items():
+            if not isinstance(value, list):
+                value = [value]
+
+            # If there is no such key, initialize with an empty list
+            self.mapped_callbacks.setdefault(key, [])
+
+            # Add callbacks that are not yet in the list
+            for handler in value:
+                if handler not in self.mapped_callbacks[key]:
+                    self.mapped_callbacks[key].append(handler)
+
     def set_ssid_connect_at_startup(self, value: bool):
         """
         Sends a request to set SSID connect on startup.
@@ -351,15 +342,14 @@ class Device:
         """
         self._put(Device.Message(Device.Message.Outgoing.RUN_WIFI_CONNECTION, wifi_credentials))
 
-    @staticmethod
-    @contextmanager
-    def _suppress_output():
+    def update_firmware_info(self, firmware_version: str):
         """
-        Suppress stdout and stderr output. Used to suppress output from esptool library methods.
+        Update the stored firmware version information.
+
+        Args:
+            firmware_version: Firmware version string reported by the device.
         """
-        with open(os.devnull, "w") as devnull:
-            with redirect_stdout(devnull), redirect_stderr(devnull):
-                yield
+        self.firmware_version = firmware_version
 
     def _call_handlers(self, msg_type: Enum, data):
         """
@@ -371,32 +361,6 @@ class Device:
                 handler(data)
             except Exception as e:
                 logger.error(f"{Fore.RED}[ERROR] Message type \"{msg_type}\" processing failed: {e}{Style.RESET_ALL}")
-
-    def _on_transport_connected(self, transport_type: Transport):
-        """
-        Called by a transport class (Serial/WebSocket) when a successful connection is established.
-        """
-        self._connected_transports.add(transport_type)
-        self._decide_active_transport()
-
-    def _on_transport_disconnected(self, transport_type: Transport):
-        """
-        Called by a transport class (Serial/WebSocket) when a connection is lost or closed.
-        If USB is disconnected, we assume the device has lost power, so we also drop the Wi-Fi
-        connection. When connected to a PC via USB, both USB and Wi-Fi are available. When
-        powered externally (e.g., via power bank), USB (Serial) is not physically present,
-        and only Wi-Fi is available. Removing Wi-Fi on USB disconnect reflects the
-        expected hardware behavior.
-        """
-        if transport_type in self._connected_transports:
-            self._connected_transports.remove(transport_type)
-
-        # If USB is disconnected, we assume the device has lost power, and remove Wi-Fi as well
-        if transport_type == Device.Transport.USB:
-            if Device.Transport.WIFI in self._connected_transports:
-                self._connected_transports.remove(Device.Transport.WIFI)
-
-        self._decide_active_transport()
 
     def _decide_active_transport(self):
         """
@@ -423,14 +387,6 @@ class Device:
         # If the active transport changed, notify via the INCOMING.ACTIVE_TRANSPORT event
         if self.active_transport != old_transport:
             self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
-
-    def _set_active_transport(self, transport: Transport):
-        """
-        Callback called on an incoming ACTIVE_TRANSPORT message from the device. This sets the
-        "requested" transport, and triggers a decision pass.
-        """
-        self._requested_transport = transport
-        self._decide_active_transport()
 
     def _decode_device_message(self, message: str):
         """
@@ -494,6 +450,32 @@ class Device:
                 continue
             except Exception as e:
                 logger.error(f"{Fore.RED}[ERROR] Outgoing message sending failed: {e}{Style.RESET_ALL}")
+
+    def _on_transport_connected(self, transport_type: Transport):
+        """
+        Called by a transport class (Serial/WebSocket) when a successful connection is established.
+        """
+        self._connected_transports.add(transport_type)
+        self._decide_active_transport()
+
+    def _on_transport_disconnected(self, transport_type: Transport):
+        """
+        Called by a transport class (Serial/WebSocket) when a connection is lost or closed.
+        If USB is disconnected, we assume the device has lost power, so we also drop the Wi-Fi
+        connection. When connected to a PC via USB, both USB and Wi-Fi are available. When
+        powered externally (e.g., via power bank), USB (Serial) is not physically present,
+        and only Wi-Fi is available. Removing Wi-Fi on USB disconnect reflects the
+        expected hardware behavior.
+        """
+        if transport_type in self._connected_transports:
+            self._connected_transports.remove(transport_type)
+
+        # If USB is disconnected, we assume the device has lost power, and remove Wi-Fi as well
+        if transport_type == Device.Transport.USB:
+            if Device.Transport.WIFI in self._connected_transports:
+                self._connected_transports.remove(Device.Transport.WIFI)
+
+        self._decide_active_transport()
 
     def _put(self, message: Message):
         """
@@ -622,6 +604,24 @@ class Device:
             return
         loop.default_exception_handler(context)
 
+    def _set_active_transport(self, transport: Transport):
+        """
+        Callback called on an incoming ACTIVE_TRANSPORT message from the device. This sets the
+        "requested" transport, and triggers a decision pass.
+        """
+        self._requested_transport = transport
+        self._decide_active_transport()
+
+    @staticmethod
+    @contextmanager
+    def _suppress_output():
+        """
+        Suppress stdout and stderr output. Used to suppress output from esptool library methods.
+        """
+        with open(os.devnull, "w") as devnull:
+            with redirect_stdout(devnull), redirect_stderr(devnull):
+                yield
+
 
 class BaseTransport(ABC):
     """
@@ -634,6 +634,13 @@ class BaseTransport(ABC):
     async def connect(self):
         """
         Attempts to establish a connection with the device.
+        """
+        pass
+
+    @abstractmethod
+    async def disconnect(self):
+        """
+        Closes the transport connection.
         """
         pass
 
@@ -713,7 +720,7 @@ class SerialTransport(BaseTransport):
                 break
             await asyncio.sleep(1)
 
-    async def close(self):
+    async def disconnect(self):
         """
         Properly closes the serial connection without triggering DTR/RTS signals.
         """
@@ -774,7 +781,7 @@ class WebsocketTransport(BaseTransport):
                 self.websocket = None
                 await asyncio.sleep(1)
 
-    async def close(self):
+    async def disconnect(self):
         """
         Properly closes the WebSocket connection.
         """
@@ -830,6 +837,16 @@ class DeviceProtocol(asyncio.Protocol):
         self.serial_transport = serial_transport
         self.buffer = b""
 
+    def connection_lost(self, exc):
+        """
+        Called when the serial connection is lost or closed. Attempts to reconnect.
+        """
+        self.serial_transport.transport = None
+        self.device._on_transport_disconnected(Device.Transport.USB)
+        # Only try to reconnect if we're not shutting down
+        if not self.device._stop_flag:
+            asyncio.create_task(self.serial_transport.connect())
+
     def connection_made(self, transport: asyncio.Transport):
         """
         Called when a serial connection is established.
@@ -858,13 +875,3 @@ class DeviceProtocol(asyncio.Protocol):
                     logger.warning(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
                 except Exception as e:
                     logger.error(f"{Fore.RED}[ERROR] Error decoding message: {e}{Style.RESET_ALL}")
-
-    def connection_lost(self, exc):
-        """
-        Called when the serial connection is lost or closed. Attempts to reconnect.
-        """
-        self.serial_transport.transport = None
-        self.device._on_transport_disconnected(Device.Transport.USB)
-        # Only try to reconnect if we're not shutting down
-        if not self.device._stop_flag:
-            asyncio.create_task(self.serial_transport.connect())
