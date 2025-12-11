@@ -339,7 +339,7 @@ class SettingsWidget:
 
     def _gps_calibration_button_pressed(self):
         """
-        Handle the logic when the GPS calibration button is pressed.
+        Handle the logic when the "Auto by GPS" button is pressed.
         Requests the device to calculate the calibration value based on GPS data.
         """
         self.gps_cal_value_button.focus_set()
@@ -357,7 +357,8 @@ class SettingsWidget:
 
     def _gps_calibration_initiated(self):
         """
-        Handle GPS calibration button changes when the GPS calibration process is initiated.
+        Handle the events when GPS calibration is initiated.
+        Updates the button appearance to indicate that calibration is in progress.
         """
         self.gps_cal_value_button.after(0, lambda: self.gps_cal_value_button.configure(
             state="disabled",
@@ -368,7 +369,8 @@ class SettingsWidget:
 
     def _gps_calibration_error_handle(self):
         """
-        Handle GPS calibration button changes when the GPS calibration process is failed.
+        Handle the events when GPS calibration fails.
+        Updates the button appearance to indicate failure resets it after 2 seconds.
         """
         self.gps_cal_value_button.after(0, lambda: self.gps_cal_value_button.configure(
             state="disabled",
@@ -376,11 +378,13 @@ class SettingsWidget:
             fg_color=["#D9534F", "#A94442"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"]
         ))
+        # After 2 seconds, restore "Auto by GPS" button to its default state
         self.gps_cal_value_button.after(2000, self._gps_calibration_button_default_state)
 
     def _gps_calibration_finished(self):
         """
-        Handle GPS calibration button changes when the GPS calibration process is finished.
+        Handle the events when GPS calibration is successfully completed.
+        Updates the button appearance to indicate success and resets it after 2 seconds.
         """
         self.gps_cal_value_button.after(0, lambda: self.gps_cal_value_button.configure(
             state="disabled",
@@ -388,11 +392,12 @@ class SettingsWidget:
             fg_color=["#3BAA5D", "#2E8B57"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"]
         ))
+        # After 2 seconds, restore "Auto by GPS" button to its default state
         self.gps_cal_value_button.after(2000, self._gps_calibration_button_default_state)
 
     def _gps_calibration_button_default_state(self):
         """
-        Restore the GPS calibration button to its default state after calibration is complete.
+        Restore the "Auto by GPS" button to its default state after calibration is complete.
         """
         self.gps_cal_value_button.after(0, lambda: self.gps_cal_value_button.configure(
             state="normal",
@@ -430,7 +435,7 @@ class SettingsWidget:
 
     def _wifi_connection_button_pressed(self):
         """
-        Handle the logic when the Wi-Fi connection button is pressed.
+        Handles the event when the "Connect" button is pressed.
         Attempt to connect to the specified SSID or disconnect from the currently connected network.
         """
         self.wifi_connection_button.focus_set()
@@ -451,7 +456,8 @@ class SettingsWidget:
 
     def _wifi_connection_initiated(self):
         """
-        Handle Wi-Fi connect button changes when the Wi-Fi connection attempt is initiated.
+        Handle the events when Wi-Fi connection is initiated.
+        Updates the button appearance to indicate that connection is in progress.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
             state="disabled",
@@ -462,7 +468,8 @@ class SettingsWidget:
 
     def _wifi_connection_error_handle(self):
         """
-        Handle Wi-Fi connect button changes when the Wi-Fi connection attempt fails.
+        Handle the event when Wi-Fi connection fails.
+        Updates the button appearance to indicate failure and resets it after 2 seconds.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
             state="disabled",
@@ -470,11 +477,13 @@ class SettingsWidget:
             fg_color=["#D9534F", "#A94442"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"]
         ))
+        # After 2 seconds, restore "Connect" button to its default state
         self.wifi_connection_button.after(2000, self._wifi_disconnected)
 
     def _wifi_disconnected(self):
         """
-        Handle Wi-Fi connect button changes when the Wi-Fi connection is terminated.
+        Handle the events when the Wi-Fi connection is terminated.
+        Updates the button appearance to indicate that the device is disconnected.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
             state="normal",
@@ -487,7 +496,8 @@ class SettingsWidget:
 
     def _wifi_connection_pass(self):
         """
-        Handle Wi-Fi connect button changes when the Wi-Fi connection attempt is successful.
+        Handle the events when Wi-Fi connection is successful.
+        Updates the button appearance to indicate that the device is connected to Wi-Fi.
         """
         self.wifi_connection_button.after(0, lambda: self.wifi_connection_button.configure(
             state="normal",

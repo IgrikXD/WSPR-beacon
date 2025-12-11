@@ -1,6 +1,9 @@
 import asyncio
+import hashlib
 import json
 import logging
+import os
+import requests
 import serial
 import serial.tools.list_ports
 import serial_asyncio
@@ -11,10 +14,13 @@ import websockets
 
 from abc import ABC, abstractmethod
 from colorama import Fore, Style
+from contextlib import contextmanager, redirect_stdout, redirect_stderr
 from beaconapp.data_wrappers import ActiveTXMode, Status, WiFiCredentials, WiFiData
 from dataclasses import dataclass
 from enum import Enum
+from packaging.version import Version
 from typing import Any, Callable, Dict, List, Optional, Set
+from esptool import detect_chip, attach_flash, reset_chip, write_flash
 
 logger = logging.getLogger(__name__)
 # Add handler that writes logs to sys.stdout only if not already present
@@ -38,6 +44,12 @@ class Device:
         """
         pass
 
+    class FirmwareUpdateError(Exception):
+        """
+        Raised when firmware update fails (download, checksum, or flash error).
+        """
+        pass
+
     class Transport(Enum):
         USB = "USB"
         WIFI = "Wi-Fi"
@@ -51,6 +63,7 @@ class Device:
             CAL_STATUS = "CAL_STATUS"
             CAL_VALUE = "CAL_VALUE"
             FIRMWARE_INFO = "FIRMWARE_INFO"
+            FIRMWARE_STATUS = "FIRMWARE_STATUS"
             GPS_STATUS = "GPS_STATUS"
             GPS_CAL_STATUS = "GPS_CAL_STATUS"
             HARDWARE_INFO = "HARDWARE_INFO"
@@ -67,6 +80,7 @@ class Device:
         class Outgoing(Enum):
             GEN_CAL_FREQUENCY = "GEN_CAL_FREQUENCY"
             GET_DEVICE_INFO = "GET_DEVICE_INFO"
+            RUN_FIRMWARE_UPDATE = "RUN_FIRMWARE_UPDATE"
             RUN_GPS_CALIBRATION = "RUN_GPS_CALIBRATION"
             RUN_SELF_CHECK = "RUN_SELF_CHECK"
             RUN_WIFI_CONNECTION = "RUN_WIFI_CONNECTION"
@@ -88,6 +102,16 @@ class Device:
     Prevents memory overflow if messages are sent faster than they can be transmitted.
     """
     __TX_QUEUE_MAX_SIZE = 10
+
+    """
+    URL to fetch the latest firmware manifest for updates.
+    """
+    __FIRMWARE_MANIFEST_URL = "https://raw.githubusercontent.com/IgrikXD/OTA_TEST/master/Firmware/latest-stable.json"
+
+    """
+    Flash memory address where the firmware should be written during update.
+    """
+    __FLASH_ADDR = 0x10000
 
     def __init__(self):
         # Queue for outgoing messages transmission to the device
@@ -119,6 +143,10 @@ class Device:
         # Initialize transport implementations
         self.serial_transport = SerialTransport(self)
         self.ws_transport = WebsocketTransport(self)
+
+        # Current firmware version reported by the device
+        # Used as a reference during firmware update checks
+        self.firmware_version = None
 
     def connect(self):
         """
@@ -232,6 +260,15 @@ class Device:
             self.asyncio_loop = None
             self.asyncio_thread = None
 
+    def update_firmware_info(self, firmware_version):
+        """
+        Update the stored firmware version information.
+
+        Args:
+            firmware_version: Firmware version string reported by the device.
+        """
+        self.firmware_version = firmware_version
+
     def set_device_response_handlers(self, mapped_callbacks: Dict[Message.Incoming, List[Callable]]):
         """
         Register one or more callbacks for given incoming message types.
@@ -261,6 +298,22 @@ class Device:
         Requests device info.
         """
         self._put(Device.Message(Device.Message.Outgoing.GET_DEVICE_INFO))
+
+    def run_firmware_update(self):
+        """
+        Used for updating the device firmware.
+        Chooses between USB (Serial) or OTA (Wi-Fi) update based on the active transport.
+        """
+        if self.active_transport == Device.Transport.USB:
+            logger.debug(f"{Fore.GREEN}[OK]: USB firmware update started!{Style.RESET_ALL}")
+            # Runs in a separate thread to avoid blocking the GUI
+            threading.Thread(target=self._run_usb_firmware_update, daemon=True).start()
+        elif self.active_transport == Device.Transport.WIFI:
+            logger.debug(f"{Fore.GREEN}[OK]: OTA firmware update started!{Style.RESET_ALL}")
+            self._run_ota_firmware_update()
+        else:
+            self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.FAILED)
+            logger.error(f"{Fore.RED}[ERROR]: No active transport! Device is disconnected?{Style.RESET_ALL}")
 
     def run_gps_calibration(self):
         """
@@ -297,6 +350,16 @@ class Device:
         Sends a request to run Wi-Fi connection with given credentials.
         """
         self._put(Device.Message(Device.Message.Outgoing.RUN_WIFI_CONNECTION, wifi_credentials))
+
+    @staticmethod
+    @contextmanager
+    def _suppress_output():
+        """
+        Suppress stdout and stderr output. Used to suppress output from esptool library methods.
+        """
+        with open(os.devnull, "w") as devnull:
+            with redirect_stdout(devnull), redirect_stderr(devnull):
+                yield
 
     def _call_handlers(self, msg_type: Enum, data):
         """
@@ -458,6 +521,82 @@ class Device:
                 )
 
         self.asyncio_loop.call_soon_threadsafe(try_put)
+
+    def _run_ota_firmware_update(self):
+        """
+        Sends a request to run OTA firmware update procedure.
+        """
+        self._put(Device.Message(Device.Message.Outgoing.RUN_FIRMWARE_UPDATE))
+
+    def _run_usb_firmware_update(self):
+        """
+        Used for updating the device firmware over Serial (USB).
+        Performs the following steps:
+            - Checks if the active transport is USB (Serial);
+            - Downloads the latest firmware manifest;
+            - Compares current firmware version with available version;
+            - If newer version available: downloads, verifies and flashes firmware;
+            - Re-establishes device connection.
+        """
+        try:
+            # Get the current serial port from the SerialTransport
+            # After disconnect(), the port will be released and used for firmware flashing
+            port = self.serial_transport.serial_port.port
+
+            # Download latest firmware manifest first to check version
+            manifest_response = requests.get(self.__FIRMWARE_MANIFEST_URL, timeout=30)
+            manifest_response.raise_for_status()
+            manifest = manifest_response.json()
+
+            # Check if firmware update is needed
+            available_version = manifest.get("firmware-version")
+            if not available_version:
+                raise Device.FirmwareUpdateError("Invalid firmware manifest: missing 'firmware-version' key")
+
+            if self.firmware_version is not None and Version(self.firmware_version) >= Version(available_version):
+                logger.debug(f"{Fore.GREEN}[OK]: Firmware is already up to date!{Style.RESET_ALL}")
+                self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.LATEST)
+                return  # No update needed
+
+            # Terminate active device connections for releasing the serial port
+            self.disconnect()
+
+            # Download firmware binary data
+            firmware_response = requests.get(manifest["url"], timeout=120)
+            firmware_response.raise_for_status()
+            firmware_data = firmware_response.content
+
+            # Verify SHA256 checksum
+            actual_sha256 = hashlib.sha256(firmware_data).hexdigest()
+            expected_sha256 = manifest["sha256"]
+            if actual_sha256.lower() != expected_sha256.lower():
+                raise Device.FirmwareUpdateError(
+                    f"Firmware checksum mismatch: expected {expected_sha256}, got {actual_sha256}"
+                )
+
+            # Notify firmware update started
+            self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.UPDATING)
+            logger.debug(f"{Fore.GREEN}[OK]: Firmware flashing started{Style.RESET_ALL}")
+
+            # Flash firmware to the device (suppressing esptool output)
+            with self._suppress_output():
+                with detect_chip(port) as esp:
+                    attach_flash(esp)
+                    # Write firmware binary directly from memory (bytes)
+                    # Use "force" flag required according to enabled Flash Encryption & Secure Boot
+                    write_flash(esp, [(self.__FLASH_ADDR, firmware_data)], force=True)
+                    reset_chip(esp, "hard-reset")
+
+            # Notify firmware update completed
+            self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.UPDATED)
+            logger.debug(f"{Fore.GREEN}[OK]: Firmware update completed successfully!{Style.RESET_ALL}")
+
+            # Re-establish device connections
+            self.connect()
+
+        except (Device.FirmwareUpdateError, requests.RequestException, json.JSONDecodeError, Exception) as e:
+            self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.FAILED)
+            logger.error(f"{Fore.RED}[ERROR]: {e}{Style.RESET_ALL}")
 
     def _send_to_device(self, message: Message):
         """

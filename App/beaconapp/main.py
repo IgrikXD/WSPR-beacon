@@ -73,7 +73,9 @@ class BeaconApp(customtkinter.CTk):
                                                             "disabled" if cal_freq_generated else "normal")],
             Device.Message.Incoming.CAL_STATUS:         [transmission_frame.update_cal_status],
             Device.Message.Incoming.CAL_VALUE:          [settings_frame.set_calibration_value],
-            Device.Message.Incoming.FIRMWARE_INFO:      [self_check_frame.update_firmware_info],
+            Device.Message.Incoming.FIRMWARE_INFO:      [self_check_frame.update_firmware_info,
+                                                         self.device.update_firmware_info],
+            Device.Message.Incoming.FIRMWARE_STATUS:    [self_check_frame.update_firmware_status],
             Device.Message.Incoming.GPS_CAL_STATUS:     [settings_frame.update_gps_cal_status,
                                                          lambda gps_cal_status: transmission_frame.change_state(
                                                             "disabled" if gps_cal_status is

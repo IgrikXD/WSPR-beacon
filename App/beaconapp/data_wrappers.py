@@ -9,6 +9,9 @@ class Status(Enum):
     DISCONNECTED = "disconnected"
     INITIATED = "initiated"
     FAILED = "failed"
+    LATEST = "latest"
+    UPDATED = "updated"
+    UPDATING = "updating"
 
 
 # ActiveTXMode related enums

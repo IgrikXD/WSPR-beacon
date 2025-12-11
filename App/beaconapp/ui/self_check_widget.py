@@ -1,3 +1,4 @@
+from beaconapp.data_wrappers import Status
 from beaconapp.device import Device
 from beaconapp.ui.widgets import Widgets
 
@@ -25,21 +26,35 @@ class SelfCheckWidget:
             button_command=self._run_checks_button_pressed
         )
 
-        # Self-check -> Hardware test -> Hardware version
+        # Device info label
+        Widgets.create_block_label(self.general_frame, row=2, text="Device info")
+
+        # Self-check -> Device info -> Hardware version
         self.hardware_version_entry = Widgets.create_entry_with_background_frame(
             self.general_frame,
-            row=2,
+            row=3,
             text="Hardware version:",
             placeholder_text="N/A"
         )
         self.hardware_version_entry.configure(state="disabled")
 
-        # Self-check -> Hardware test -> Firmware version
-        self.firmware_version_entry = Widgets.create_entry_with_background_frame(
+        # Mapping of firmware update statuses to their corresponding handler methods
+        self._firmware_update_status_actions = {
+            Status.FAILED: self._firmware_update_error_handle,
+            Status.LATEST: self._firmware_update_latest_handle,
+            Status.UPDATED: self._firmware_update_updated_handle,
+            Status.UPDATING: self._firmware_update_updating_handle
+        }
+
+        # Self-check -> Device info -> Firmware version
+        self.firmware_update_button, self.firmware_version_entry = Widgets.create_entry_with_button(
             self.general_frame,
-            row=3,
+            row=4,
             text="Firmware version:",
-            placeholder_text="N/A"
+            entry_placeholder_text="N/A",
+            button_text="Update",
+            button_state="disabled",
+            button_command=self._firmware_update_button_pressed
         )
         self.firmware_version_entry.configure(state="disabled")
 
@@ -51,6 +66,7 @@ class SelfCheckWidget:
             state: The desired state ("normal" or "disabled").
         """
         self.run_checks_button.after(0, lambda: self.run_checks_button.configure(state=state))
+        self.firmware_update_button.after(0, lambda: self.firmware_update_button.configure(state=state))
 
     def update_self_check_action_status(self, status_message):
         """
@@ -100,6 +116,25 @@ class SelfCheckWidget:
             state="disabled")
         )
 
+    def update_firmware_status(self, status: Status):
+        """
+        Update the "Update" button based on the received status.
+
+        Args:
+            status (Status): The current status of the firmware update process.
+        """
+        self._firmware_update_status_actions[status]()
+
+    def _self_check_button_default_state(self):
+        """
+        Reset the "Run checks" button to its default state after the self-check is completed.
+        """
+        self.run_checks_button.configure(
+            state="normal",
+            text="Run checks",
+            fg_color=["#3B8ED0", "#1F6AA5"],
+            text_color_disabled=["#BDBDBD", "#999999"])
+
     def _run_checks_button_pressed(self):
         """
         Handle the event when the "Run checks" button is pressed.
@@ -121,21 +156,11 @@ class SelfCheckWidget:
         Updates the button appearance to indicate failure and resets it after 2 seconds.
         """
         self.run_checks_button.after(0, self.run_checks_button.configure(
-            text="FAIL!",
+            text="Failed!",
             fg_color=["#D9534F", "#A94442"])
         )
         # After 2 seconds, reset the "Run checks" button to its default state
-        self.run_checks_button.after(2000, self._self_check_finished)
-
-    def _self_check_finished(self):
-        """
-        Reset the "Run checks" button to its default state after the self-check is completed.
-        """
-        self.run_checks_button.configure(
-            state="normal",
-            text="Run checks",
-            fg_color=["#3B8ED0", "#1F6AA5"],
-            text_color_disabled=["#BDBDBD", "#999999"])
+        self.run_checks_button.after(2000, self._self_check_button_default_state)
 
     def _self_check_pass(self):
         """
@@ -144,8 +169,80 @@ class SelfCheckWidget:
         """
         self.self_check_action_label.after(0, lambda: self.self_check_action_label.configure(text=""))
         self.run_checks_button.after(0, lambda: self.run_checks_button.configure(
-            text="PASS!",
+            text="Passed!",
             fg_color=["#3BAA5D", "#2E8B57"])
         )
         # After 2 seconds, reset the "Run checks" button to its default state
-        self.run_checks_button.after(2000, self._self_check_finished)
+        self.run_checks_button.after(2000, self._self_check_button_default_state)
+
+    def _firmware_update_button_default_state(self):
+        """
+        Restore the firmware "Update" button to its default state after the update process is complete.
+        """
+        self.firmware_update_button.after(0, lambda: self.firmware_update_button.configure(
+            state="normal",
+            text="Update",
+            fg_color=["#3B8ED0", "#1F6AA5"],
+            text_color_disabled=["#BDBDBD", "#999999"])
+        )
+
+    def _firmware_update_button_pressed(self):
+        """
+        Handle the event when the "Update" button is pressed.
+        Disables the button, updates its appearance, and initiates the firmware update process.
+        """
+        self.firmware_update_button.focus_set()
+
+        self.firmware_update_button.configure(
+            state="disabled",
+            text="Checking...",
+            fg_color=["#3B8ED0", "#1F6AA5"],
+            text_color_disabled=["#DCE4EE", "#DCE4EE"])
+
+        self.device.run_firmware_update()
+
+    def _firmware_update_error_handle(self):
+        """
+        Handle the event when the firmware update fails.
+        Updates the button appearance to indicate failure and resets it after 2 seconds.
+        """
+        self.firmware_update_button.after(0, lambda: self.firmware_update_button.configure(
+            text="Failed!",
+            fg_color=["#D9534F", "#A94442"])
+        )
+        # After 2 seconds, reset the "Update" button to its default state
+        self.firmware_update_button.after(2000, self._firmware_update_button_default_state)
+
+    def _firmware_update_latest_handle(self):
+        """
+        Handle the event when the firmware is already up to date.
+        Updates the button appearance to indicate this and resets it after 2 seconds.
+        """
+        self.firmware_update_button.after(0, lambda: self.firmware_update_button.configure(
+            text="Latest!",
+            fg_color=["#3BAA5D", "#2E8B57"])
+        )
+        # After 2 seconds, reset the "Update" button to its default state
+        self.firmware_update_button.after(2000, self._firmware_update_button_default_state)
+
+    def _firmware_update_updated_handle(self):
+        """
+        Handle the event when the firmware has been successfully updated.
+        Updates the button appearance to indicate this and resets it after 2 seconds.
+        """
+        self.firmware_update_button.after(0, lambda: self.firmware_update_button.configure(
+            text="Updated!",
+            fg_color=["#3BAA5D", "#2E8B57"])
+        )
+        # After 2 seconds, reset the "Update" button to its default state
+        self.firmware_update_button.after(2000, self._firmware_update_button_default_state)
+
+    def _firmware_update_updating_handle(self):
+        """
+        Handle the event when the firmware update is in progress.
+        Updates the button appearance to indicate this.
+        """
+        self.firmware_update_button.after(0, lambda: self.firmware_update_button.configure(
+            text="Updating...",
+            fg_color=["#3B8ED0", "#1F6AA5"])
+        )

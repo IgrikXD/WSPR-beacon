@@ -397,6 +397,7 @@ class Widgets:
         entry_validation=None,
         entry_bind_action=None,
         entry_default_value=None,
+        entry_placeholder_text=None,
         optimize_for_scrollable=False,
         entry_textvariable=None
     ):
@@ -414,6 +415,7 @@ class Widgets:
             entry_validation (callable): Validation function for the entry.
             entry_bind_action (tuple or list): Event binding(s) for the entry.
             entry_default_value (str): Default text inserted into the entry.
+            entry_placeholder_text (str): Placeholder text for the entry.
             optimize_for_scrollable (bool): If True, adjusts padding for scrollable areas.
             entry_textvariable (StringVar): Optional StringVar to bind to the entry.
 
@@ -427,7 +429,12 @@ class Widgets:
             optimize_for_scrollable=optimize_for_scrollable
         )
 
-        entry = customtkinter.CTkEntry(frame, width=160, textvariable=entry_textvariable)
+        entry = customtkinter.CTkEntry(
+            frame,
+            width=160,
+            placeholder_text=entry_placeholder_text,
+            textvariable=entry_textvariable
+        )
         entry.grid(row=0, column=1, padx=(0, 10), pady=5, sticky="w")
 
         Widgets._set_default_value(entry, entry_default_value)
