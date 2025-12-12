@@ -80,12 +80,12 @@ def test_device_reconnection():
     device.connect()
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
     # Verify first connection is via USB
-    assert device.active_transport is Device.Transport.USB
+    assert device._active_transport is Device.Transport.USB
     # Terminate device connection
     device.disconnect()
 
     # Verify transport is reset after disconnect
-    assert device.active_transport is None
+    assert device._active_transport is None
 
     # Wait for the serial port to be fully released
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
@@ -94,7 +94,7 @@ def test_device_reconnection():
     device.connect()
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
     # Verify reconnection via USB
-    assert device.active_transport is Device.Transport.USB
+    assert device._active_transport is Device.Transport.USB
     # Terminate device connection
     device.disconnect()
 
@@ -463,7 +463,7 @@ def test_incorrect_message(device):
 
     # Send a non-JSON message + line ending symbol directly via serial transport
     # This bypasses the usual message encoding/decoding by Device class
-    device.serial_transport.send("UNEXPECTED NON-JSON MESSAGE" + "\n")
+    device._serial_transport.send("UNEXPECTED NON-JSON MESSAGE" + "\n")
 
     # Wait for device response
     time.sleep(DEVICE_RESPONSE_TIMEOUT)

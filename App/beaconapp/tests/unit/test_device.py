@@ -56,12 +56,11 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
     device = Device()
     device._connected_transports = connected_transports
     device._requested_transport = requested_transport
-    device.transport_priority = priority
+    device._transport_priority = priority
 
     device._decide_active_transport()
 
-    assert device.active_transport == expected_active
-
+    assert device._active_transport == expected_active
 
 @pytest.mark.parametrize(
     "incoming_json, expected_type, expected_data",
@@ -311,7 +310,7 @@ def test_set_device_response_handlers(existing_handlers, new_handlers, expected_
 
     # Verify that the total number of handlers matches the expected count
     #  (i.e., duplicates aren't added).
-    total_handlers = sum(len(handlers) for handlers in device.mapped_callbacks.values())
+    total_handlers = sum(len(handlers) for handlers in device._mapped_callbacks.values())
     assert total_handlers == expected_amount
 
 
@@ -339,10 +338,10 @@ def test_on_transport_disconnected(initial, disconnected, expected_active, expec
     """
     device = Device()
     device._connected_transports = set(initial)
-    device.active_transport = next(iter(initial)) if initial else None
-    device._requested_transport = device.active_transport
+    device._active_transport = next(iter(initial)) if initial else None
+    device._requested_transport = device._active_transport
 
     device._on_transport_disconnected(disconnected)
 
     assert device._connected_transports == expected_connected
-    assert device.active_transport == expected_active
+    assert device._active_transport == expected_active

@@ -99,6 +99,20 @@ class Device:
     __CAL_FREQ_MULTIPLIER = 100_000_000
 
     """
+    Default baudrate for Serial (USB) communication with the device.
+    """
+    __DEVICE_BAUDRATE = 115200
+
+    """
+    USB Vendor ID for ESP32-C3.
+    """
+    __DEVICE_VID = 0x303A 
+    """
+    USB Product ID for ESP32-C3.
+    """
+    __DEVICE_PID = 0x1001
+
+    """
     URL to fetch the latest firmware manifest for updates.
     """
     __FIRMWARE_MANIFEST_URL = "https://raw.githubusercontent.com/IgrikXD/OTA_TEST/master/Firmware/latest-stable.json"
@@ -107,6 +121,16 @@ class Device:
     Flash memory address where the firmware should be written during update.
     """
     __FLASH_ADDR = 0x10000
+
+    """
+    Multicast DNS name for the device when connected via Wi-Fi.
+    """
+    __MULTICAST_DNS_NAME = "wsprbeacon.local"
+    
+    """
+    TCP port for WebSocket connection over Wi-Fi.
+    """
+    __TCP_PORT = 81
 
     """
     Maximum number of outgoing messages that can be queued.
@@ -119,7 +143,7 @@ class Device:
         self._tx_queue: Optional[asyncio.Queue] = None
         
         # Event loop for running asynchronous tasks (Serial/WebSocket connections, message handling)
-        self.asyncio_loop: Optional[asyncio.AbstractEventLoop] = None
+        self._asyncio_loop: Optional[asyncio.AbstractEventLoop] = None
         # Thread for running the event loop
         self._asyncio_thread: Optional[threading.Thread] = None
         
@@ -131,7 +155,7 @@ class Device:
         self._tasks_tracker: Set[asyncio.Task] = set()
 
         # Active transport, None until a transport actually connects
-        self.active_transport: Optional[Device.Transport] = None
+        self._active_transport: Optional[Device.Transport] = None
         # Transport priority (if we cannot satisfy _requested_transport)
         # Wi-Fi: priority 0 (high)
         # USB (Serial): priority 1 (low)
@@ -142,11 +166,11 @@ class Device:
         self._connected_transports: Set[Device.Transport] = set()
 
         # Mapping of incoming message types to lists of registered callback handlers
-        self.mapped_callbacks: Dict[Device.Message.Incoming, List[Callable]] = {}
+        self._mapped_callbacks: Dict[Device.Message.Incoming, List[Callable]] = {}
 
         # Initialize transport implementations
-        self.serial_transport = SerialTransport(self, 0x303A, 0x1001, 115200)
-        self.ws_transport = WebsocketTransport(self, "wsprbeacon.local", 81)
+        self._serial_transport = SerialTransport(self, self.__DEVICE_VID, self.__DEVICE_PID, self.__DEVICE_BAUDRATE)
+        self._ws_transport = WebsocketTransport(self, self.__MULTICAST_DNS_NAME, self.__TCP_PORT)
 
         # Current firmware version reported by the device
         # Used as a reference during firmware update checks
@@ -162,15 +186,15 @@ class Device:
         """
         with self._connection_lock:
             # Prevent connecting if already connected
-            if self.asyncio_loop is not None and self.asyncio_loop.is_running():
+            if self._asyncio_loop is not None and self._asyncio_loop.is_running():
                 raise Device.AlreadyConnectedError("Device is already connected")
 
             # Reset stop flag used to signal transports and loops to terminate
             self._stop_flag = False
 
             # Create new asyncio loop and queue for this connection
-            self.asyncio_loop = asyncio.new_event_loop()
-            self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
+            self._asyncio_loop = asyncio.new_event_loop()
+            self._asyncio_loop.set_exception_handler(self._serial_exception_handler)
             self._tx_queue = asyncio.Queue(maxsize=self.__TX_QUEUE_MAX_SIZE)
 
             # Event to ensure the loop is running before scheduling coroutines
@@ -180,9 +204,9 @@ class Device:
                 """
                 Run the asyncio event loop.
                 """
-                asyncio.set_event_loop(self.asyncio_loop)
-                self.asyncio_loop.call_soon(loop_started.set)
-                self.asyncio_loop.run_forever()
+                asyncio.set_event_loop(self._asyncio_loop)
+                self._asyncio_loop.call_soon(loop_started.set)
+                self._asyncio_loop.run_forever()
             
             # Start the event loop in a separate daemon thread
             self._asyncio_thread = threading.Thread(target=run_asyncio_loop, daemon=True)
@@ -192,7 +216,7 @@ class Device:
             loop_started.wait(timeout=5.0)
 
             # Create and track tasks in the event loop thread
-            asyncio.run_coroutine_threadsafe(self._start_connection_handle_tasks(), self.asyncio_loop)
+            asyncio.run_coroutine_threadsafe(self._start_connection_handle_tasks(), self._asyncio_loop)
 
     def disconnect(self):
         """
@@ -200,7 +224,7 @@ class Device:
         Thread-safe: uses lock to prevent concurrent connect/disconnect calls.
         """
         with self._connection_lock:
-            if not self.asyncio_loop:
+            if not self._asyncio_loop:
                 return
 
             # Update stop flag to break all infinite loops
@@ -209,19 +233,19 @@ class Device:
             # Cancel all running tasks - this will trigger CancelledError in infinite loops,
             # which will then do graceful close in its exception handler.
             # WebSocket connection will be closed gracefully in its own task
-            if self.asyncio_loop.is_running():
-                asyncio.run_coroutine_threadsafe(self._stop_connection_handle_tasks(), self.asyncio_loop).result(timeout=10.0)
+            if self._asyncio_loop.is_running():
+                asyncio.run_coroutine_threadsafe(self._stop_connection_handle_tasks(), self._asyncio_loop).result(timeout=10.0)
 
             # Synchronously close Serial transport
-            self.serial_transport.disconnect()
+            self._serial_transport.disconnect()
 
             # Clear connected transports and active transport
             self._connected_transports.clear()
-            self.active_transport = None
+            self._active_transport = None
 
             # Stop event loop and wait briefly for thread to finish
-            self.asyncio_loop.call_soon_threadsafe(self.asyncio_loop.stop)
-            self.asyncio_loop = None
+            self._asyncio_loop.call_soon_threadsafe(self._asyncio_loop.stop)
+            self._asyncio_loop = None
 
             # Wait for asyncio thread to finish
             if self._asyncio_thread is not None and self._asyncio_thread.is_alive():
@@ -246,11 +270,11 @@ class Device:
         Used for updating the device firmware.
         Chooses between USB (Serial) or OTA (Wi-Fi) update based on the active transport.
         """
-        if self.active_transport == Device.Transport.USB:
+        if self._active_transport == Device.Transport.USB:
             logger.debug(f"{Fore.GREEN}[OK]: USB firmware update started!{Style.RESET_ALL}")
             # Runs in a separate thread to avoid blocking the GUI
             threading.Thread(target=self._run_usb_firmware_update, daemon=True).start()
-        elif self.active_transport == Device.Transport.WIFI:
+        elif self._active_transport == Device.Transport.WIFI:
             logger.debug(f"{Fore.GREEN}[OK]: OTA firmware update started!{Style.RESET_ALL}")
             self._run_ota_firmware_update()
         else:
@@ -291,12 +315,12 @@ class Device:
                 value = [value]
 
             # If there is no such key, initialize with an empty list
-            self.mapped_callbacks.setdefault(key, [])
+            self._mapped_callbacks.setdefault(key, [])
 
             # Add callbacks that are not yet in the list
             for handler in value:
-                if handler not in self.mapped_callbacks[key]:
-                    self.mapped_callbacks[key].append(handler)
+                if handler not in self._mapped_callbacks[key]:
+                    self._mapped_callbacks[key].append(handler)
 
     def set_ssid_connect_at_startup(self, value: bool):
         """
@@ -324,7 +348,7 @@ class Device:
         Calls all handlers associated with the given incoming message type.
         If a handler raises an exception, it is logged but does not prevent other handlers from running.
         """
-        for handler in self.mapped_callbacks.get(msg_type, []):
+        for handler in self._mapped_callbacks.get(msg_type, []):
             try:
                 handler(data)
             except Exception as e:
@@ -335,8 +359,8 @@ class Device:
         Create and track all connection related tasks (Serial, WebSocket, outgoing message handler).
         """
         # Create tasks and add them to tracking set
-        self._tasks_tracker.add(asyncio.create_task(self.serial_transport.connect()))
-        self._tasks_tracker.add(asyncio.create_task(self.ws_transport.connect()))
+        self._tasks_tracker.add(asyncio.create_task(self._serial_transport.connect()))
+        self._tasks_tracker.add(asyncio.create_task(self._ws_transport.connect()))
         self._tasks_tracker.add(asyncio.create_task(self._handle_outgoing_messages()))
     
     async def _stop_connection_handle_tasks(self):
@@ -371,11 +395,11 @@ class Device:
             3. or None if no transport is currently available
         Notifies handlers if the active transport changes.
         """
-        old_transport = self.active_transport
+        old_transport = self._active_transport
 
         # If the requested transport is connected, use it
         if self._requested_transport in self._connected_transports:
-            self.active_transport = self._requested_transport
+            self._active_transport = self._requested_transport
         else:
             # Otherwise, pick from _transport_priority
             transport_to_activate = None
@@ -383,11 +407,11 @@ class Device:
                 if transport in self._connected_transports:
                     transport_to_activate = transport
                     break
-            self.active_transport = transport_to_activate
+            self._active_transport = transport_to_activate
 
         # If the active transport changed, notify via the INCOMING.ACTIVE_TRANSPORT event
-        if self.active_transport != old_transport:
-            self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self.active_transport)
+        if self._active_transport != old_transport:
+            self._call_handlers(Device.Message.Incoming.ACTIVE_TRANSPORT, self._active_transport)
 
     def _decode_device_message(self, message: str):
         """
@@ -487,7 +511,7 @@ class Device:
         If the queue is full, the message is discarded and an error is logged.
         If the device is not connected, the message is discarded and a warning is logged.
         """
-        if self.asyncio_loop is None:
+        if self._asyncio_loop is None:
             logger.warning(
                 f"{Fore.YELLOW}[WARNING] Cannot send message {message.type}: "
                 f"device is not connected or initialized!{Style.RESET_ALL}"
@@ -506,7 +530,7 @@ class Device:
                     f"message discarded: {message.type}{Style.RESET_ALL}"
                 )
 
-        self.asyncio_loop.call_soon_threadsafe(try_put)
+        self._asyncio_loop.call_soon_threadsafe(try_put)
 
     def _run_ota_firmware_update(self):
         """
@@ -527,7 +551,7 @@ class Device:
         try:
             # Get the current serial port from the SerialTransport
             # After disconnect(), the port will be released and used for firmware flashing
-            port = self.serial_transport.get_port()
+            port = self._serial_transport.get_port()
 
             # Download latest firmware manifest first to check version
             manifest_response = requests.get(self.__FIRMWARE_MANIFEST_URL, timeout=30)
@@ -592,10 +616,10 @@ class Device:
             Device.DataSendingError: If no active transport is available or transport type is unknown.
         """
         json_str = self._encode_device_message(message)
-        if self.active_transport == Device.Transport.WIFI:
-            self.ws_transport.send(json_str)
-        elif self.active_transport == Device.Transport.USB:
-            self.serial_transport.send(json_str)
+        if self._active_transport == Device.Transport.WIFI:
+            self._ws_transport.send(json_str)
+        elif self._active_transport == Device.Transport.USB:
+            self._serial_transport.send(json_str)
         else:
             raise Device.DataSendingError(f"No active transport available to send message: {message.type}")
 
@@ -632,6 +656,9 @@ class BaseTransport(ABC):
     Abstract base class for different transport implementations (Serial, WebSocket, etc.).
     """
     def __init__(self, device: Device):
+        """
+        Initializes the transport with a reference to the Device instance.
+        """
         self._device = device
 
     @abstractmethod
@@ -655,13 +682,14 @@ class SerialTransport(BaseTransport):
 
     Note: We use serial.Serial directly instead of only serial_asyncio because:
     1. serial_asyncio.create_serial_connection() opens the port immediately with default DTR/RTS
-    2. We need to configure flow control (dsrdtr=False, rtscts=False) before opening
-    3. We must set DTR/RTS to False immediately after open() to prevent device reset
-    4. Therefore, we create Serial object manually, configure it, then use connection_for_serial()
+    2. We need to configure flow control (dsrdtr=False, rtscts=False, dtr=False, rts=False) before opening
+       to prevent device reset on connection.
+    
+    Therefore, we create Serial object manually, configure it, then use connection_for_serial() for 
+    establishing the connection.
 
     DTR/RTS handling:
-    1. Before open(): Configure dsrdtr=False, rtscts=False
-    2. After open(): Immediately set DTR=False, RTS=False
+    1. Before open(): Configure dsrdtr=False, rtscts=False, dtr=False, rts=False
     3. Before close(): DTR/RTS leave as False to prevent reset
     """
     def __init__(self, device: Device, vid: int, pid: int, baudrate: int):
