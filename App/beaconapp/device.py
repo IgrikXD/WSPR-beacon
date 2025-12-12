@@ -434,12 +434,15 @@ class Device:
         """
         while not self._stop_flag:
             try:
-                # Use wait_for with timeout to allow checking stop flag
                 message = await asyncio.wait_for(self.tx_queue.get(), timeout=1.0)
                 self._send_to_device(message)
+
             except asyncio.TimeoutError:
-                # Timeout is expected, just continue to check stop flag
-                continue
+                continue # Timeout is expected behaviour, just continue to check stop flag
+
+            except asyncio.CancelledError:
+                return # Expected behavior on task cancellation, exit gracefully
+            
             except Exception as e:
                 logger.error(f"{Fore.RED}[ERROR] Outgoing message sending failed: {e}{Style.RESET_ALL}")
 
@@ -703,8 +706,9 @@ class SerialTransport(BaseTransport):
                     )
                     break
                 await asyncio.sleep(1)
+
         except asyncio.CancelledError:
-            return  # Expected behavior on task cancellation, exit gracefully
+            return # Expected behavior on task cancellation, exit gracefully
 
     def disconnect(self):
         """
