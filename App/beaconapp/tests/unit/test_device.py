@@ -62,6 +62,7 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
 
     assert device._active_transport == expected_active
 
+
 @pytest.mark.parametrize(
     "incoming_json, expected_type, expected_data",
     [

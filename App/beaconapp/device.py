@@ -106,7 +106,7 @@ class Device:
     """
     USB Vendor ID for ESP32-C3.
     """
-    __DEVICE_VID = 0x303A 
+    __DEVICE_VID = 0x303A
     """
     USB Product ID for ESP32-C3.
     """
@@ -126,7 +126,7 @@ class Device:
     Multicast DNS name for the device when connected via Wi-Fi.
     """
     __MULTICAST_DNS_NAME = "wsprbeacon.local"
-    
+
     """
     TCP port for WebSocket connection over Wi-Fi.
     """
@@ -141,12 +141,12 @@ class Device:
     def __init__(self):
         # Queue for outgoing messages transmission to the device
         self._tx_queue: Optional[asyncio.Queue] = None
-        
+
         # Event loop for running asynchronous tasks (Serial/WebSocket connections, message handling)
         self._asyncio_loop: Optional[asyncio.AbstractEventLoop] = None
         # Thread for running the event loop
         self._asyncio_thread: Optional[threading.Thread] = None
-        
+
         # Stop flag to signal transports and loops to terminate
         self._stop_flag = False
         # Lock to prevent concurrent connect/disconnect calls
@@ -207,7 +207,7 @@ class Device:
                 asyncio.set_event_loop(self._asyncio_loop)
                 self._asyncio_loop.call_soon(loop_started.set)
                 self._asyncio_loop.run_forever()
-            
+
             # Start the event loop in a separate daemon thread
             self._asyncio_thread = threading.Thread(target=run_asyncio_loop, daemon=True)
             self._asyncio_thread.start()
@@ -234,7 +234,8 @@ class Device:
             # which will then do graceful close in its exception handler.
             # WebSocket connection will be closed gracefully in its own task
             if self._asyncio_loop.is_running():
-                asyncio.run_coroutine_threadsafe(self._stop_connection_handle_tasks(), self._asyncio_loop).result(timeout=10.0)
+                asyncio.run_coroutine_threadsafe(
+                    self._stop_connection_handle_tasks(), self._asyncio_loop).result(timeout=10.0)
 
             # Synchronously close Serial transport
             self._serial_transport.disconnect()
@@ -362,7 +363,7 @@ class Device:
         self._tasks_tracker.add(asyncio.create_task(self._serial_transport.connect()))
         self._tasks_tracker.add(asyncio.create_task(self._ws_transport.connect()))
         self._tasks_tracker.add(asyncio.create_task(self._handle_outgoing_messages()))
-    
+
     async def _stop_connection_handle_tasks(self):
         """
         Destroy all connection related tasks that were created and tracked.
@@ -370,20 +371,20 @@ class Device:
         # Filter out completed and current task
         current_task = asyncio.current_task()
         tasks_to_cancel = [
-            task for task in self._tasks_tracker 
+            task for task in self._tasks_tracker
             if not task.done() and task != current_task
         ]
-        
+
         if not tasks_to_cancel:
             return
-        
+
         # Cancel tasks
         for task in tasks_to_cancel:
             task.cancel()
-        
+
         # Wait for tasks to acknowledge cancellation
         await asyncio.wait(tasks_to_cancel, timeout=5.0)
-        
+
         # Clear the tasks tracker
         self._tasks_tracker.clear()
 
@@ -471,11 +472,13 @@ class Device:
                 self._send_to_device(message)
 
             except asyncio.TimeoutError:
-                continue # Timeout is expected behaviour, just continue to check stop flag
+                # Timeout is expected behaviour, just continue to check stop flag
+                continue
 
             except asyncio.CancelledError:
-                return # Expected behavior on task cancellation, exit gracefully
-            
+                # Expected behavior on task cancellation, exit gracefully
+                return
+
             except Exception as e:
                 logger.error(f"{Fore.RED}[ERROR] Outgoing message sending failed: {e}{Style.RESET_ALL}")
 
@@ -684,8 +687,8 @@ class SerialTransport(BaseTransport):
     1. serial_asyncio.create_serial_connection() opens the port immediately with default DTR/RTS
     2. We need to configure flow control (dsrdtr=False, rtscts=False, dtr=False, rts=False) before opening
        to prevent device reset on connection.
-    
-    Therefore, we create Serial object manually, configure it, then use connection_for_serial() for 
+
+    Therefore, we create Serial object manually, configure it, then use connection_for_serial() for
     establishing the connection.
 
     DTR/RTS handling:
@@ -745,7 +748,8 @@ class SerialTransport(BaseTransport):
                 await asyncio.sleep(1)
 
         except asyncio.CancelledError:
-            return # Expected behavior on task cancellation, exit gracefully
+            # Expected behavior on task cancellation, exit gracefully
+            return
 
     def disconnect(self):
         """
@@ -829,7 +833,7 @@ class WebsocketTransport(BaseTransport):
                 )
                 # Notify about new available transport
                 self._device._on_transport_connected(Device.Transport.WIFI)
-                
+
                 # Immediately request device info upon successful connection
                 self._device.get_device_info()
 
@@ -837,7 +841,8 @@ class WebsocketTransport(BaseTransport):
                 await self._websocket_receiver(self._websocket)
 
             except (OSError, socket.gaierror, TimeoutError):
-                pass # Expected connection errors, will retry
+                # Expected connection errors, will retry
+                pass
 
             except asyncio.CancelledError:
                 # Graceful close before exiting
@@ -861,7 +866,8 @@ class WebsocketTransport(BaseTransport):
                 try:
                     await asyncio.sleep(self._reconnect_delay)
                 except asyncio.CancelledError:
-                    return # Expected behavior on task cancellation, exit gracefully
+                    # Expected behavior on task cancellation, exit gracefully
+                    return
 
     async def _websocket_receiver(self, ws: ClientConnection) -> None:
         try:
@@ -871,11 +877,13 @@ class WebsocketTransport(BaseTransport):
 
                 message = raw_data.strip()
                 if not message:
-                    continue # Ignore empty messages
+                    # Ignore empty messages
+                    continue
 
                 try:
                     msg = self._device._decode_device_message(message)
-                    if msg: # Check if decoding was successful
+                    # Check if decoding was successful
+                    if msg:
                         logger.debug(f"{Fore.MAGENTA}RX (WebSocket): {message}{Style.RESET_ALL}")
                         self._device._call_handlers(msg.type, msg.data)
 
@@ -895,6 +903,7 @@ class WebsocketTransport(BaseTransport):
         if self._websocket is not None:
             logger.debug(f"{Fore.GREEN}TX (WebSocket): {message.strip()}{Style.RESET_ALL}")
             asyncio.create_task(self._websocket.send(message))
+
 
 class DeviceProtocol(asyncio.Protocol):
     """
