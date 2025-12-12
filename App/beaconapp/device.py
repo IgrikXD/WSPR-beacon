@@ -10,7 +10,6 @@ import serial_asyncio
 import socket
 import sys
 import threading
-import websockets
 
 from abc import ABC, abstractmethod
 from colorama import Fore, Style
@@ -18,9 +17,11 @@ from contextlib import contextmanager, redirect_stdout, redirect_stderr
 from beaconapp.data_wrappers import ActiveTXMode, Status, WiFiCredentials, WiFiData
 from dataclasses import dataclass
 from enum import Enum
+from esptool import detect_chip, attach_flash, reset_chip, write_flash
 from packaging.version import Version
 from typing import Any, Callable, Dict, List, Optional, Set
-from esptool import detect_chip, attach_flash, reset_chip, write_flash
+from websockets.asyncio.client import connect as ws_connect, ClientConnection
+from websockets.exceptions import ConnectionClosed
 
 logger = logging.getLogger(__name__)
 # Add handler that writes logs to sys.stdout only if not already present
@@ -196,7 +197,6 @@ class Device:
     def disconnect(self):
         """
         Properly closes all connections (Serial and WebSocket).
-        Serial connections are closed without triggering DTR/RTS signals.
         Thread-safe: uses lock to prevent concurrent connect/disconnect calls.
         """
         with self._connection_lock:
@@ -206,47 +206,22 @@ class Device:
             # Update stop flag to break all infinite loops
             self._stop_flag = True
 
-            # Cancel all pending tasks to stop all operations
+            # Cancel all running tasks - this will trigger CancelledError in infinite loops,
+            # which will then do graceful close in its exception handler.
+            # WebSocket connection will be closed gracefully in its own task
             if self.asyncio_loop.is_running():
-                async def cancel_tasks():
-                    tasks = [t for t in asyncio.all_tasks() if not t.done() and t != asyncio.current_task()]
-                    for task in tasks:
-                        task.cancel()
-                    if tasks:
-                        await asyncio.gather(*tasks, return_exceptions=True)
+                asyncio.run_coroutine_threadsafe(self._stop_connection_handle_tasks(), self.asyncio_loop).result(timeout=10.0)
 
-                try:
-                    asyncio.run_coroutine_threadsafe(cancel_tasks(), self.asyncio_loop).result(timeout=0.3)
-                except Exception:
-                    pass
+            # Synchronously close Serial transport
+            self.serial_transport.disconnect()
 
-            # Close Serial transport
-            if self.asyncio_loop.is_running() and self.serial_transport.serial_port:
-                try:
-                    asyncio.run_coroutine_threadsafe(
-                        self.serial_transport.disconnect(), self.asyncio_loop).result(timeout=0.3)
-                except Exception as e:
-                    logger.error(f"{Fore.RED}[ERROR]: Serial disconnect exception: {e}{Style.RESET_ALL}")
-
-            # Close WebSocket transport
-            if self.asyncio_loop.is_running() and self.ws_transport.websocket:
-                try:
-                    asyncio.run_coroutine_threadsafe(
-                        self.ws_transport.disconnect(), self.asyncio_loop).result(timeout=0.3)
-                except Exception as e:
-                    logger.error(f"{Fore.RED}[ERROR]: WebSocket disconnect exception: {e}{Style.RESET_ALL}")
-            
-            # Reset active transport and connected transports set
-            self.active_transport = None
+            # Clear connected transports and active transport
             self._connected_transports.clear()
+            self.active_transport = None
 
-            # Stop event loop and wait briefly for thread
-            if self.asyncio_loop.is_running():
-                try:
-                    self.asyncio_loop.call_soon_threadsafe(self.asyncio_loop.stop)
-                except RuntimeError:
-                    pass
-                self.asyncio_loop = None
+            # Stop event loop and wait briefly for thread to finish
+            self.asyncio_loop.call_soon_threadsafe(self.asyncio_loop.stop)
+            self.asyncio_loop = None
 
             # Wait for asyncio thread to finish
             if self.asyncio_thread is not None and self.asyncio_thread.is_alive():
@@ -785,74 +760,100 @@ class SerialTransport(BaseTransport):
 class WebsocketTransport(BaseTransport):
     """
     WebSocket (Wi-Fi) transport implementation using asyncio and websockets library.
+    Uses the modern websockets.asyncio.client API (websockets 15.x+).
     """
     def __init__(self, device: Device):
         super().__init__(device)
-        self.websocket: Optional[websockets.WebSocketClientProtocol] = None
-        self.hostname = "wsprbeacon.local"
-        self.port = 81
+        self._websocket: Optional[ClientConnection] = None
+        self._hostname = "wsprbeacon.local"
+        self._port = 81
+
+        self._connect_timeout = 10.0
+        self._close_timeout = 1.0
+        self._reconnect_delay = 1.0
 
     async def connect(self):
         """
-        Continuously tries to connect to the WebSocket.
+        Continuously tries to connect to the WebSocket with manual reconnection loop.
+        Uses explicit connection management for proper control over connection lifecycle.
         """
         while not self.device._stop_flag:
             try:
-                self.websocket = await websockets.connect(f"ws://{self.hostname}:{self.port}")
+                self._websocket = await asyncio.wait_for(
+                    ws_connect(
+                        uri=f"ws://{self._hostname}:{self._port}",
+                        close_timeout=self._close_timeout,
+                    ),
+                    timeout=self._connect_timeout
+                )
+                # Notify about new available transport
                 self.device._on_transport_connected(Device.Transport.WIFI)
-                # Start the message receiver task
-                asyncio.create_task(self._websocket_receiver())
-                break
-            except socket.gaierror:
-                self.websocket = None
-                await asyncio.sleep(1)
+                
+                # Immediately request device info upon successful connection
+                self.device.get_device_info()
 
-    async def disconnect(self):
-        """
-        Properly closes the WebSocket connection.
-        """
-        if self.websocket:
-            try:
-                await self.websocket.close()
+                # Receive messages until connection is closed or cancelled
+                await self._websocket_receiver(self._websocket)
+
+            except (OSError, socket.gaierror, TimeoutError):
+                pass # Expected connection errors, will retry
+
+            except asyncio.CancelledError:
+                # Graceful close before exiting
+                if self._websocket is not None:
+                    await asyncio.wait_for(self._websocket.close(), self._close_timeout)
+                    self._websocket = None
+                return
+
             except Exception as e:
-                logger.error(f"{Fore.RED}[ERROR] Closing WebSocket: {e}{Style.RESET_ALL}")
-            self.websocket = None
+                logger.error(f"{Fore.RED}[ERROR] WebSocket operation failed: {e}{Style.RESET_ALL}")
 
-    def send(self, message: str):
+            finally:
+                # Close websocket if still open (for non-cancel cases)
+                if self._websocket is not None:
+                    await asyncio.wait_for(self._websocket.close(), timeout=self._close_timeout)
+                    self._websocket = None
+                    self.device._on_transport_disconnected(Device.Transport.WIFI)
+
+            # Wait before reconnecting (only if not stopping)
+            if not self.device._stop_flag:
+                try:
+                    await asyncio.sleep(self._reconnect_delay)
+                except asyncio.CancelledError:
+                    return # Expected behavior on task cancellation, exit gracefully
+
+    async def _websocket_receiver(self, ws: ClientConnection) -> None:
+        try:
+            async for raw_data in ws:
+                if self.device._stop_flag:
+                    break
+
+                message = raw_data.strip()
+                if not message:
+                    continue # Ignore empty messages
+
+                try:
+                    msg = self.device._decode_device_message(message)
+                    if msg: # Check if decoding was successful
+                        logger.debug(f"{Fore.MAGENTA}RX (WebSocket): {message}{Style.RESET_ALL}")
+                        self.device._call_handlers(msg.type, msg.data)
+
+                except json.JSONDecodeError:
+                    logger.warning(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
+
+                except Exception as e:
+                    logger.error(f"{Fore.RED}[ERROR] Error decoding message: {e}{Style.RESET_ALL}")
+
+        except ConnectionClosed:
+            return  # Connection closed, exit receiver
+
+    def send(self, message: str) -> None:
         """
         Sends a text message via the active WebSocket connection.
         """
-        if self.websocket is not None:
+        if self._websocket is not None:
             logger.debug(f"{Fore.GREEN}TX (WebSocket): {message.strip()}{Style.RESET_ALL}")
-            asyncio.create_task(self.websocket.send(message))
-
-    async def _websocket_receiver(self):
-        """
-        Continuously reads messages from the WebSocket until disconnected, decoding and
-        handing them over to the device's _call_handlers. On disconnection, tries to reconnect.
-        """
-        try:
-            # Immediately request device info upon successful connection
-            self.device.get_device_info()
-            async for message in self.websocket:
-                message = message.strip()
-                if message:
-                    try:
-                        msg = self.device._decode_device_message(message)
-                        if msg:  # Check if decoding was successful
-                            logger.debug(f"{Fore.MAGENTA}RX (WebSocket): {message}{Style.RESET_ALL}")
-                            self.device._call_handlers(msg.type, msg.data)
-                    except json.JSONDecodeError:
-                        logger.warning(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
-                    except Exception as e:
-                        logger.error(f"{Fore.RED}[ERROR] Error decoding message: {e}{Style.RESET_ALL}")
-        except websockets.exceptions.ConnectionClosedError:
-            self.websocket = None
-            self.device._on_transport_disconnected(Device.Transport.WIFI)
-            # Only try to reconnect if we're not shutting down
-            if not self.device._stop_flag:
-                asyncio.create_task(self.connect())
-
+            asyncio.create_task(self._websocket.send(message))
 
 class DeviceProtocol(asyncio.Protocol):
     """
