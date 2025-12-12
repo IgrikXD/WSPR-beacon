@@ -116,12 +116,12 @@ class Device:
 
     def __init__(self):
         # Queue for outgoing messages transmission to the device
-        self.tx_queue: Optional[asyncio.Queue] = None
+        self._tx_queue: Optional[asyncio.Queue] = None
         
         # Event loop for running asynchronous tasks (Serial/WebSocket connections, message handling)
         self.asyncio_loop: Optional[asyncio.AbstractEventLoop] = None
         # Thread for running the event loop
-        self.asyncio_thread: Optional[threading.Thread] = None
+        self._asyncio_thread: Optional[threading.Thread] = None
         
         # Stop flag to signal transports and loops to terminate
         self._stop_flag = False
@@ -135,7 +135,7 @@ class Device:
         # Transport priority (if we cannot satisfy _requested_transport)
         # Wi-Fi: priority 0 (high)
         # USB (Serial): priority 1 (low)
-        self.transport_priority = [Device.Transport.WIFI, Device.Transport.USB]
+        self._transport_priority = [Device.Transport.WIFI, Device.Transport.USB]
         # Current "requested" (from the device) transport (default to USB preference)
         self._requested_transport: Optional[Device.Transport] = Device.Transport.USB
         # Transports that are currently connected (USB (Serial)/WebSocket)
@@ -145,12 +145,12 @@ class Device:
         self.mapped_callbacks: Dict[Device.Message.Incoming, List[Callable]] = {}
 
         # Initialize transport implementations
-        self.serial_transport = SerialTransport(self)
-        self.ws_transport = WebsocketTransport(self)
+        self.serial_transport = SerialTransport(self, 0x303A, 0x1001, 115200)
+        self.ws_transport = WebsocketTransport(self, "wsprbeacon.local", 81)
 
         # Current firmware version reported by the device
         # Used as a reference during firmware update checks
-        self.firmware_version = None
+        self._firmware_version = None
 
     def connect(self):
         """
@@ -171,7 +171,7 @@ class Device:
             # Create new asyncio loop and queue for this connection
             self.asyncio_loop = asyncio.new_event_loop()
             self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
-            self.tx_queue = asyncio.Queue(maxsize=self.__TX_QUEUE_MAX_SIZE)
+            self._tx_queue = asyncio.Queue(maxsize=self.__TX_QUEUE_MAX_SIZE)
 
             # Event to ensure the loop is running before scheduling coroutines
             loop_started = threading.Event()
@@ -185,8 +185,8 @@ class Device:
                 self.asyncio_loop.run_forever()
             
             # Start the event loop in a separate daemon thread
-            self.asyncio_thread = threading.Thread(target=run_asyncio_loop, daemon=True)
-            self.asyncio_thread.start()
+            self._asyncio_thread = threading.Thread(target=run_asyncio_loop, daemon=True)
+            self._asyncio_thread.start()
 
             # Wait for the event loop to actually start
             loop_started.wait(timeout=5.0)
@@ -224,9 +224,9 @@ class Device:
             self.asyncio_loop = None
 
             # Wait for asyncio thread to finish
-            if self.asyncio_thread is not None and self.asyncio_thread.is_alive():
-                self.asyncio_thread.join(timeout=0.1)
-                self.asyncio_thread = None
+            if self._asyncio_thread is not None and self._asyncio_thread.is_alive():
+                self._asyncio_thread.join(timeout=0.1)
+                self._asyncio_thread = None
 
     def gen_calibration_frequency(self, frequency: float | None):
         """
@@ -317,7 +317,7 @@ class Device:
         Args:
             firmware_version: Firmware version string reported by the device.
         """
-        self.firmware_version = firmware_version
+        self._firmware_version = firmware_version
 
     def _call_handlers(self, msg_type: Enum, data):
         """
@@ -367,7 +367,7 @@ class Device:
         """
         Chooses which transport should be active based on:
             1. _requested_transport (if it is actually connected)
-            2. transport_priority (e.g., Wi-Fi first, then USB)
+            2. _transport_priority (e.g., Wi-Fi first, then USB)
             3. or None if no transport is currently available
         Notifies handlers if the active transport changes.
         """
@@ -377,9 +377,9 @@ class Device:
         if self._requested_transport in self._connected_transports:
             self.active_transport = self._requested_transport
         else:
-            # Otherwise, pick from transport_priority
+            # Otherwise, pick from _transport_priority
             transport_to_activate = None
-            for transport in self.transport_priority:
+            for transport in self._transport_priority:
                 if transport in self._connected_transports:
                     transport_to_activate = transport
                     break
@@ -439,11 +439,11 @@ class Device:
 
     async def _handle_outgoing_messages(self):
         """
-        Continuously takes messages from tx_queue and sends them to the currently active transport.
+        Continuously takes messages from _tx_queue and sends them to the currently active transport.
         """
         while not self._stop_flag:
             try:
-                message = await asyncio.wait_for(self.tx_queue.get(), timeout=1.0)
+                message = await asyncio.wait_for(self._tx_queue.get(), timeout=1.0)
                 self._send_to_device(message)
 
             except asyncio.TimeoutError:
@@ -483,7 +483,7 @@ class Device:
 
     def _put(self, message: Message):
         """
-        Places a message into the tx_queue for asynchronous sending.
+        Places a message into the _tx_queue for asynchronous sending.
         If the queue is full, the message is discarded and an error is logged.
         If the device is not connected, the message is discarded and a warning is logged.
         """
@@ -499,7 +499,7 @@ class Device:
             Wrapper that handles QueueFull exception in the event loop thread.
             """
             try:
-                self.tx_queue.put_nowait(message)
+                self._tx_queue.put_nowait(message)
             except asyncio.QueueFull:
                 logger.error(
                     f"{Fore.RED}[ERROR] TX queue is full ({self.__TX_QUEUE_MAX_SIZE} messages), "
@@ -527,7 +527,7 @@ class Device:
         try:
             # Get the current serial port from the SerialTransport
             # After disconnect(), the port will be released and used for firmware flashing
-            port = self.serial_transport.serial_port.port
+            port = self.serial_transport.get_port()
 
             # Download latest firmware manifest first to check version
             manifest_response = requests.get(self.__FIRMWARE_MANIFEST_URL, timeout=30)
@@ -539,7 +539,7 @@ class Device:
             if not available_version:
                 raise Device.FirmwareUpdateError("Invalid firmware manifest: missing 'firmware-version' key")
 
-            if self.firmware_version is not None and Version(self.firmware_version) >= Version(available_version):
+            if self._firmware_version is not None and Version(self._firmware_version) >= Version(available_version):
                 logger.debug(f"{Fore.GREEN}[OK]: Firmware is already up to date!{Style.RESET_ALL}")
                 self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.LATEST)
                 return  # No update needed
@@ -664,14 +664,16 @@ class SerialTransport(BaseTransport):
     2. After open(): Immediately set DTR=False, RTS=False
     3. Before close(): DTR/RTS leave as False to prevent reset
     """
-    def __init__(self, device: Device):
+    def __init__(self, device: Device, vid: int, pid: int, baudrate: int):
         super().__init__(device)
-        self.transport: Optional[asyncio.Transport] = None
+        self._transport: Optional[asyncio.Transport] = None
         # Store reference to the serial port object
-        self.serial_port = None
+        self._serial_port = None
         # VID and PID for ESP32-C3
-        self.vid = 0x303A
-        self.pid = 0x1001
+        self._vid = vid
+        self._pid = pid
+        # Baudrate for serial communication
+        self._baudrate = baudrate
 
     async def connect(self):
         """
@@ -684,34 +686,32 @@ class SerialTransport(BaseTransport):
                 if device_port:
                     # Create serial port object without opening it yet
                     # This allows us to configure DTR/RTS before the port is opened
-                    self.serial_port = serial.Serial()
+                    self._serial_port = serial.Serial()
 
                     # Configure serial port parameters
-                    self.serial_port.port = device_port
-                    self.serial_port.baudrate = 115200
-                    self.serial_port.timeout = 1
-                    self.serial_port.write_timeout = 1
+                    self._serial_port.port = device_port
+                    self._serial_port.baudrate = self._baudrate
+                    self._serial_port.timeout = 1
+                    self._serial_port.write_timeout = 1
                     # Disable all flow control
-                    self.serial_port.dsrdtr = False
-                    self.serial_port.rtscts = False
-                    self.serial_port.xonxoff = False
+                    self._serial_port.dsrdtr = False
+                    self._serial_port.rtscts = False
+                    self._serial_port.xonxoff = False
                     # Set DTR/RTS to False before opening the port
                     # This is the only way to prevent device reset on connection
-                    self.serial_port.dtr = False
-                    self.serial_port.rts = False
-
+                    self._serial_port.dtr = False
+                    self._serial_port.rts = False
                     # Use exclusive access if supported
                     try:
-                        self.serial_port.exclusive = True
+                        self._serial_port.exclusive = True
                     except (AttributeError, ValueError):
                         pass  # Not supported
 
-                    self.serial_port.open()
-
-                    self.transport, _ = await serial_asyncio.connection_for_serial(
+                    self._serial_port.open()
+                    self._transport, _ = await serial_asyncio.connection_for_serial(
                         asyncio.get_running_loop(),
                         lambda: DeviceProtocol(self.device, self),
-                        self.serial_port
+                        self._serial_port
                     )
                     break
                 await asyncio.sleep(1)
@@ -723,36 +723,44 @@ class SerialTransport(BaseTransport):
         """
         Properly closes the serial connection without triggering DTR/RTS signals.
         """
-        if self.transport is not None:
+        if self._transport is not None:
             try:
-                self.transport.close()
+                self._transport.close()
             except Exception as e:
                 logger.error(f"{Fore.RED}[ERROR] Closing serial transport: {e}{Style.RESET_ALL}")
-            self.transport = None
+            self._transport = None
 
-        if self.serial_port is not None and self.serial_port.is_open:
+        if self._serial_port is not None and self._serial_port.is_open:
             try:
-                self.serial_port.timeout = 0
-                self.serial_port.write_timeout = 0
-                self.serial_port.close()
+                self._serial_port.timeout = 0
+                self._serial_port.write_timeout = 0
+                self._serial_port.close()
             except Exception as e:
                 logger.error(f"{Fore.RED}[ERROR] Closing serial port: {e}{Style.RESET_ALL}")
-            self.serial_port = None
+            self._serial_port = None
+
+    def get_port(self):
+        """
+        Returns the current serial port name, or None if not connected.
+        """
+        if self._serial_port is not None:
+            return self._serial_port.port
+        return None
 
     def send(self, message: str):
         """
         Sends message bytes via the established Serial connection.
         """
-        if self.transport:
+        if self._transport:
             logger.debug(f"{Fore.GREEN}TX (USB): {message.strip()}{Style.RESET_ALL}")
-            self.transport.write(message.encode('utf-8'))
+            self._transport.write(message.encode('utf-8'))
 
     def _find_device_port(self):
         """
         Searches for a connected device by matching VID/PID.
         """
         for port in serial.tools.list_ports.comports():
-            if port.vid == self.vid and port.pid == self.pid:
+            if port.vid == self._vid and port.pid == self._pid:
                 return port.device
         return None
 
@@ -760,13 +768,12 @@ class SerialTransport(BaseTransport):
 class WebsocketTransport(BaseTransport):
     """
     WebSocket (Wi-Fi) transport implementation using asyncio and websockets library.
-    Uses the modern websockets.asyncio.client API (websockets 15.x+).
     """
-    def __init__(self, device: Device):
+    def __init__(self, device: Device, hostname: str, port: int):
         super().__init__(device)
         self._websocket: Optional[ClientConnection] = None
-        self._hostname = "wsprbeacon.local"
-        self._port = 81
+        self._hostname = hostname
+        self._port = port
 
         self._connect_timeout = 10.0
         self._close_timeout = 1.0
@@ -868,7 +875,7 @@ class DeviceProtocol(asyncio.Protocol):
         """
         Called when the serial connection is lost or closed. Attempts to reconnect.
         """
-        self.serial_transport.transport = None
+        self.serial_transport._transport = None
         self.device._on_transport_disconnected(Device.Transport.USB)
         # Only try to reconnect if we're not shutting down
         if not self.device._stop_flag:
@@ -878,7 +885,7 @@ class DeviceProtocol(asyncio.Protocol):
         """
         Called when a serial connection is established.
         """
-        self.serial_transport.transport = transport
+        self.serial_transport._transport = transport
         self.device._on_transport_connected(Device.Transport.USB)
         # Immediately request device info after successful connection
         self.device.get_device_info()
