@@ -116,15 +116,18 @@ class Device:
     def __init__(self):
         # Queue for outgoing messages transmission to the device
         self.tx_queue: Optional[asyncio.Queue] = None
-        # Event loop for running asynchronous tasks (Serial/WebSocket connections)
+        
+        # Event loop for running asynchronous tasks (Serial/WebSocket connections, message handling)
         self.asyncio_loop: Optional[asyncio.AbstractEventLoop] = None
         # Thread for running the event loop
         self.asyncio_thread: Optional[threading.Thread] = None
+        
         # Stop flag to signal transports and loops to terminate
         self._stop_flag = False
-
         # Lock to prevent concurrent connect/disconnect calls
         self._connection_lock = threading.Lock()
+        # Tracked asyncio tasks for proper cancellation on disconnect
+        self._tasks_tracker: Set[asyncio.Task] = set()
 
         # Active transport, None until a transport actually connects
         self.active_transport: Optional[Device.Transport] = None
@@ -150,7 +153,7 @@ class Device:
 
     def connect(self):
         """
-        Create a new event loop in a separate thread and run Serial and WebSocket connections in parallel.
+        Create a new event loop in a separate thread and run connection handle tasks.
         Thread-safe: uses lock to prevent concurrent connect/disconnect calls.
 
         Raises:
@@ -161,36 +164,34 @@ class Device:
             if self.asyncio_loop is not None and self.asyncio_loop.is_running():
                 raise Device.AlreadyConnectedError("Device is already connected")
 
+            # Reset stop flag used to signal transports and loops to terminate
             self._stop_flag = False
 
             # Create new asyncio loop and queue for this connection
             self.asyncio_loop = asyncio.new_event_loop()
-            self.tx_queue = asyncio.Queue(maxsize=self.__TX_QUEUE_MAX_SIZE)
             self.asyncio_loop.set_exception_handler(self._serial_exception_handler)
+            self.tx_queue = asyncio.Queue(maxsize=self.__TX_QUEUE_MAX_SIZE)
 
             # Event to ensure the loop is running before scheduling coroutines
             loop_started = threading.Event()
 
-            def run_loop():
+            def run_asyncio_loop():
                 """
                 Run the asyncio event loop.
                 """
                 asyncio.set_event_loop(self.asyncio_loop)
                 self.asyncio_loop.call_soon(loop_started.set)
                 self.asyncio_loop.run_forever()
-
-            self.asyncio_thread = threading.Thread(target=run_loop, daemon=True)
+            
+            # Start the event loop in a separate daemon thread
+            self.asyncio_thread = threading.Thread(target=run_asyncio_loop, daemon=True)
             self.asyncio_thread.start()
 
             # Wait for the event loop to actually start
             loop_started.wait(timeout=5.0)
 
-            # In parallel try to connect via serial and websocket
-            asyncio.run_coroutine_threadsafe(self.serial_transport.connect(), self.asyncio_loop)
-            asyncio.run_coroutine_threadsafe(self.ws_transport.connect(), self.asyncio_loop)
-
-            # Start message handler (tracked via cancel_tasks in disconnect)
-            asyncio.run_coroutine_threadsafe(self._handle_outgoing_messages(), self.asyncio_loop)
+            # Create and track tasks in the event loop thread
+            asyncio.run_coroutine_threadsafe(self._start_connection_handle_tasks(), self.asyncio_loop)
 
     def disconnect(self):
         """
@@ -353,6 +354,39 @@ class Device:
                 handler(data)
             except Exception as e:
                 logger.error(f"{Fore.RED}[ERROR] Message type \"{msg_type}\" processing failed: {e}{Style.RESET_ALL}")
+
+    async def _start_connection_handle_tasks(self):
+        """
+        Create and track all connection related tasks (Serial, WebSocket, outgoing message handler).
+        """
+        # Create tasks and add them to tracking set
+        self._tasks_tracker.add(asyncio.create_task(self.serial_transport.connect()))
+        self._tasks_tracker.add(asyncio.create_task(self.ws_transport.connect()))
+        self._tasks_tracker.add(asyncio.create_task(self._handle_outgoing_messages()))
+    
+    async def _stop_connection_handle_tasks(self):
+        """
+        Destroy all connection related tasks that were created and tracked.
+        """
+        # Filter out completed and current task
+        current_task = asyncio.current_task()
+        tasks_to_cancel = [
+            task for task in self._tasks_tracker 
+            if not task.done() and task != current_task
+        ]
+        
+        if not tasks_to_cancel:
+            return
+        
+        # Cancel tasks
+        for task in tasks_to_cancel:
+            task.cancel()
+        
+        # Wait for tasks to acknowledge cancellation
+        await asyncio.wait(tasks_to_cancel, timeout=5.0)
+        
+        # Clear the tasks tracker
+        self._tasks_tracker.clear()
 
     def _decide_active_transport(self):
         """
