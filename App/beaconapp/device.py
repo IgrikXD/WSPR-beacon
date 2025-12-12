@@ -632,7 +632,7 @@ class BaseTransport(ABC):
     Abstract base class for different transport implementations (Serial, WebSocket, etc.).
     """
     def __init__(self, device: Device):
-        self.device = device
+        self._device = device
 
     @abstractmethod
     async def connect(self):
@@ -681,7 +681,7 @@ class SerialTransport(BaseTransport):
         and tries to establish a Serial connection.
         """
         try:
-            while not self.device._stop_flag:
+            while not self._device._stop_flag:
                 device_port = self._find_device_port()
                 if device_port:
                     # Create serial port object without opening it yet
@@ -710,7 +710,7 @@ class SerialTransport(BaseTransport):
                     self._serial_port.open()
                     self._transport, _ = await serial_asyncio.connection_for_serial(
                         asyncio.get_running_loop(),
-                        lambda: DeviceProtocol(self.device, self),
+                        lambda: DeviceProtocol(self._device, self),
                         self._serial_port
                     )
                     break
@@ -755,6 +755,12 @@ class SerialTransport(BaseTransport):
             logger.debug(f"{Fore.GREEN}TX (USB): {message.strip()}{Style.RESET_ALL}")
             self._transport.write(message.encode('utf-8'))
 
+    def set_transport(self, transport: asyncio.Transport):
+        """
+        Sets the internal transport reference (used by DeviceProtocol on connection_made).
+        """
+        self._transport = transport
+
     def _find_device_port(self):
         """
         Searches for a connected device by matching VID/PID.
@@ -784,7 +790,7 @@ class WebsocketTransport(BaseTransport):
         Continuously tries to connect to the WebSocket with manual reconnection loop.
         Uses explicit connection management for proper control over connection lifecycle.
         """
-        while not self.device._stop_flag:
+        while not self._device._stop_flag:
             try:
                 self._websocket = await asyncio.wait_for(
                     ws_connect(
@@ -794,10 +800,10 @@ class WebsocketTransport(BaseTransport):
                     timeout=self._connect_timeout
                 )
                 # Notify about new available transport
-                self.device._on_transport_connected(Device.Transport.WIFI)
+                self._device._on_transport_connected(Device.Transport.WIFI)
                 
                 # Immediately request device info upon successful connection
-                self.device.get_device_info()
+                self._device.get_device_info()
 
                 # Receive messages until connection is closed or cancelled
                 await self._websocket_receiver(self._websocket)
@@ -820,10 +826,10 @@ class WebsocketTransport(BaseTransport):
                 if self._websocket is not None:
                     await asyncio.wait_for(self._websocket.close(), timeout=self._close_timeout)
                     self._websocket = None
-                    self.device._on_transport_disconnected(Device.Transport.WIFI)
+                    self._device._on_transport_disconnected(Device.Transport.WIFI)
 
             # Wait before reconnecting (only if not stopping)
-            if not self.device._stop_flag:
+            if not self._device._stop_flag:
                 try:
                     await asyncio.sleep(self._reconnect_delay)
                 except asyncio.CancelledError:
@@ -832,7 +838,7 @@ class WebsocketTransport(BaseTransport):
     async def _websocket_receiver(self, ws: ClientConnection) -> None:
         try:
             async for raw_data in ws:
-                if self.device._stop_flag:
+                if self._device._stop_flag:
                     break
 
                 message = raw_data.strip()
@@ -840,10 +846,10 @@ class WebsocketTransport(BaseTransport):
                     continue # Ignore empty messages
 
                 try:
-                    msg = self.device._decode_device_message(message)
+                    msg = self._device._decode_device_message(message)
                     if msg: # Check if decoding was successful
                         logger.debug(f"{Fore.MAGENTA}RX (WebSocket): {message}{Style.RESET_ALL}")
-                        self.device._call_handlers(msg.type, msg.data)
+                        self._device._call_handlers(msg.type, msg.data)
 
                 except json.JSONDecodeError:
                     logger.warning(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
@@ -867,44 +873,44 @@ class DeviceProtocol(asyncio.Protocol):
     Asyncio Protocol handling data for the SerialTransport.
     """
     def __init__(self, device: Device, serial_transport: SerialTransport):
-        self.device = device
-        self.serial_transport = serial_transport
-        self.buffer = b""
+        self._device = device
+        self._serial_transport = serial_transport
+        self._buffer = b""
 
     def connection_lost(self, exc):
         """
         Called when the serial connection is lost or closed. Attempts to reconnect.
         """
-        self.serial_transport._transport = None
-        self.device._on_transport_disconnected(Device.Transport.USB)
+        self._serial_transport.set_transport(None)
+        self._device._on_transport_disconnected(Device.Transport.USB)
         # Only try to reconnect if we're not shutting down
-        if not self.device._stop_flag:
-            asyncio.create_task(self.serial_transport.connect())
+        if not self._device._stop_flag:
+            asyncio.create_task(self._serial_transport.connect())
 
     def connection_made(self, transport: asyncio.Transport):
         """
         Called when a serial connection is established.
         """
-        self.serial_transport._transport = transport
-        self.device._on_transport_connected(Device.Transport.USB)
+        self._serial_transport.set_transport(transport)
+        self._device._on_transport_connected(Device.Transport.USB)
         # Immediately request device info after successful connection
-        self.device.get_device_info()
+        self._device.get_device_info()
 
     def data_received(self, data: bytes):
         """
         Called whenever data is received via Serial. Accumulates data until a newline
         and then processes each line.
         """
-        self.buffer += data
-        while b'\n' in self.buffer:
-            line, self.buffer = self.buffer.split(b'\n', 1)
+        self._buffer += data
+        while b'\n' in self._buffer:
+            line, self._buffer = self._buffer.split(b'\n', 1)
             message = line.decode('utf-8', errors='ignore').strip()
             if message:
                 try:
-                    msg = self.device._decode_device_message(message)
+                    msg = self._device._decode_device_message(message)
                     if msg:  # Check if decoding was successful
                         logger.debug(f"{Fore.MAGENTA}RX (USB): {message}{Style.RESET_ALL}")
-                        self.device._call_handlers(msg.type, msg.data)
+                        self._device._call_handlers(msg.type, msg.data)
                 except json.JSONDecodeError:
                     logger.warning(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
                 except Exception as e:
