@@ -202,6 +202,7 @@ class Device:
             if not self.asyncio_loop:
                 return
 
+            # Update stop flag to break all infinite loops
             self._stop_flag = True
 
             # Cancel all pending tasks to stop all operations
@@ -626,21 +627,14 @@ class BaseTransport(ABC):
         """
         Attempts to establish a connection with the device.
         """
-        pass
-
-    @abstractmethod
-    async def disconnect(self):
-        """
-        Closes the transport connection.
-        """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def send(self, message: str):
         """
         Sends a message string via the transport.
         """
-        pass
+        raise NotImplementedError
 
 
 class SerialTransport(BaseTransport):
@@ -672,57 +666,58 @@ class SerialTransport(BaseTransport):
         Continuously looks for a matching COM port (ESP32-C3 PID/VID),
         and tries to establish a Serial connection.
         """
-        while not self.device._stop_flag:
-            device_port = self._find_device_port()
-            if device_port:
+        try:
+            while not self.device._stop_flag:
+                device_port = self._find_device_port()
+                if device_port:
+                    # Create serial port object without opening it yet
+                    # This allows us to configure DTR/RTS before the port is opened
+                    self.serial_port = serial.Serial()
+
+                    # Configure serial port parameters
+                    self.serial_port.port = device_port
+                    self.serial_port.baudrate = 115200
+                    self.serial_port.timeout = 1
+                    self.serial_port.write_timeout = 1
+                    # Disable all flow control
+                    self.serial_port.dsrdtr = False
+                    self.serial_port.rtscts = False
+                    self.serial_port.xonxoff = False
+                    # Set DTR/RTS to False before opening the port
+                    # This is the only way to prevent device reset on connection
+                    self.serial_port.dtr = False
+                    self.serial_port.rts = False
+
+                    # Use exclusive access if supported
+                    try:
+                        self.serial_port.exclusive = True
+                    except (AttributeError, ValueError):
+                        pass  # Not supported
+
+                    self.serial_port.open()
+
+                    self.transport, _ = await serial_asyncio.connection_for_serial(
+                        asyncio.get_running_loop(),
+                        lambda: DeviceProtocol(self.device, self),
+                        self.serial_port
+                    )
+                    break
                 await asyncio.sleep(1)
+        except asyncio.CancelledError:
+            return  # Expected behavior on task cancellation, exit gracefully
 
-                # Create serial port object without opening it yet
-                # This allows us to configure DTR/RTS before the port is opened
-                self.serial_port = serial.Serial()
-                self.serial_port.port = device_port
-                self.serial_port.baudrate = 115200
-                self.serial_port.timeout = 1
-                self.serial_port.write_timeout = 1
-
-                # Disable all flow control
-                self.serial_port.dsrdtr = False
-                self.serial_port.rtscts = False
-                self.serial_port.xonxoff = False
-
-                # Set DTR/RTS to False before opening the port
-                # This is the only way to prevent device reset on connection
-                self.serial_port.dtr = False
-                self.serial_port.rts = False
-
-                # Use exclusive access if supported
-                try:
-                    self.serial_port.exclusive = True
-                except (AttributeError, ValueError):
-                    pass  # Not supported
-
-                self.serial_port.open()
-
-                self.transport, _ = await serial_asyncio.connection_for_serial(
-                    asyncio.get_running_loop(),
-                    lambda: DeviceProtocol(self.device, self),
-                    self.serial_port
-                )
-                break
-            await asyncio.sleep(1)
-
-    async def disconnect(self):
+    def disconnect(self):
         """
         Properly closes the serial connection without triggering DTR/RTS signals.
         """
-        if self.transport:
+        if self.transport is not None:
             try:
                 self.transport.close()
             except Exception as e:
                 logger.error(f"{Fore.RED}[ERROR] Closing serial transport: {e}{Style.RESET_ALL}")
             self.transport = None
 
-        if self.serial_port and self.serial_port.is_open:
+        if self.serial_port is not None and self.serial_port.is_open:
             try:
                 self.serial_port.timeout = 0
                 self.serial_port.write_timeout = 0
