@@ -5,7 +5,7 @@ import threading
 
 from beaconapp.device import Device
 from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
-from beaconapp.data_wrappers import Status, WiFiCredentials, WiFiData
+from beaconapp.data_wrappers import Status, Transport, WiFiCredentials, WiFiData
 from enum import Enum
 
 
@@ -80,7 +80,7 @@ def test_device_reconnection():
     device.connect()
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
     # Verify first connection is via USB
-    assert device._active_transport is Device.Transport.USB
+    assert device._active_transport is Transport.USB
     # Terminate device connection
     device.disconnect()
 
@@ -94,7 +94,7 @@ def test_device_reconnection():
     device.connect()
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
     # Verify reconnection via USB
-    assert device._active_transport is Device.Transport.USB
+    assert device._active_transport is Transport.USB
     # Terminate device connection
     device.disconnect()
 
@@ -167,7 +167,7 @@ def test_get_device_info(device):
 
     # Verify received data
     # We should have received all expected responses
-    assert responses[Device.Message.Incoming.ACTIVE_TRANSPORT] is Device.Transport.USB
+    assert responses[Device.Message.Incoming.ACTIVE_TRANSPORT] is Transport.USB
     assert isinstance(responses[Device.Message.Incoming.CAL_VALUE], int)
     assert isinstance(responses[Device.Message.Incoming.CAL_STATUS], bool)
     assert isinstance(responses[Device.Message.Incoming.GPS_STATUS], bool)
@@ -242,8 +242,8 @@ def test_run_wifi_disconnection(device):
     # Verify received data
     assert isinstance(received_data[Device.Message.Incoming.WIFI_STATUS], Status)
     assert received_data[Device.Message.Incoming.WIFI_STATUS] is Status.DISCONNECTED
-    assert isinstance(received_data[Device.Message.Incoming.ACTIVE_TRANSPORT], Device.Transport)
-    assert received_data[Device.Message.Incoming.ACTIVE_TRANSPORT] is Device.Transport.USB
+    assert isinstance(received_data[Device.Message.Incoming.ACTIVE_TRANSPORT], Transport)
+    assert received_data[Device.Message.Incoming.ACTIVE_TRANSPORT] is Transport.USB
 
 
 @pytest.mark.integration

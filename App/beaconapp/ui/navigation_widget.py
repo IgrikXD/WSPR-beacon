@@ -1,4 +1,4 @@
-from beaconapp.device import Device
+from beaconapp.data_wrappers import Transport
 from beaconapp.ui.widgets import Widgets
 
 import os
@@ -80,12 +80,12 @@ class NavigationWidget:
         """
         self.frames = {name: frame.general_frame for name, frame in frames.items()}
 
-    def set_connection_status(self, active_transport: Device.Transport):
+    def set_connection_status(self, active_transport: Transport):
         """
         Updates the device connection status label to reflect the current connection type.
 
         Args:
-            active_transport (Device.Transport): The active transport of the device.
+            active_transport (Transport): The active transport of the device.
                 - If the value is None, the label displays "Not connected!".
                 - Otherwise, the label displays "Connected (STATUS)", where STATUS is the name of the active transport.
         """

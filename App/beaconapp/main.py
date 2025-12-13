@@ -9,6 +9,7 @@ from beaconapp.ui.transmission_widget import TransmissionWidget
 
 import atexit
 import customtkinter
+import logging
 import os
 import psutil
 import sys
@@ -22,6 +23,8 @@ LOCK_FILE = os.path.join(LOCK_DIR, "beaconapp.lock")
 class BeaconApp(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+        # Configure logging
+        self._configure_logging()
 
         # Create a device instance
         self.device = Device()
@@ -110,6 +113,17 @@ class BeaconApp(customtkinter.CTk):
         self.device.connect()
         # Select the default frame
         navigation_frame.select_frame_by_name("transmission")
+
+    def _configure_logging(self):
+        """
+        Configure logger for the beaconapp package.
+        Set level to DEBUG if `--debug` is present in the command line arguments, otherwise to CRITICAL.
+        """
+        logger = logging.getLogger('beaconapp')
+        # Add handler only if not already present (prevents duplicate handlers on re-import)
+        if not logger.handlers:
+            logger.addHandler(logging.StreamHandler())
+        logger.setLevel(logging.DEBUG if ('--debug' in sys.argv) else logging.CRITICAL)
 
     def app_configuration(self, config: Config):
         """

@@ -3,48 +3,48 @@ import json
 
 from beaconapp.device import Device
 from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
-from beaconapp.data_wrappers import Status, WiFiData, WiFiCredentials
+from beaconapp.data_wrappers import Status, Transport, WiFiData, WiFiCredentials
 
 
 @pytest.mark.parametrize(
     "connected_transports, requested_transport, priority, expected_active",
     [
         # No transports connected, requested=USB => result=None
-        (set(), Device.Transport.USB,
-         [Device.Transport.WIFI, Device.Transport.USB], None),
+        (set(), Transport.USB,
+         [Transport.WIFI, Transport.USB], None),
         # No transports connected, requested=WIFI => result=None
-        (set(), Device.Transport.WIFI,
-         [Device.Transport.WIFI, Device.Transport.USB], None),
+        (set(), Transport.WIFI,
+         [Transport.WIFI, Transport.USB], None),
         # Only USB connected, requested=USB => result=USB
-        ({Device.Transport.USB}, Device.Transport.USB,
-         [Device.Transport.WIFI, Device.Transport.USB], Device.Transport.USB),
+        ({Transport.USB}, Transport.USB,
+         [Transport.WIFI, Transport.USB], Transport.USB),
         # Only USB connected, requested=WIFI => result=USB
-        ({Device.Transport.USB}, Device.Transport.WIFI,
-         [Device.Transport.WIFI, Device.Transport.USB], Device.Transport.USB),
+        ({Transport.USB}, Transport.WIFI,
+         [Transport.WIFI, Transport.USB], Transport.USB),
         # Only WIFI connected, requested=USB => result=WIFI
-        ({Device.Transport.WIFI}, Device.Transport.USB,
-         [Device.Transport.WIFI, Device.Transport.USB], Device.Transport.WIFI),
+        ({Transport.WIFI}, Transport.USB,
+         [Transport.WIFI, Transport.USB], Transport.WIFI),
         # Only WIFI connected, requested=WIFI => result=WIFI
-        ({Device.Transport.WIFI}, Device.Transport.WIFI,
-         [Device.Transport.WIFI, Device.Transport.USB], Device.Transport.WIFI),
+        ({Transport.WIFI}, Transport.WIFI,
+         [Transport.WIFI, Transport.USB], Transport.WIFI),
         # WIFI & USB both connected, requested=WIFI => priority=[WIFI,USB] => result=WIFI
-        ({Device.Transport.USB, Device.Transport.WIFI}, Device.Transport.WIFI,
-         [Device.Transport.WIFI, Device.Transport.USB], Device.Transport.WIFI),
+        ({Transport.USB, Transport.WIFI}, Transport.WIFI,
+         [Transport.WIFI, Transport.USB], Transport.WIFI),
         # WIFI & USB both connected, requested=WIFI, priority=[USB,WIFI] => result=WIFI
-        ({Device.Transport.USB, Device.Transport.WIFI}, Device.Transport.WIFI,
-         [Device.Transport.USB, Device.Transport.WIFI], Device.Transport.WIFI),
+        ({Transport.USB, Transport.WIFI}, Transport.WIFI,
+         [Transport.USB, Transport.WIFI], Transport.WIFI),
         # WIFI & USB both connected, requested=USB => priority=[WIFI,USB] => result=USB
-        ({Device.Transport.USB, Device.Transport.WIFI}, Device.Transport.USB,
-         [Device.Transport.WIFI, Device.Transport.USB], Device.Transport.USB),
+        ({Transport.USB, Transport.WIFI}, Transport.USB,
+         [Transport.WIFI, Transport.USB], Transport.USB),
         # WIFI & USB both connected, requested=USB => priority=[USB,WIFI] => result=USB
-        ({Device.Transport.USB, Device.Transport.WIFI}, Device.Transport.USB,
-         [Device.Transport.USB, Device.Transport.WIFI], Device.Transport.USB),
+        ({Transport.USB, Transport.WIFI}, Transport.USB,
+         [Transport.USB, Transport.WIFI], Transport.USB),
         # WIFI & USB both connected, requested=None, priority=[WIFI,USB] => result=WIFI
-        ({Device.Transport.USB, Device.Transport.WIFI}, None,
-         [Device.Transport.WIFI, Device.Transport.USB], Device.Transport.WIFI),
+        ({Transport.USB, Transport.WIFI}, None,
+         [Transport.WIFI, Transport.USB], Transport.WIFI),
         # WIFI & USB both connected, requested=None, priority=[USB,WIFI] => result=USB
-        ({Device.Transport.USB, Device.Transport.WIFI}, None,
-         [Device.Transport.USB, Device.Transport.WIFI], Device.Transport.USB),
+        ({Transport.USB, Transport.WIFI}, None,
+         [Transport.USB, Transport.WIFI], Transport.USB),
     ]
 )
 @pytest.mark.unit
@@ -68,10 +68,10 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
     [
         # Incoming: ACTIVE_TRANSPORT: USB
         ({"type": "ACTIVE_TRANSPORT", "data": "USB"},
-         Device.Message.Incoming.ACTIVE_TRANSPORT, Device.Transport.USB),
+         Device.Message.Incoming.ACTIVE_TRANSPORT, Transport.USB),
         # Incoming: ACTIVE_TRANSPORT: Wi-Fi
         ({"type": "ACTIVE_TRANSPORT", "data": "Wi-Fi"},
-         Device.Message.Incoming.ACTIVE_TRANSPORT, Device.Transport.WIFI),
+         Device.Message.Incoming.ACTIVE_TRANSPORT, Transport.WIFI),
         # Incoming: ACTIVE_TX_MODE: ActiveTXMode
         ({"type": "ACTIVE_TX_MODE",
           "data": {
@@ -319,21 +319,21 @@ def test_set_device_response_handlers(existing_handlers, new_handlers, expected_
     "initial, disconnected, expected_active, expected_connected",
     [
         # USB only connected, disconnect USB => no transports
-        ({Device.Transport.USB}, Device.Transport.USB, None, set()),
+        ({Transport.USB}, Transport.USB, None, set()),
         # WIFI only connected, disconnect WIFI => no transports
-        ({Device.Transport.WIFI}, Device.Transport.WIFI, None, set()),
+        ({Transport.WIFI}, Transport.WIFI, None, set()),
         # USB & WIFI connected, disconnect WIFI => still have USB
-        ({Device.Transport.USB, Device.Transport.WIFI},
-         Device.Transport.WIFI, Device.Transport.USB, {Device.Transport.USB}),
+        ({Transport.USB, Transport.WIFI},
+         Transport.WIFI, Transport.USB, {Transport.USB}),
         # USB & WIFI connected, disconnect USB => lose everything
-        ({Device.Transport.USB, Device.Transport.WIFI},
-         Device.Transport.USB, None, set()),
+        ({Transport.USB, Transport.WIFI},
+         Transport.USB, None, set()),
     ]
 )
 @pytest.mark.unit
 def test_on_transport_disconnected(initial, disconnected, expected_active, expected_connected):
     """
-    Checks that _on_transport_disconnected properly updates _connected_transports
+    Checks that on_transport_disconnected properly updates _connected_transports
     and calls _decide_active_transport, considering the special rule:
     "If USB is disconnected, assume device power is lost, thus remove Wi-Fi as well."
     """
@@ -342,7 +342,7 @@ def test_on_transport_disconnected(initial, disconnected, expected_active, expec
     device._active_transport = next(iter(initial)) if initial else None
     device._requested_transport = device._active_transport
 
-    device._on_transport_disconnected(disconnected)
+    device.on_transport_disconnected(disconnected)
 
     assert device._connected_transports == expected_connected
     assert device._active_transport == expected_active

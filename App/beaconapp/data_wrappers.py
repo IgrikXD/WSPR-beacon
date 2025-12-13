@@ -14,6 +14,12 @@ class Status(Enum):
     UPDATING = "updating"
 
 
+# Device transport (application connection method) enums
+class Transport(Enum):
+    USB = "USB"
+    WIFI = "Wi-Fi"
+
+
 # ActiveTXMode related enums
 class Band(Enum):
     BAND_2200M = 2200

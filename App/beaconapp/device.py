@@ -1,35 +1,24 @@
+from colorama import Fore, Style
+from contextlib import contextmanager, redirect_stdout, redirect_stderr
+from beaconapp.data_wrappers import ActiveTXMode, Status, Transport, WiFiCredentials, WiFiData
+from beaconapp.transports.serial_transport import SerialTransport
+from beaconapp.transports.websocket_transport import WebsocketTransport
+from dataclasses import dataclass
+from enum import Enum
+from esptool import detect_chip, attach_flash, reset_chip, write_flash
+from packaging.version import Version
+from typing import Any, Callable, Dict, List, Optional, Set
+
 import asyncio
 import hashlib
 import json
 import logging
 import os
 import requests
-import serial
-import serial.tools.list_ports
-import serial_asyncio
-import socket
-import sys
 import threading
 
-from abc import ABC, abstractmethod
-from colorama import Fore, Style
-from contextlib import contextmanager, redirect_stdout, redirect_stderr
-from beaconapp.data_wrappers import ActiveTXMode, Status, WiFiCredentials, WiFiData
-from dataclasses import dataclass
-from enum import Enum
-from esptool import detect_chip, attach_flash, reset_chip, write_flash
-from packaging.version import Version
-from typing import Any, Callable, Dict, List, Optional, Set
-from websockets.asyncio.client import connect as ws_connect, ClientConnection
-from websockets.exceptions import ConnectionClosed
 
 logger = logging.getLogger(__name__)
-# Add handler that writes logs to sys.stdout only if not already present
-# This prevents duplicate handlers when the module is re-imported
-if not logger.handlers:
-    logger.addHandler(logging.StreamHandler())
-# Set logger level to DEBUG if `--debug` is present in the command line arguments, otherwise to CRITICAL
-logger.setLevel(logging.DEBUG if ('--debug' in sys.argv) else logging.CRITICAL)
 
 
 class Device:
@@ -50,10 +39,6 @@ class Device:
         Raised when firmware update fails (download, checksum, or flash error).
         """
         pass
-
-    class Transport(Enum):
-        USB = "USB"
-        WIFI = "Wi-Fi"
 
     @dataclass
     class Message:
@@ -155,15 +140,15 @@ class Device:
         self._tasks_tracker: Set[asyncio.Task] = set()
 
         # Active transport, None until a transport actually connects
-        self._active_transport: Optional[Device.Transport] = None
+        self._active_transport: Optional[Transport] = None
         # Transport priority (if we cannot satisfy _requested_transport)
         # Wi-Fi: priority 0 (high)
         # USB (Serial): priority 1 (low)
-        self._transport_priority = [Device.Transport.WIFI, Device.Transport.USB]
+        self._transport_priority = [Transport.WIFI, Transport.USB]
         # Current "requested" (from the device) transport (default to USB preference)
-        self._requested_transport: Optional[Device.Transport] = Device.Transport.USB
+        self._requested_transport: Optional[Transport] = Transport.USB
         # Transports that are currently connected (USB (Serial)/WebSocket)
-        self._connected_transports: Set[Device.Transport] = set()
+        self._connected_transports: Set[Transport] = set()
 
         # Mapping of incoming message types to lists of registered callback handlers
         self._mapped_callbacks: Dict[Device.Message.Incoming, List[Callable]] = {}
@@ -253,6 +238,29 @@ class Device:
                 self._asyncio_thread.join(timeout=0.1)
                 self._asyncio_thread = None
 
+    def decode_and_handle_message(self, message: str) -> bool:
+        """
+        Decodes a message from the device and calls registered handlers.
+        Args:
+            message (str): The raw message string received from the device.
+        Returns:
+            bool: True if the message was successfully decoded and handled, False otherwise.
+        """
+        msg = self._decode_device_message(message)
+        if msg:
+            self._call_handlers(msg.type, msg.data)
+            return True
+        return False
+
+    def is_stop_flag_set(self) -> bool:
+        """
+        Returns the current value of the stop flag.
+
+        Returns:
+            bool: The current value of the stop flag.
+        """
+        return self._stop_flag
+
     def gen_calibration_frequency(self, frequency: float | None):
         """
         Sends a request to generate a calibration frequency.
@@ -266,16 +274,42 @@ class Device:
         """
         self._put(Device.Message(Device.Message.Outgoing.GET_DEVICE_INFO))
 
+    def on_transport_connected(self, transport_type: Transport):
+        """
+        Called by a transport class (Serial/WebSocket) when a successful connection is established.
+        """
+        self._connected_transports.add(transport_type)
+        self._decide_active_transport()
+
+    def on_transport_disconnected(self, transport_type: Transport):
+        """
+        Called by a transport class (Serial/WebSocket) when a connection is lost or closed.
+        If USB is disconnected, we assume the device has lost power, so we also drop the Wi-Fi
+        connection. When connected to a PC via USB, both USB and Wi-Fi are available. When
+        powered externally (e.g., via power bank), USB (Serial) is not physically present,
+        and only Wi-Fi is available. Removing Wi-Fi on USB disconnect reflects the
+        expected hardware behavior.
+        """
+        if transport_type in self._connected_transports:
+            self._connected_transports.remove(transport_type)
+
+        # If USB is disconnected, we assume the device has lost power, and remove Wi-Fi as well
+        if transport_type == Transport.USB:
+            if Transport.WIFI in self._connected_transports:
+                self._connected_transports.remove(Transport.WIFI)
+
+        self._decide_active_transport()
+
     def run_firmware_update(self):
         """
         Used for updating the device firmware.
         Chooses between USB (Serial) or OTA (Wi-Fi) update based on the active transport.
         """
-        if self._active_transport == Device.Transport.USB:
+        if self._active_transport == Transport.USB:
             logger.debug(f"{Fore.GREEN}[OK]: USB firmware update started!{Style.RESET_ALL}")
             # Runs in a separate thread to avoid blocking the GUI
             threading.Thread(target=self._run_usb_firmware_update, daemon=True).start()
-        elif self._active_transport == Device.Transport.WIFI:
+        elif self._active_transport == Transport.WIFI:
             logger.debug(f"{Fore.GREEN}[OK]: OTA firmware update started!{Style.RESET_ALL}")
             self._run_ota_firmware_update()
         else:
@@ -434,7 +468,7 @@ class Device:
         if msg_type == Device.Message.Incoming.ACTIVE_TX_MODE:
             data = ActiveTXMode.from_json(raw_data)
         elif msg_type == Device.Message.Incoming.ACTIVE_TRANSPORT:
-            data = Device.Transport(raw_data)
+            data = Transport(raw_data)
             # Switch active transport on an incoming request from the device
             self._set_active_transport(data)
         elif msg_type == Device.Message.Incoming.WIFI_SSID_DATA:
@@ -481,32 +515,6 @@ class Device:
 
             except Exception as e:
                 logger.error(f"{Fore.RED}[ERROR] Outgoing message sending failed: {e}{Style.RESET_ALL}")
-
-    def _on_transport_connected(self, transport_type: Transport):
-        """
-        Called by a transport class (Serial/WebSocket) when a successful connection is established.
-        """
-        self._connected_transports.add(transport_type)
-        self._decide_active_transport()
-
-    def _on_transport_disconnected(self, transport_type: Transport):
-        """
-        Called by a transport class (Serial/WebSocket) when a connection is lost or closed.
-        If USB is disconnected, we assume the device has lost power, so we also drop the Wi-Fi
-        connection. When connected to a PC via USB, both USB and Wi-Fi are available. When
-        powered externally (e.g., via power bank), USB (Serial) is not physically present,
-        and only Wi-Fi is available. Removing Wi-Fi on USB disconnect reflects the
-        expected hardware behavior.
-        """
-        if transport_type in self._connected_transports:
-            self._connected_transports.remove(transport_type)
-
-        # If USB is disconnected, we assume the device has lost power, and remove Wi-Fi as well
-        if transport_type == Device.Transport.USB:
-            if Device.Transport.WIFI in self._connected_transports:
-                self._connected_transports.remove(Device.Transport.WIFI)
-
-        self._decide_active_transport()
 
     def _put(self, message: Message):
         """
@@ -619,9 +627,9 @@ class Device:
             Device.DataSendingError: If no active transport is available or transport type is unknown.
         """
         json_str = self._encode_device_message(message)
-        if self._active_transport == Device.Transport.WIFI:
+        if self._active_transport == Transport.WIFI:
             self._ws_transport.send(json_str)
-        elif self._active_transport == Device.Transport.USB:
+        elif self._active_transport == Transport.USB:
             self._serial_transport.send(json_str)
         else:
             raise Device.DataSendingError(f"No active transport available to send message: {message.type}")
@@ -652,303 +660,3 @@ class Device:
         with open(os.devnull, "w") as devnull:
             with redirect_stdout(devnull), redirect_stderr(devnull):
                 yield
-
-
-class BaseTransport(ABC):
-    """
-    Abstract base class for different transport implementations (Serial, WebSocket, etc.).
-    """
-    def __init__(self, device: Device):
-        """
-        Initializes the transport with a reference to the Device instance.
-        """
-        self._device = device
-
-    @abstractmethod
-    async def connect(self):
-        """
-        Attempts to establish a connection with the device.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def send(self, message: str):
-        """
-        Sends a message string via the transport.
-        """
-        raise NotImplementedError
-
-
-class SerialTransport(BaseTransport):
-    """
-    Serial (USB) transport implementation using serial_asyncio.
-
-    Note: We use serial.Serial directly instead of only serial_asyncio because:
-    1. serial_asyncio.create_serial_connection() opens the port immediately with default DTR/RTS
-    2. We need to configure flow control (dsrdtr=False, rtscts=False, dtr=False, rts=False) before opening
-       to prevent device reset on connection.
-
-    Therefore, we create Serial object manually, configure it, then use connection_for_serial() for
-    establishing the connection.
-
-    DTR/RTS handling:
-    1. Before open(): Configure dsrdtr=False, rtscts=False, dtr=False, rts=False
-    3. Before close(): DTR/RTS leave as False to prevent reset
-    """
-    def __init__(self, device: Device, vid: int, pid: int, baudrate: int):
-        super().__init__(device)
-        self._transport: Optional[asyncio.Transport] = None
-        # Store reference to the serial port object
-        self._serial_port = None
-        # VID and PID for ESP32-C3
-        self._vid = vid
-        self._pid = pid
-        # Baudrate for serial communication
-        self._baudrate = baudrate
-
-    async def connect(self):
-        """
-        Continuously looks for a matching COM port (ESP32-C3 PID/VID),
-        and tries to establish a Serial connection.
-        """
-        try:
-            while not self._device._stop_flag:
-                device_port = self._find_device_port()
-                if device_port:
-                    # Create serial port object without opening it yet
-                    # This allows us to configure DTR/RTS before the port is opened
-                    self._serial_port = serial.Serial()
-
-                    # Configure serial port parameters
-                    self._serial_port.port = device_port
-                    self._serial_port.baudrate = self._baudrate
-                    self._serial_port.timeout = 1
-                    self._serial_port.write_timeout = 1
-                    # Disable all flow control
-                    self._serial_port.dsrdtr = False
-                    self._serial_port.rtscts = False
-                    self._serial_port.xonxoff = False
-                    # Set DTR/RTS to False before opening the port
-                    # This is the only way to prevent device reset on connection
-                    self._serial_port.dtr = False
-                    self._serial_port.rts = False
-                    # Use exclusive access if supported
-                    try:
-                        self._serial_port.exclusive = True
-                    except (AttributeError, ValueError):
-                        pass  # Not supported
-
-                    self._serial_port.open()
-                    self._transport, _ = await serial_asyncio.connection_for_serial(
-                        asyncio.get_running_loop(),
-                        lambda: DeviceProtocol(self._device, self),
-                        self._serial_port
-                    )
-                    break
-                await asyncio.sleep(1)
-
-        except asyncio.CancelledError:
-            # Expected behavior on task cancellation, exit gracefully
-            return
-
-    def disconnect(self):
-        """
-        Properly closes the serial connection without triggering DTR/RTS signals.
-        """
-        if self._transport is not None:
-            try:
-                self._transport.close()
-            except Exception as e:
-                logger.error(f"{Fore.RED}[ERROR] Closing serial transport: {e}{Style.RESET_ALL}")
-            self._transport = None
-
-        if self._serial_port is not None and self._serial_port.is_open:
-            try:
-                self._serial_port.timeout = 0
-                self._serial_port.write_timeout = 0
-                self._serial_port.close()
-            except Exception as e:
-                logger.error(f"{Fore.RED}[ERROR] Closing serial port: {e}{Style.RESET_ALL}")
-            self._serial_port = None
-
-    def get_port(self):
-        """
-        Returns the current serial port name, or None if not connected.
-        """
-        if self._serial_port is not None:
-            return self._serial_port.port
-        return None
-
-    def send(self, message: str):
-        """
-        Sends message bytes via the established Serial connection.
-        """
-        if self._transport:
-            logger.debug(f"{Fore.GREEN}TX (USB): {message.strip()}{Style.RESET_ALL}")
-            self._transport.write(message.encode('utf-8'))
-
-    def set_transport(self, transport: asyncio.Transport):
-        """
-        Sets the internal transport reference (used by DeviceProtocol on connection_made).
-        """
-        self._transport = transport
-
-    def _find_device_port(self):
-        """
-        Searches for a connected device by matching VID/PID.
-        """
-        for port in serial.tools.list_ports.comports():
-            if port.vid == self._vid and port.pid == self._pid:
-                return port.device
-        return None
-
-
-class WebsocketTransport(BaseTransport):
-    """
-    WebSocket (Wi-Fi) transport implementation using asyncio and websockets library.
-    """
-    def __init__(self, device: Device, hostname: str, port: int):
-        super().__init__(device)
-        self._websocket: Optional[ClientConnection] = None
-        self._hostname = hostname
-        self._port = port
-
-        self._connect_timeout = 10.0
-        self._close_timeout = 1.0
-        self._reconnect_delay = 1.0
-
-    async def connect(self):
-        """
-        Continuously tries to connect to the WebSocket with manual reconnection loop.
-        Uses explicit connection management for proper control over connection lifecycle.
-        """
-        while not self._device._stop_flag:
-            try:
-                self._websocket = await asyncio.wait_for(
-                    ws_connect(
-                        uri=f"ws://{self._hostname}:{self._port}",
-                        close_timeout=self._close_timeout,
-                    ),
-                    timeout=self._connect_timeout
-                )
-                # Notify about new available transport
-                self._device._on_transport_connected(Device.Transport.WIFI)
-
-                # Immediately request device info upon successful connection
-                self._device.get_device_info()
-
-                # Receive messages until connection is closed or cancelled
-                await self._websocket_receiver(self._websocket)
-
-            except (OSError, socket.gaierror, TimeoutError):
-                # Expected connection errors, will retry
-                pass
-
-            except asyncio.CancelledError:
-                # Graceful close before exiting
-                if self._websocket is not None:
-                    await asyncio.wait_for(self._websocket.close(), self._close_timeout)
-                    self._websocket = None
-                return
-
-            except Exception as e:
-                logger.error(f"{Fore.RED}[ERROR] WebSocket operation failed: {e}{Style.RESET_ALL}")
-
-            finally:
-                # Close websocket if still open (for non-cancel cases)
-                if self._websocket is not None:
-                    await asyncio.wait_for(self._websocket.close(), timeout=self._close_timeout)
-                    self._websocket = None
-                    self._device._on_transport_disconnected(Device.Transport.WIFI)
-
-            # Wait before reconnecting (only if not stopping)
-            if not self._device._stop_flag:
-                try:
-                    await asyncio.sleep(self._reconnect_delay)
-                except asyncio.CancelledError:
-                    # Expected behavior on task cancellation, exit gracefully
-                    return
-
-    async def _websocket_receiver(self, ws: ClientConnection) -> None:
-        try:
-            async for raw_data in ws:
-                if self._device._stop_flag:
-                    break
-
-                message = raw_data.strip()
-                if not message:
-                    # Ignore empty messages
-                    continue
-
-                try:
-                    msg = self._device._decode_device_message(message)
-                    # Check if decoding was successful
-                    if msg:
-                        logger.debug(f"{Fore.MAGENTA}RX (WebSocket): {message}{Style.RESET_ALL}")
-                        self._device._call_handlers(msg.type, msg.data)
-
-                except json.JSONDecodeError:
-                    logger.warning(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
-
-                except Exception as e:
-                    logger.error(f"{Fore.RED}[ERROR] Error decoding message: {e}{Style.RESET_ALL}")
-
-        except ConnectionClosed:
-            return  # Connection closed, exit receiver
-
-    def send(self, message: str) -> None:
-        """
-        Sends a text message via the active WebSocket connection.
-        """
-        if self._websocket is not None:
-            logger.debug(f"{Fore.GREEN}TX (WebSocket): {message.strip()}{Style.RESET_ALL}")
-            asyncio.create_task(self._websocket.send(message))
-
-
-class DeviceProtocol(asyncio.Protocol):
-    """
-    Asyncio Protocol handling data for the SerialTransport.
-    """
-    def __init__(self, device: Device, serial_transport: SerialTransport):
-        self._device = device
-        self._serial_transport = serial_transport
-        self._buffer = b""
-
-    def connection_lost(self, exc):
-        """
-        Called when the serial connection is lost or closed. Attempts to reconnect.
-        """
-        self._serial_transport.set_transport(None)
-        self._device._on_transport_disconnected(Device.Transport.USB)
-        # Only try to reconnect if we're not shutting down
-        if not self._device._stop_flag:
-            asyncio.create_task(self._serial_transport.connect())
-
-    def connection_made(self, transport: asyncio.Transport):
-        """
-        Called when a serial connection is established.
-        """
-        self._serial_transport.set_transport(transport)
-        self._device._on_transport_connected(Device.Transport.USB)
-        # Immediately request device info after successful connection
-        self._device.get_device_info()
-
-    def data_received(self, data: bytes):
-        """
-        Called whenever data is received via Serial. Accumulates data until a newline
-        and then processes each line.
-        """
-        self._buffer += data
-        while b'\n' in self._buffer:
-            line, self._buffer = self._buffer.split(b'\n', 1)
-            message = line.decode('utf-8', errors='ignore').strip()
-            if message:
-                try:
-                    msg = self._device._decode_device_message(message)
-                    if msg:  # Check if decoding was successful
-                        logger.debug(f"{Fore.MAGENTA}RX (USB): {message}{Style.RESET_ALL}")
-                        self._device._call_handlers(msg.type, msg.data)
-                except json.JSONDecodeError:
-                    logger.warning(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
-                except Exception as e:
-                    logger.error(f"{Fore.RED}[ERROR] Error decoding message: {e}{Style.RESET_ALL}")

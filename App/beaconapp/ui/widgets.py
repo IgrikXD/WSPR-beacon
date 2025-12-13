@@ -1,5 +1,6 @@
-import customtkinter
 from PIL import Image
+
+import customtkinter
 
 
 class Widgets:

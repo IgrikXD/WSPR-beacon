@@ -134,6 +134,7 @@ class SelfCheckWidget:
             text="Run checks",
             fg_color=["#3B8ED0", "#1F6AA5"],
             text_color_disabled=["#BDBDBD", "#999999"])
+        self.change_state("normal")
 
     def _run_checks_button_pressed(self):
         """
@@ -147,6 +148,7 @@ class SelfCheckWidget:
             text="Running...",
             fg_color=["#3B8ED0", "#1F6AA5"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"])
+        self.change_state("disabled")
 
         self.device.run_self_check()
 
@@ -185,6 +187,7 @@ class SelfCheckWidget:
             fg_color=["#3B8ED0", "#1F6AA5"],
             text_color_disabled=["#BDBDBD", "#999999"])
         )
+        self.change_state("normal")
 
     def _firmware_update_button_pressed(self):
         """
@@ -198,6 +201,7 @@ class SelfCheckWidget:
             text="Checking...",
             fg_color=["#3B8ED0", "#1F6AA5"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"])
+        self.change_state("disabled")
 
         self.device.run_firmware_update()
 
