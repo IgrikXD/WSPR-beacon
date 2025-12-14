@@ -100,7 +100,7 @@ class Device:
     """
     URL to fetch the latest firmware manifest for updates.
     """
-    __FIRMWARE_MANIFEST_URL = "https://raw.githubusercontent.com/IgrikXD/OTA_TEST/master/Firmware/latest-stable.json"
+    __FIRMWARE_MANIFEST_URL = "https://raw.githubusercontent.com/IgrikXD/WSPR-beacon/master/Firmware/latest-stable.json"
 
     """
     Flash memory address where the firmware should be written during update.
