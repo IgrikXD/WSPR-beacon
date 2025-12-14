@@ -1,5 +1,6 @@
-import pytest
 import json
+import logging
+import pytest
 
 from beaconapp.device import Device
 from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
@@ -133,13 +134,13 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
          Device.Message.Incoming.GPS_STATUS, False),
         # Incoming: GPS_CAL_STATUS: Status("initiated")
         ({"type": "GPS_CAL_STATUS", "data": "initiated"},
-        Device.Message.Incoming.GPS_CAL_STATUS, Status("initiated")),
+         Device.Message.Incoming.GPS_CAL_STATUS, Status("initiated")),
         # Incoming: GPS_CAL_STATUS: Status("calibrated")
         ({"type": "GPS_CAL_STATUS", "data": "calibrated"},
-        Device.Message.Incoming.GPS_CAL_STATUS, Status("calibrated")),
+         Device.Message.Incoming.GPS_CAL_STATUS, Status("calibrated")),
         # Incoming: GPS_CAL_STATUS: Status("failed")
         ({"type": "GPS_CAL_STATUS", "data": "failed"},
-        Device.Message.Incoming.GPS_CAL_STATUS, Status("failed")),
+         Device.Message.Incoming.GPS_CAL_STATUS, Status("failed")),
         # Incoming: HARDWARE_INFO: str
         ({"type": "HARDWARE_INFO", "data": "3.0"},
          Device.Message.Incoming.HARDWARE_INFO, "3.0"),
@@ -148,7 +149,7 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
          Device.Message.Incoming.QTH_LOCATOR, "XX00"),
         # Incoming: PROTOCOL_ERROR: str
         ({"type": "PROTOCOL_ERROR", "data": "Invalid message type!"},
-        Device.Message.Incoming.PROTOCOL_ERROR, "Invalid message type!"),
+         Device.Message.Incoming.PROTOCOL_ERROR, "Invalid message type!"),
         # Incoming: SELF_CHECK_ACTION: str
         ({"type": "SELF_CHECK_ACTION", "data": "- LEDs initialized! -"},
          Device.Message.Incoming.SELF_CHECK_ACTION, "- LEDs initialized! -"),
@@ -220,7 +221,7 @@ def test_decode_device_message(incoming_json, expected_type, expected_data):
          '{"type": "GET_DEVICE_INFO", "data": null}'),
         # Outgoing: RUN_FIRMWARE_UPDATE: None
         (Device.Message.Outgoing.RUN_FIRMWARE_UPDATE, None,
-        '{"type": "RUN_FIRMWARE_UPDATE", "data": null}'),
+         '{"type": "RUN_FIRMWARE_UPDATE", "data": null}'),
         # Outgoing: RUN_GPS_CALIBRATION: None
         (Device.Message.Outgoing.RUN_GPS_CALIBRATION, None,
          '{"type": "RUN_GPS_CALIBRATION", "data": null}'),
@@ -270,12 +271,13 @@ def test_decode_device_message(incoming_json, expected_type, expected_data):
 def test_encode_device_message(msg_type, data, expected_json_substring):
     """
     Checks that _encode_device_message produces valid JSON containing the correct type
-    and data fields.
+    and data fields and ends with a newline character (message end indicator).
     """
     device = Device()
     encoded_str = device._encode_device_message(Device.Message(msg_type, data))
 
     assert expected_json_substring in encoded_str
+    assert encoded_str.endswith("\n")
 
 
 def dummy_handler(x):
@@ -343,6 +345,153 @@ def test_set_device_response_handlers(existing_handlers, new_handlers, expected_
     #  (i.e., duplicates aren't added).
     total_handlers = sum(len(handlers) for handlers in device._mapped_callbacks.values())
     assert total_handlers == expected_amount
+
+
+@pytest.mark.parametrize(
+    "message_type, incoming_message, expected_data",
+    [
+        # Incoming: TX_STATUS: True
+        (
+            Device.Message.Incoming.TX_STATUS,
+            {"type": "TX_STATUS", "data": True},
+            True
+        ),
+        # Incoming: FIRMWARE_INFO: "2.0"
+        (
+            Device.Message.Incoming.FIRMWARE_INFO,
+            {"type": "FIRMWARE_INFO", "data": "2.0"},
+            "2.0"
+        ),
+        # Incoming: CAL_VALUE: -1500
+        (
+            Device.Message.Incoming.CAL_VALUE,
+            {"type": "CAL_VALUE", "data": -1500},
+            -1500
+        ),
+        # Incoming: WIFI_SSID_DATA: WiFiData(..., "connect_at_startup": True)
+        (
+            Device.Message.Incoming.WIFI_SSID_DATA,
+            {"type": "WIFI_SSID_DATA", "data": {"ssid": "Name", "password": "Pass", "connect_at_startup": True}},
+            WiFiData("Name", "Pass", True)
+        ),
+        # Incoming: ACTIVE_TX_MODE: ActiveTXMode(...)
+        (
+            Device.Message.Incoming.ACTIVE_TX_MODE,
+            {
+                "type": "ACTIVE_TX_MODE",
+                "data": {
+                    "tx_mode": 1,
+                    "tx_call": "N0CALL",
+                    "qth_locator": "AB12",
+                    "output_power": 10,
+                    "transmit_every": 2,
+                    "active_band": 40
+                }
+            },
+            ActiveTXMode(TXMode.WSPR, "N0CALL", "AB12", 10, TransmitEvery.MINUTES_2, Band.BAND_40M)
+        ),
+        # Incoming: WIFI_STATUS: Status("connected")
+        (
+            Device.Message.Incoming.WIFI_STATUS,
+            {"type": "WIFI_STATUS", "data": "connected"},
+            Status("connected")
+        )
+    ]
+)
+@pytest.mark.unit
+def test_trigger_message_handler(message_type, incoming_message, expected_data):
+    """
+    Checks that decode_and_handle_message returns correct value and invokes registered handler for
+    the incoming message type.
+    """
+    device = Device()
+
+    received_data = {
+        message_type: None
+    }
+
+    device.set_device_response_handlers({
+        message_type: [
+            lambda data: received_data.update({message_type: data})]
+    })
+
+    assert device.decode_and_handle_message(json.dumps(incoming_message)) is True
+    assert received_data[message_type] == expected_data
+
+
+@pytest.mark.unit
+def test_decode_and_handle_unknown_message_type(caplog):
+    """
+    Checks that decode_and_handle_message rejects unknown message types and logs an error.
+    """
+    device = Device()
+
+    with caplog.at_level(logging.ERROR):
+        result = device.decode_and_handle_message(json.dumps({"type": "UNKNOWN_TYPE", "data": None}))
+
+    assert result is False
+    assert any("[ERROR] Unknown message type received: " in record.message for record in caplog.records)
+
+
+@pytest.mark.unit
+def test_call_handlers_continues_after_exception(caplog):
+    """
+    Checks that _call_handlers keeps calling remaining handlers even if one fails.
+    """
+    device = Device()
+
+    received_data = {
+        Device.Message.Incoming.TX_STATUS: None
+    }
+
+    # Faulty handler that ignores its input and raises an exception
+    def faulty_handler(_):
+        raise RuntimeError("Dummy handler error")
+
+    # Register faulty handler and a valid handler for one message type
+    device.set_device_response_handlers({
+        Device.Message.Incoming.TX_STATUS: [
+            faulty_handler,
+            lambda data: received_data.update({Device.Message.Incoming.TX_STATUS: data})]
+    })
+
+    with caplog.at_level(logging.ERROR):
+        device._call_handlers(Device.Message.Incoming.TX_STATUS, True)
+
+    assert received_data[Device.Message.Incoming.TX_STATUS] is True
+    assert any(
+        f"[ERROR] Message type \"{Device.Message(Device.Message.Incoming.TX_STATUS).type}\" "
+        "processing failed: Dummy handler error" in record.message for record in caplog.records)
+
+
+@pytest.mark.unit
+def test_put_logs_error_when_device_not_connected(caplog):
+    """
+    Checks that _put errors and drops messages when device is not connected.
+    """
+    device = Device()
+
+    with caplog.at_level(logging.ERROR):
+        device._put(Device.Message(Device.Message.Outgoing.GET_DEVICE_INFO))
+
+    assert any(
+        f"[ERROR] Cannot send message {Device.Message(Device.Message.Outgoing.GET_DEVICE_INFO).type}: "
+        "device is not connected or initialized!" in record.message for record in caplog.records)
+    assert device._tx_queue is None
+
+
+@pytest.mark.unit
+def test_send_to_device_without_active_transport():
+    """
+    Checks that sending without an active transport raises DataSendingError.
+    """
+    device = Device()
+
+    # Ensure no active transport is set
+    assert device._active_transport is None
+
+    with pytest.raises(Device.DataSendingError):
+        device._send_to_device(Device.Message(Device.Message.Outgoing.GET_DEVICE_INFO))
 
 
 @pytest.mark.parametrize(

@@ -474,9 +474,9 @@ class Device:
         elif msg_type == Device.Message.Incoming.WIFI_SSID_DATA:
             data = WiFiData.from_json(raw_data)
         elif msg_type in (
-            Device.Message.Incoming.FIRMWARE_STATUS,
-            Device.Message.Incoming.GPS_CAL_STATUS,
-            Device.Message.Incoming.WIFI_STATUS):
+                Device.Message.Incoming.FIRMWARE_STATUS,
+                Device.Message.Incoming.GPS_CAL_STATUS,
+                Device.Message.Incoming.WIFI_STATUS):
             data = Status(raw_data)
         else:
             data = raw_data
@@ -523,11 +523,11 @@ class Device:
         """
         Places a message into the _tx_queue for asynchronous sending.
         If the queue is full, the message is discarded and an error is logged.
-        If the device is not connected, the message is discarded and a warning is logged.
+        If the device is not connected, the message is discarded and an error is logged.
         """
         if self._asyncio_loop is None:
-            logger.warning(
-                f"{Fore.YELLOW}[WARNING] Cannot send message {message.type}: "
+            logger.error(
+                f"{Fore.RED}[ERROR] Cannot send message {message.type}: "
                 f"device is not connected or initialized!{Style.RESET_ALL}"
             )
             return
