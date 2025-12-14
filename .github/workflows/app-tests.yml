@@ -13,7 +13,7 @@ on:
 
 jobs:
   app-tests:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
@@ -28,8 +28,9 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r App/requirements.txt
-          pip install pytest==8.3.4
+          pip install pytest==8.3.3
 
       - name: Run unit tests
         run: |
-          pytest App -m unit -vv
+          cd App
+          pytest -m unit -vv
