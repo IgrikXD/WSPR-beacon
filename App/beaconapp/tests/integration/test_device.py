@@ -189,11 +189,11 @@ def test_run_wifi_connection(device):
     Verifies that the device correctly handles Wi-Fi connection request to fake SSID.
     """
     # Store received data for later verification
-    received_data = {Device.Message.Incoming.WIFI_STATUS: None}
+    received_data = {Device.Message.Incoming.WIFI_STATUS: []}
 
     device.set_device_response_handlers({
         Device.Message.Incoming.WIFI_STATUS: [
-            lambda status: received_data.update({Device.Message.Incoming.WIFI_STATUS: status})]
+            lambda status: received_data[Device.Message.Incoming.WIFI_STATUS].append(status)]
     })
 
     device.set_wifi_connection(WiFiCredentials(ssid="SSID", password="PASSWORD"))
@@ -202,15 +202,17 @@ def test_run_wifi_connection(device):
     time.sleep(DEVICE_RESPONSE_TIMEOUT)
 
     # Verify received data
-    assert isinstance(received_data[Device.Message.Incoming.WIFI_STATUS], Status)
-    assert received_data[Device.Message.Incoming.WIFI_STATUS] is Status.INITIATED
+    assert received_data[Device.Message.Incoming.WIFI_STATUS] == [Status.INITIATED]
 
-    # Wait for device response
-    time.sleep(10.0)  # Allow more time for Wi-Fi connection attempt
+    # Wait for Wi-Fi connection completion
+    timeout = time.time() + 10.0
+    while time.time() < timeout:
+        if Status.FAILED in received_data[Device.Message.Incoming.WIFI_STATUS]:
+            break
+        time.sleep(0.2)
 
-    # Verify received data
-    assert isinstance(received_data[Device.Message.Incoming.WIFI_STATUS], Status)
-    assert received_data[Device.Message.Incoming.WIFI_STATUS] is Status.FAILED
+    # Wi-Fi conncetion status changed from INITIATED to FAILED due to fake SSID
+    assert received_data[Device.Message.Incoming.WIFI_STATUS] == [Status.INITIATED, Status.FAILED]
 
 
 @pytest.mark.integration
@@ -244,6 +246,72 @@ def test_run_wifi_disconnection(device):
     assert received_data[Device.Message.Incoming.WIFI_STATUS] is Status.DISCONNECTED
     assert isinstance(received_data[Device.Message.Incoming.ACTIVE_TRANSPORT], Transport)
     assert received_data[Device.Message.Incoming.ACTIVE_TRANSPORT] is Transport.USB
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
+def test_run_gps_calibration(device):
+    """
+    Checks that GPS calibration request reports "failed" status when GPS data is not available.
+    """
+    # Store received data for later verification
+    received_data = {Device.Message.Incoming.GPS_CAL_STATUS: None}
+
+    device.set_device_response_handlers({
+        Device.Message.Incoming.GPS_CAL_STATUS: [
+            lambda status: received_data.update({Device.Message.Incoming.GPS_CAL_STATUS: status})]
+    })
+
+    device.run_gps_calibration()
+
+    # Wait for device response
+    time.sleep(DEVICE_RESPONSE_TIMEOUT)
+
+    # Verify received data
+    assert isinstance(received_data[Device.Message.Incoming.GPS_CAL_STATUS], Status)
+    assert received_data[Device.Message.Incoming.GPS_CAL_STATUS] is Status.FAILED
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(not find_device(), reason="WSPR-beacon device not connected!")
+def test_run_self_check(device):
+    """
+    Checks that self-check request correctly initiates self-check process, reports logs and final status.
+    """
+    received_data = {
+        Device.Message.Incoming.SELF_CHECK_ACTION: [],
+        Device.Message.Incoming.SELF_CHECK_ACTIVE: [],
+        Device.Message.Incoming.SELF_CHECK_STATUS: None
+    }
+
+    device.set_device_response_handlers({
+        Device.Message.Incoming.SELF_CHECK_ACTION: [
+            lambda action: received_data[Device.Message.Incoming.SELF_CHECK_ACTION].append(action)],
+        Device.Message.Incoming.SELF_CHECK_ACTIVE: [
+            lambda active: received_data[Device.Message.Incoming.SELF_CHECK_ACTIVE].append(active)],
+        Device.Message.Incoming.SELF_CHECK_STATUS: [
+            lambda status: received_data.update({Device.Message.Incoming.SELF_CHECK_STATUS: status})]
+    })
+
+    device.run_self_check()
+
+    # Wait for self-check completion
+    timeout = time.time() + 10.0
+    while time.time() < timeout:
+        if False in received_data[Device.Message.Incoming.SELF_CHECK_ACTIVE]:
+            break
+        time.sleep(0.2)
+
+    # Verify received data
+    # Device report at least one action log
+    assert len(received_data[Device.Message.Incoming.SELF_CHECK_ACTION]) > 0
+    # All action logs are non-empty strings
+    assert all(isinstance(action, str) and action.strip()
+               for action in received_data[Device.Message.Incoming.SELF_CHECK_ACTION])
+    # Self-check active status changed from True to False
+    assert received_data[Device.Message.Incoming.SELF_CHECK_ACTIVE] == [True, False]
+    # Final self-check status is False (failed) due to lack of GPS signal
+    assert received_data[Device.Message.Incoming.SELF_CHECK_STATUS] is False
 
 
 @pytest.mark.integration
