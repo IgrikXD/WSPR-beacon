@@ -473,7 +473,10 @@ class Device:
             self._set_active_transport(data)
         elif msg_type == Device.Message.Incoming.WIFI_SSID_DATA:
             data = WiFiData.from_json(raw_data)
-        elif msg_type in (Device.Message.Incoming.WIFI_STATUS, Device.Message.Incoming.GPS_CAL_STATUS):
+        elif msg_type in (
+            Device.Message.Incoming.FIRMWARE_STATUS,
+            Device.Message.Incoming.GPS_CAL_STATUS,
+            Device.Message.Incoming.WIFI_STATUS):
             data = Status(raw_data)
         else:
             data = raw_data

@@ -113,18 +113,42 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
         # Incoming: FIRMWARE_INFO: str
         ({"type": "FIRMWARE_INFO", "data": "3.0"},
          Device.Message.Incoming.FIRMWARE_INFO, "3.0"),
+        # Incoming: FIRMWARE_STATUS: Status("latest")
+        ({"type": "FIRMWARE_STATUS", "data": "latest"},
+         Device.Message.Incoming.FIRMWARE_STATUS, Status("latest")),
+        # Incoming: FIRMWARE_STATUS: Status("updating")
+        ({"type": "FIRMWARE_STATUS", "data": "updating"},
+         Device.Message.Incoming.FIRMWARE_STATUS, Status("updating")),
+        # Incoming: FIRMWARE_STATUS: Status("updated")
+        ({"type": "FIRMWARE_STATUS", "data": "updated"},
+         Device.Message.Incoming.FIRMWARE_STATUS, Status("updated")),
+        # Incoming: FIRMWARE_STATUS: Status("failed")
+        ({"type": "FIRMWARE_STATUS", "data": "failed"},
+         Device.Message.Incoming.FIRMWARE_STATUS, Status("failed")),
         # Incoming: GPS_STATUS: True
         ({"type": "GPS_STATUS", "data": True},
          Device.Message.Incoming.GPS_STATUS, True),
         # Incoming: GPS_STATUS: False
         ({"type": "GPS_STATUS", "data": False},
          Device.Message.Incoming.GPS_STATUS, False),
+        # Incoming: GPS_CAL_STATUS: Status("initiated")
+        ({"type": "GPS_CAL_STATUS", "data": "initiated"},
+        Device.Message.Incoming.GPS_CAL_STATUS, Status("initiated")),
+        # Incoming: GPS_CAL_STATUS: Status("calibrated")
+        ({"type": "GPS_CAL_STATUS", "data": "calibrated"},
+        Device.Message.Incoming.GPS_CAL_STATUS, Status("calibrated")),
+        # Incoming: GPS_CAL_STATUS: Status("failed")
+        ({"type": "GPS_CAL_STATUS", "data": "failed"},
+        Device.Message.Incoming.GPS_CAL_STATUS, Status("failed")),
         # Incoming: HARDWARE_INFO: str
         ({"type": "HARDWARE_INFO", "data": "3.0"},
          Device.Message.Incoming.HARDWARE_INFO, "3.0"),
         # Incoming: QTH_LOCATOR: str
         ({"type": "QTH_LOCATOR", "data": "XX00"},
          Device.Message.Incoming.QTH_LOCATOR, "XX00"),
+        # Incoming: PROTOCOL_ERROR: str
+        ({"type": "PROTOCOL_ERROR", "data": "Invalid message type!"},
+        Device.Message.Incoming.PROTOCOL_ERROR, "Invalid message type!"),
         # Incoming: SELF_CHECK_ACTION: str
         ({"type": "SELF_CHECK_ACTION", "data": "- LEDs initialized! -"},
          Device.Message.Incoming.SELF_CHECK_ACTION, "- LEDs initialized! -"),
@@ -194,6 +218,12 @@ def test_decode_device_message(incoming_json, expected_type, expected_data):
         # Outgoing: GET_DEVICE_INFO: None
         (Device.Message.Outgoing.GET_DEVICE_INFO, None,
          '{"type": "GET_DEVICE_INFO", "data": null}'),
+        # Outgoing: RUN_FIRMWARE_UPDATE: None
+        (Device.Message.Outgoing.RUN_FIRMWARE_UPDATE, None,
+        '{"type": "RUN_FIRMWARE_UPDATE", "data": null}'),
+        # Outgoing: RUN_GPS_CALIBRATION: None
+        (Device.Message.Outgoing.RUN_GPS_CALIBRATION, None,
+         '{"type": "RUN_GPS_CALIBRATION", "data": null}'),
         # Outgoing: RUN_SELF_CHECK: None
         (Device.Message.Outgoing.RUN_SELF_CHECK, None,
          '{"type": "RUN_SELF_CHECK", "data": null}'),
