@@ -26,7 +26,7 @@
 >
 > **Any device you assemble yourself will not be able to run the publicly distributed encrypted firmware.** You can still use this project as a reference for developing your own firmware, or purchase a ready-made device that supports running the official firmware. To purchase a ready-made device, please [contact me directly](https://t.me/igrikxd).
 >
-> Alternatively, you can use version [1.0](https://github.com/IgrikXD/WSPR-beacon/blob/master/PCB/1.0/README.md) and [2.0](https://github.com/IgrikXD/WSPR-beacon/blob/master/PCB/2.0/README.md) devices based on ATmega328P with the [wspr-beacon-1.1](https://github.com/IgrikXD/WSPR-beacon/tree/master/Firmware/wspr-beacon-1.1) firmware, which is publicly available. These device versions **do not support [BEACON.App]** and can only be configured by modifying and rebuilding the firmware source code.
+> Alternatively, you can use version [1.0](https://github.com/IgrikXD/WSPR-beacon/blob/master/PCB/1.0/README.md) and [2.0](https://github.com/IgrikXD/WSPR-beacon/blob/master/PCB/2.0/README.md) devices based on ATmega328P with the [wspr-beacon-1.1](https://github.com/IgrikXD/WSPR-beacon/tree/master/Firmware/wspr-beacon-1.1) firmware, which is publicly available. These device versions **do not support [BEACON.App](https://github.com/IgrikXD/WSPR-beacon/blob/master/App/README.md)** and can only be configured by modifying and rebuilding the firmware source code.
 
 ## PCB fabrication parameters
 > [!WARNING]
