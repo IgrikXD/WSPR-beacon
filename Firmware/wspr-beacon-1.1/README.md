@@ -1,5 +1,8 @@
 # Firmware instructions
 
+> [!NOTE]
+> This firmware version is **compatible only** with devices based on the **ATmega328P** (versions [1.0](https://github.com/IgrikXD/WSPR-beacon/blob/master/PCB/1.0/README.md) and [2.0](https://github.com/IgrikXD/WSPR-beacon/blob/master/PCB/2.0/README.md))!
+
 ## Select the board:
 Open [Arduino IDE](https://www.arduino.cc/en/software), go to "_Tools_" -> "_Board_", then select  "_Arduino Nano_".
 

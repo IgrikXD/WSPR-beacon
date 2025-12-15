@@ -1,6 +1,6 @@
 # Firmware instructions
 
-For devices based on the **ESP32-C3 SoC** (_version 3.3 and later_), firmware is updated automatically using the [BEACON.App] user application.
+For devices based on the **ESP32-C3 SoC** ([_version 3.3 and later_](https://github.com/IgrikXD/WSPR-beacon/blob/master/PCB/3.3/README.md)), firmware is updated automatically using the [BEACON.App] user application.
 
 > [!NOTE]
 > The firmware for device based on **ESP32-C3 SoC** is distributed only in **pre-encrypted** and **signed** form and runs **only** on devices where Flash Encryption and Secure Boot v2 keys have been explicitly programmed.
