@@ -1,8 +1,5 @@
 # WSPR-beacon 3.3
 
-> [!NOTE]
->The source files for the PCB of this version of the device are not publicly available! For purchase inquiries, please [contact me directly](https://github.com/IgrikXD/WSPR-beacon#how-to-contact-me).
-
 ## Device characteristics
 **Platform:** ESP32-C3 SoC  
 **Power amplifier:** Buffer amplifier based on the 74ACT244 IC  
@@ -20,7 +17,7 @@
 | Active TX mode (_GPS antenna connected, Wi-Fi connected_)     |  TBD mA             |
 
 ## Firmware info
-**Latest firmware version:** [wspr-beacon-2.0](../../Firmware/wspr-beacon-2.0/)  
+**Latest firmware version:** [wspr-beacon-2.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-firmware-2.0)  
 **Supported transmission protocols:** WSPR  
 **Configurable via user application:** Yes  
 
