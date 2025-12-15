@@ -1,4 +1,4 @@
-# Firmware WSPR-beacon-hardware-test
+# Firmware instructions
 
 This firmware checks the correctness of the LEDs initialization (_visual inspection_), SI5351 IC initialization, the correctness of the serial connection with the GPS module, and GPS data synchronization.
 
