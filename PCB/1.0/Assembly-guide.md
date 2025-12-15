@@ -1,14 +1,14 @@
 # Assembly guide
 
-## Requirements for Atmega328
+## Requirements for ATmega328P
 
-When using Atmega328 distributed as individual electronic components, you will encounter a firmware upload error:
+When using ATmega328P distributed as individual electronic components, you will encounter a firmware upload error:
 ```log
 avrdude: stk500_recv(): programmer is not responding 
 avrdude: stk500_getsync() attempt 1 of 10: not in sync: resp=0x88
 ```
 
-This is because **Atmega328 chips distributed as individual electronic components do not have a built-in bootloader** – they are completely blank chips, making it impossible to upload firmware via the Arduino IDE. Since the WSPR beacon PCB does not have an ISP interface, **you need to use an Atmega328 chip with a pre-flashed bootloader when assembling the device**. The best solution in this situation might be to move the Atmega328 chip from a ready-made Arduino Nano board. Such a chip already has a pre-flashed bootloader, allowing you to upload the WSPR beacon firmware without any problems.
+This is because **ATmega328P chips distributed as individual electronic components do not have a built-in bootloader** – they are completely blank chips, making it impossible to upload firmware via the Arduino IDE. Since the WSPR beacon PCB does not have an ISP interface, **you need to use an ATmega328P chip with a pre-flashed bootloader when assembling the device**. The best solution in this situation might be to move the ATmega328P chip from a ready-made Arduino Nano board. Such a chip already has a pre-flashed bootloader, allowing you to upload the WSPR beacon firmware without any problems.
 
 ## Winding a bifilar transformer
 For winding a bifilar transformer, I recommend you use the instructions from [QRP-Labs: "10-turn bifilar-winding option"](https://qrp-labs.com/images/ultimate3s/assembly_u3s_r3_lt.pdf).  

@@ -1,7 +1,7 @@
 # WSPR-beacon 2.0
 
 ## Device characteristics
-**Platform:** Atmega328 MCU  
+**Platform:** ATmega328P MCU  
 **Power amplifier:** Buffer amplifier based on the 74ACT244 IC  
 **Output RF transformer:** Bifilar transformer based on an FT37-43 core  
 **RF connectors:** SMA  

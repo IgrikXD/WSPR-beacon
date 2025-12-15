@@ -1,7 +1,7 @@
 # WSPR-beacon 1.0
 
 ## Device characteristics
-**Platform:** Atmega328 MCU  
+**Platform:** ATmega328P MCU  
 **Power amplifier:** Transistor amplifier, based on BS170  
 **Output RF transformer:** Bifilar transformer based on an FT37-43 core  
 **RF connectors:** SMA  
