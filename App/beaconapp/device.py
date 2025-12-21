@@ -1,6 +1,6 @@
-from colorama import Fore, Style
 from contextlib import contextmanager, redirect_stdout, redirect_stderr
 from beaconapp.data_wrappers import ActiveTXMode, Status, Transport, WiFiCredentials, WiFiData
+from beaconapp.logger import log_ok, log_error
 from beaconapp.transports.serial_transport import SerialTransport
 from beaconapp.transports.websocket_transport import WebsocketTransport
 from dataclasses import dataclass
@@ -12,13 +12,9 @@ from typing import Any, Callable, Dict, List, Optional, Set
 import asyncio
 import hashlib
 import json
-import logging
 import os
 import requests
 import threading
-
-
-logger = logging.getLogger(__name__)
 
 
 class Device:
@@ -306,15 +302,15 @@ class Device:
         Chooses between USB (Serial) or OTA (Wi-Fi) update based on the active transport.
         """
         if self._active_transport == Transport.USB:
-            logger.debug(f"{Fore.GREEN}[OK]: USB firmware update started!{Style.RESET_ALL}")
+            log_ok("USB firmware update started!")
             # Runs in a separate thread to avoid blocking the GUI
             threading.Thread(target=self._run_usb_firmware_update, daemon=True).start()
         elif self._active_transport == Transport.WIFI:
-            logger.debug(f"{Fore.GREEN}[OK]: OTA firmware update started!{Style.RESET_ALL}")
+            log_ok("OTA firmware update started!")
             self._run_ota_firmware_update()
         else:
             self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.FAILED)
-            logger.error(f"{Fore.RED}[ERROR]: No active transport! Device is disconnected?{Style.RESET_ALL}")
+            log_error("No active transport! Device is disconnected?")
 
     def run_gps_calibration(self):
         """
@@ -387,7 +383,7 @@ class Device:
             try:
                 handler(data)
             except Exception as e:
-                logger.error(f"{Fore.RED}[ERROR] Message type \"{msg_type}\" processing failed: {e}{Style.RESET_ALL}")
+                log_error(f"Message type \"{msg_type}\" processing failed: {e}")
 
     async def _start_connection_handle_tasks(self):
         """
@@ -460,7 +456,7 @@ class Device:
         try:
             msg_type = Device.Message.Incoming(msg_type_str)
         except ValueError:
-            logger.error(f"{Fore.RED}[ERROR] Unknown message type received: {msg_type_str}{Style.RESET_ALL}")
+            log_error(f"Unknown message type received: {msg_type_str}")
             return None
 
         raw_data = obj.get("data")
@@ -517,7 +513,7 @@ class Device:
                 return
 
             except Exception as e:
-                logger.error(f"{Fore.RED}[ERROR] Outgoing message sending failed: {e}{Style.RESET_ALL}")
+                log_error(f"Outgoing message sending failed: {e}")
 
     def _put(self, message: Message):
         """
@@ -526,10 +522,7 @@ class Device:
         If the device is not connected, the message is discarded and an error is logged.
         """
         if self._asyncio_loop is None:
-            logger.error(
-                f"{Fore.RED}[ERROR] Cannot send message {message.type}: "
-                f"device is not connected or initialized!{Style.RESET_ALL}"
-            )
+            log_error(f"Cannot send message {message.type}: device is not connected or initialized!")
             return
 
         def try_put():
@@ -539,9 +532,9 @@ class Device:
             try:
                 self._tx_queue.put_nowait(message)
             except asyncio.QueueFull:
-                logger.error(
-                    f"{Fore.RED}[ERROR] TX queue is full ({self.__TX_QUEUE_MAX_SIZE} messages), "
-                    f"message discarded: {message.type}{Style.RESET_ALL}"
+                log_error(
+                    f"TX queue is full ({self.__TX_QUEUE_MAX_SIZE} messages), "
+                    f"message discarded: {message.type}"
                 )
 
         self._asyncio_loop.call_soon_threadsafe(try_put)
@@ -578,7 +571,7 @@ class Device:
                 raise Device.FirmwareUpdateError("Invalid firmware manifest: missing 'firmware-version' key")
 
             if self._firmware_version is not None and Version(self._firmware_version) >= Version(available_version):
-                logger.debug(f"{Fore.GREEN}[OK]: Firmware is already up to date!{Style.RESET_ALL}")
+                log_ok("Firmware is already up to date!")
                 self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.LATEST)
                 return  # No update needed
 
@@ -600,7 +593,7 @@ class Device:
 
             # Notify firmware update started
             self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.UPDATING)
-            logger.debug(f"{Fore.GREEN}[OK]: Firmware flashing started{Style.RESET_ALL}")
+            log_ok("Firmware flashing started")
 
             # Flash firmware to the device (suppressing esptool output)
             with self._suppress_output():
@@ -613,14 +606,14 @@ class Device:
 
             # Notify firmware update completed
             self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.UPDATED)
-            logger.debug(f"{Fore.GREEN}[OK]: Firmware update completed successfully!{Style.RESET_ALL}")
+            log_ok("Firmware update completed successfully!")
 
             # Re-establish device connections
             self.connect()
 
         except (Device.FirmwareUpdateError, requests.RequestException, json.JSONDecodeError, Exception) as e:
             self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.FAILED)
-            logger.error(f"{Fore.RED}[ERROR]: {e}{Style.RESET_ALL}")
+            log_error(f"Unexpected error during firmware update: {e}")
 
     def _send_to_device(self, message: Message):
         """

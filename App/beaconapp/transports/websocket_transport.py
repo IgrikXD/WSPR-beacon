@@ -1,17 +1,13 @@
 from beaconapp.transports.base_transport import BaseTransport
 from beaconapp.data_wrappers import Transport
-from colorama import Fore, Style
+from beaconapp.logger import log_error, log_rx_message, log_tx_message, log_warning
 from typing import Optional
 from websockets.asyncio.client import connect as ws_connect, ClientConnection
 from websockets.exceptions import ConnectionClosed
 
 import asyncio
 import json
-import logging
 import socket
-
-
-logger = logging.getLogger(__name__)
 
 
 class WebsocketTransport(BaseTransport):
@@ -63,7 +59,7 @@ class WebsocketTransport(BaseTransport):
                 return
 
             except Exception as e:
-                logger.error(f"{Fore.RED}[ERROR] WebSocket operation failed: {e}{Style.RESET_ALL}")
+                log_error(f"WebSocket operation failed: {e}")
 
             finally:
                 # Close websocket if still open (for non-cancel cases)
@@ -92,14 +88,14 @@ class WebsocketTransport(BaseTransport):
                     continue
 
                 try:
-                    logger.debug(f"{Fore.MAGENTA}RX (WebSocket): {message}{Style.RESET_ALL}")
+                    log_rx_message(f"RX (WebSocket): {message}")
                     self._device.decode_and_handle_message(message)
 
                 except json.JSONDecodeError:
-                    logger.warning(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
+                    log_warning(f"Non-JSON data received: {message}")
 
                 except Exception as e:
-                    logger.error(f"{Fore.RED}[ERROR] Error decoding message: {e}{Style.RESET_ALL}")
+                    log_error(f"Error decoding message: {e}")
 
         except ConnectionClosed:
             return  # Connection closed, exit receiver
@@ -109,5 +105,5 @@ class WebsocketTransport(BaseTransport):
         Sends a text message via the active WebSocket connection.
         """
         if self._websocket is not None:
-            logger.debug(f"{Fore.GREEN}TX (WebSocket): {message.strip()}{Style.RESET_ALL}")
+            log_tx_message(f"TX (WebSocket): {message.strip()}")
             asyncio.create_task(self._websocket.send(message))

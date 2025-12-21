@@ -1,17 +1,13 @@
 from beaconapp.transports.base_transport import BaseTransport
 from beaconapp.data_wrappers import Transport
-from colorama import Fore, Style
+from beaconapp.logger import log_error, log_rx_message, log_tx_message, log_warning
 from typing import Optional
 
 import asyncio
 import json
-import logging
 import serial
 import serial.tools.list_ports
 import serial_asyncio
-
-
-logger = logging.getLogger(__name__)
 
 
 class SerialTransport(BaseTransport):
@@ -94,7 +90,7 @@ class SerialTransport(BaseTransport):
             try:
                 self._transport.close()
             except Exception as e:
-                logger.error(f"{Fore.RED}[ERROR] Closing serial transport: {e}{Style.RESET_ALL}")
+                log_error(f"Closing serial transport: {e}")
             self._transport = None
 
         if self._serial_port is not None and self._serial_port.is_open:
@@ -103,7 +99,7 @@ class SerialTransport(BaseTransport):
                 self._serial_port.write_timeout = 0
                 self._serial_port.close()
             except Exception as e:
-                logger.error(f"{Fore.RED}[ERROR] Closing serial port: {e}{Style.RESET_ALL}")
+                log_error(f"Closing serial port: {e}")
             self._serial_port = None
 
     def get_port(self):
@@ -119,7 +115,7 @@ class SerialTransport(BaseTransport):
         Sends message bytes via the established Serial connection.
         """
         if self._transport:
-            logger.debug(f"{Fore.GREEN}TX (USB): {message.strip()}{Style.RESET_ALL}")
+            log_tx_message(f"TX (USB): {message.strip()}")
             self._transport.write(message.encode('utf-8'))
 
     def set_transport(self, transport: asyncio.Transport):
@@ -177,10 +173,10 @@ class DeviceProtocol(asyncio.Protocol):
             message = line.decode('utf-8', errors='ignore').strip()
             if message:
                 try:
-                    logger.debug(f"{Fore.MAGENTA}RX (USB): {message}{Style.RESET_ALL}")
+                    log_rx_message(f"RX (USB): {message}")
                     self._device.decode_and_handle_message(message)
 
                 except json.JSONDecodeError:
-                    logger.warning(f"{Fore.YELLOW}[WARNING] Non-JSON data received: {message}{Style.RESET_ALL}")
+                    log_warning(f"Non-JSON data received: {message}")
                 except Exception as e:
-                    logger.error(f"{Fore.RED}[ERROR] Error decoding message: {e}{Style.RESET_ALL}")
+                    log_error(f"Error decoding message: {e}")

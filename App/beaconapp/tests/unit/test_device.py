@@ -426,7 +426,7 @@ def test_decode_and_handle_unknown_message_type(caplog):
     """
     device = Device()
 
-    with caplog.at_level(logging.ERROR):
+    with caplog.at_level(logging.ERROR, logger="beaconapp"):
         result = device.decode_and_handle_message(json.dumps({"type": "UNKNOWN_TYPE", "data": None}))
 
     assert result is False
@@ -455,13 +455,14 @@ def test_call_handlers_continues_after_exception(caplog):
             lambda data: received_data.update({Device.Message.Incoming.TX_STATUS: data})]
     })
 
-    with caplog.at_level(logging.ERROR):
+    with caplog.at_level(logging.ERROR, logger="beaconapp"):
         device._call_handlers(Device.Message.Incoming.TX_STATUS, True)
 
     assert received_data[Device.Message.Incoming.TX_STATUS] is True
     assert any(
         f"[ERROR] Message type \"{Device.Message(Device.Message.Incoming.TX_STATUS).type}\" "
-        "processing failed: Dummy handler error" in record.message for record in caplog.records)
+        "processing failed: Dummy handler error" in record.message for record in caplog.records
+    )
 
 
 @pytest.mark.unit
@@ -471,12 +472,13 @@ def test_put_logs_error_when_device_not_connected(caplog):
     """
     device = Device()
 
-    with caplog.at_level(logging.ERROR):
+    with caplog.at_level(logging.ERROR, logger="beaconapp"):
         device._put(Device.Message(Device.Message.Outgoing.GET_DEVICE_INFO))
 
     assert any(
         f"[ERROR] Cannot send message {Device.Message(Device.Message.Outgoing.GET_DEVICE_INFO).type}: "
-        "device is not connected or initialized!" in record.message for record in caplog.records)
+        "device is not connected or initialized!" in record.message for record in caplog.records
+    )
     assert device._tx_queue is None
 
 
