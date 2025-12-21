@@ -28,7 +28,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r App/requirements.txt
-          pip install pytest==8.3.3
+          pip install -r App/requirements-dev.txt
 
       - name: Run unit tests
         run: |
