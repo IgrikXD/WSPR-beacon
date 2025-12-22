@@ -27,8 +27,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install pyinstaller==6.17.0
           pip install -r App/requirements.txt
+          pip install -r App/requirements-dev.txt
 
       - name: Build executable
         run: |
