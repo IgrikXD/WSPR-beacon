@@ -88,7 +88,7 @@ class WebsocketTransport(BaseTransport):
                     continue
 
                 try:
-                    log_rx_message(f"RX (WebSocket): {message}")
+                    log_rx_message(message, Transport.WIFI)
                     self._device.decode_and_handle_message(message)
 
                 except json.JSONDecodeError:
@@ -105,5 +105,5 @@ class WebsocketTransport(BaseTransport):
         Sends a text message via the active WebSocket connection.
         """
         if self._websocket is not None:
-            log_tx_message(f"TX (WebSocket): {message.strip()}")
+            log_tx_message(message.strip(), Transport.WIFI)
             asyncio.create_task(self._websocket.send(message))

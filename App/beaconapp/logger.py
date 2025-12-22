@@ -1,3 +1,4 @@
+from beaconapp.data_wrappers import Transport
 from colorama import Fore, Style
 
 import logging
@@ -15,33 +16,45 @@ if not logger.handlers:
 def log_error(message: str) -> None:
     """
     Logs an error message in red color.
+    Args:
+        message (str): The error message to log.
     """
     logger.error(f"{Fore.RED}[ERROR] {message}{Style.RESET_ALL}")
 
 
 def log_ok(message: str) -> None:
     """
-    Logs a info message in green color.
+    Logs an info message in green color.
+    Args:
+        message (str): The info message to log.
     """
     logger.info(f"{Fore.GREEN}[OK] {message}{Style.RESET_ALL}")
 
 
-def log_rx_message(message: str) -> None:
+def log_rx_message(message: str, transport: Transport) -> None:
     """
     Logs an incoming message in magenta color.
+    Args:
+        message (str): The incoming message to log.
+        transport (Transport): The transport method used.
     """
-    logger.info(f"{Fore.MAGENTA}{message}{Style.RESET_ALL}")
+    logger.info(f"{Fore.MAGENTA}[RX, ({transport.value})]: {message}{Style.RESET_ALL}")
 
 
-def log_tx_message(message: str) -> None:
+def log_tx_message(message: str, transport: Transport) -> None:
     """
-    Logs a outgoing message in green color.
+    Logs an outgoing message in green color.
+    Args:
+        message (str): The outgoing message to log.
+        transport (Transport): The transport method used.
     """
-    logger.info(f"{Fore.GREEN}{message}{Style.RESET_ALL}")
+    logger.info(f"{Fore.GREEN}[TX, ({transport.value})]: {message}{Style.RESET_ALL}")
 
 
 def log_warning(message: str) -> None:
     """
-    Logs a warning message in yellow color.
+    Logs an warning message in yellow color.
+    Args:
+        message (str): The warning message to log.
     """
     logger.warning(f"{Fore.YELLOW}[WARNING] {message}{Style.RESET_ALL}")

@@ -115,7 +115,7 @@ class SerialTransport(BaseTransport):
         Sends message bytes via the established Serial connection.
         """
         if self._transport:
-            log_tx_message(f"TX (USB): {message.strip()}")
+            log_tx_message(message.strip(), Transport.USB)
             self._transport.write(message.encode('utf-8'))
 
     def set_transport(self, transport: asyncio.Transport):
@@ -173,7 +173,7 @@ class DeviceProtocol(asyncio.Protocol):
             message = line.decode('utf-8', errors='ignore').strip()
             if message:
                 try:
-                    log_rx_message(f"RX (USB): {message}")
+                    log_rx_message(message, Transport.USB)
                     self._device.decode_and_handle_message(message)
 
                 except json.JSONDecodeError:
