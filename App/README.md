@@ -18,7 +18,7 @@ There are two possible ways to use the application: [creating a monolithic execu
 
 ### Build the executable file (Windows)
 ```powershell
-pip install pyinstaller==6.17.0
+pip install -r requirements-dev.txt
 pyinstaller --noconsole --onefile `
     --icon=beaconapp/ui/resources/beacon-app-logo.ico `
     --add-data "beaconapp/ui/resources/*;ui/resources" `
@@ -28,7 +28,7 @@ pyinstaller --noconsole --onefile `
 
 ### Build the executable file (Linux)
 ```bash
-pip install pyinstaller==6.17.0
+pip install -r requirements-dev.txt
 pyinstaller --noconsole --onefile \
     --add-data "beaconapp/ui/resources/*:ui/resources" \
     --exclude-module beaconapp.tests \
