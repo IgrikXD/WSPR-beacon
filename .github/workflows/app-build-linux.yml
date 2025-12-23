@@ -1,4 +1,4 @@
-name: App tests
+name: App build (Linux)
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  app-tests:
+  app-build-linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +30,17 @@ jobs:
           pip install -r App/requirements.txt
           pip install -r App/requirements-dev.txt
 
-      - name: Run unit tests
+      - name: Build executable
         run: |
           cd App
-          pytest -m unit -vv
+          pyinstaller --noconsole --onefile \
+            --add-data "beaconapp/ui/resources/*:ui/resources" \
+            --exclude-module beaconapp.tests \
+            --hidden-import PIL._tkinter_finder \
+            --name BeaconApp beaconapp/main.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beaconapp-linux
+          path: App/dist/BeaconApp

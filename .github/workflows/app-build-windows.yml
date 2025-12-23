@@ -1,4 +1,4 @@
-name: App build
+name: App build (Windows)
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  app-build:
+  app-build-windows:
     runs-on: windows-latest
 
     steps:
@@ -27,20 +27,20 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install pyinstaller==6.11.1
           pip install -r App/requirements.txt
+          pip install -r App/requirements-dev.txt
 
       - name: Build executable
         run: |
+          cd App
           pyinstaller --noconsole --onefile `
-            --icon=App/beaconapp/ui/resources/beacon-app-logo.ico `
-            --add-data "App/beaconapp/ui/resources/*;ui/resources" `
+            --icon=beaconapp/ui/resources/beacon-app-logo.ico `
+            --add-data "beaconapp/ui/resources/*;ui/resources" `
             --exclude-module beaconapp.tests `
-            --name BeaconApp `
-            App/beaconapp/main.py
+            --name BeaconApp beaconapp/main.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: beaconapp
-          path: dist/BeaconApp.exe
+          name: beaconapp-windows
+          path: App/dist/BeaconApp.exe
