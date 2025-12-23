@@ -16,7 +16,7 @@
 | Active TX mode                        | 96 mA               |
 
 ## Firmware info
-**Latest firmware version:** [wspr-beacon-1.1](../../Firmware/wspr-beacon-1.1/)  
+**Latest firmware version:** [wspr-beacon-1.1](../../Firmware/ATmega328P-based/wspr-beacon-1.1/)  
 **Supported transmission protocols:** WSPR  
 **Configurable via user application:** No  
 
