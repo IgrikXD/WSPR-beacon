@@ -177,4 +177,4 @@ The **UI theme** option sets the [BEACON.App] user interface theme (_Dark, Light
 
 The **UI scaling** option sets the [BEACON.App] user interface scaling (_80%, 90%, 100%, 110%, 120%_). The value is automatically saved to the app configuration file and loaded on the next launch.
 
-[BEACON.App]: https://github.com/IgrikXD/WSPR-beacon/blob/master/App/README.md
+[BEACON.App]: ../../App/README.md

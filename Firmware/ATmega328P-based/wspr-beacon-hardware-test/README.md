@@ -1,7 +1,7 @@
 # Firmware instructions
 
 > [!NOTE]
-> This firmware version is **compatible only** with devices based on the **ATmega328P** (versions [1.0](https://github.com/IgrikXD/WSPR-beacon/blob/master/PCB/1.0/README.md) and [2.0](https://github.com/IgrikXD/WSPR-beacon/blob/master/PCB/2.0/README.md))!
+> This firmware version is **compatible only** with devices based on the **ATmega328P** (versions [1.0](../../../PCB/1.0/README.md) and [2.0](../../../PCB/2.0/README.md))!
 
 This firmware checks the correctness of the LEDs initialization (_visual inspection_), SI5351 IC initialization, the correctness of the serial connection with the GPS module, and GPS data synchronization.
 
