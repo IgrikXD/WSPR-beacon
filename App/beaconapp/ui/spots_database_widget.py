@@ -21,14 +21,14 @@ class SpotsDatabaseWidget:
         self.general_frame = Widgets.create_general_frame(parent)
         self.general_frame.grid_rowconfigure(5, weight=1)
 
-        # Spots database -> Extract the spot list for the active mode label
+        # Spots database -> Active mode spots label
         Widgets.create_block_label(
             self.general_frame,
             row=0,
-            text="Extract the spot list for the active mode from WSPR.live"
+            text="Active mode spots"
         )
 
-        # Spots database -> Extract spots list for active mode -> Extract latest
+        # Spots database -> Active mode spots -> Extract latest
         self.extract_button, self.extract_latest_option = Widgets.create_option_menu_with_button(
             self.general_frame,
             row=1,
@@ -42,7 +42,7 @@ class SpotsDatabaseWidget:
             button_command=self._extract_button_pressed
         )
 
-        # Spots database -> Extract spots list for active mode -> Sort by
+        # Spots database -> Active mode spots -> Sort by
         self.sort_by_option = Widgets.create_option_menu_with_background_frame(
             self.general_frame,
             row=2,
@@ -53,10 +53,10 @@ class SpotsDatabaseWidget:
             command=None
         )
 
-        # Spots database -> Extract spots list for active mode -> Spots table header
+        # Spots database -> Active mode spots -> Spots table header
         self.spots_table_headers = self._create_table_headers(row=4)
 
-        # Spots database -> Extract spots list for active mode -> Spots table body
+        # Spots database -> Active mode spots -> Spots table body
         self.spots_table_body = Widgets.create_general_frame(self.general_frame, row=5, scrollable=True)
 
     def change_state(self, state):
