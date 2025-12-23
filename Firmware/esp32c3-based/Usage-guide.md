@@ -47,16 +47,16 @@ The **Reset mode** button resets the active transmission mode.
 > After pressing **Reset mode**, the active transmission mode will be reset only after the current transmission completes. Resetting the active transmission mode is required for any actions in the **Self-check** and **Settings** tabs!
 
 The **TX status** field displays the current event related to the active transmission mode:
-- "- Waiting for valid GPS data... -" - Waiting for valid GPS data to synchronize the QTH locator and transmission time
-- "- Waiting for next transmission window... -" - Waiting for the next available timeslot to start message transmission
-- "- Error processing TX mode! -" - Error processing the active transmission mode
-- "- Transmission finished! -" - Message transmission completed successfully
-- "- No active TX mode set! -" - No active transmission mode is set
+- "_- Waiting for valid GPS data... -_" - Waiting for valid GPS data to synchronize the QTH locator and transmission time
+- "_- Waiting for next transmission window... -_" - Waiting for the next available timeslot to start message transmission
+- "_- Error processing TX mode! -_" - Error processing the active transmission mode
+- "_- Transmission finished! -_" - Message transmission completed successfully
+- "_- No active TX mode set! -_" - No active transmission mode is set
 
 To the right of the **TX status** field, the current device status indicators are shown:
-- CAL - SI5351 is calibrated
-- GPS - GPS data is valid
-- TX - Message transmission is active
+- **CAL** - SI5351 is calibrated
+- **GPS** - GPS data is valid
+- **TX** - Message transmission is active
 
 > [!NOTE]
 > There is no need to configure the active transmission mode parameters every time the device is powered on. The last configured mode is stored in NVS and is automatically loaded when the device reboots.
