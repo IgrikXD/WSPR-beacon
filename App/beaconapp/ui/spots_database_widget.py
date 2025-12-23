@@ -223,7 +223,7 @@ class SpotsDatabaseWidget:
         the button returns to its default state after a short delay.
         """
         self.extract_button.after(0, lambda: self.extract_button.configure(
-            text="Extract fail!",
+            text="Failed!",
             fg_color=["#D9534F", "#A94442"])
         )
         # After 2 seconds, reset the extract button to its default state
