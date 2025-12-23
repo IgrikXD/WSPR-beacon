@@ -8,7 +8,7 @@ This firmware checks the correctness of the LEDs initialization (_visual inspect
 To get a report on the hardware functionality, [builld and upload](#firmware-building) the [wspr-beacon-hardware-test](./wspr-beacon-hardware-test.ino) firmware, open the "_Tools_" -> "_Serial Monitor_" in the Arduino IDE, and turn on the device.
 
 **An example of an hardware test report:**
-![Hardware test](../../Resources/Hardware-test.png)
+![Hardware test](../../../Resources/Hardware-test.png)
 
 ## Select the board:
 Open [Arduino IDE](https://www.arduino.cc/en/software), go to "_Tools_" -> "_Board_", then select  "_Arduino Nano_".

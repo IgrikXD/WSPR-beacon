@@ -1,10 +1,10 @@
-# WSPR-beacon usage guide
+# Usage guide
 
 ## Device preparation
-[Assemble the device](./Assembly-guide.md) and [upload the firmware](./Firmware/). Connect active GPS antenna, antenna for WSPR message transmission and USB-B cable for device power supply.  
+[Assemble the device](../../PCB/2.0/Assembly-guide.md) and [upload the firmware](./README.md). Connect active GPS antenna, antenna for WSPR message transmission and USB-B cable for device power supply.  
 
 > [!NOTE]
->It is recommended to use full-size antennas for a specific transmission range, as their efficiency is significantly superior to that of wideband and compact antennas. Also, it is recommended to use bandpass filters that suppress unwanted signals outside the operating range (the SI5351 emits unwanted harmonics along with the main signal emission at the operating frequency).
+> It is recommended to use full-size antennas for a specific transmission range, as their efficiency is significantly superior to that of wideband and compact antennas. Also, it is recommended to use bandpass filters that suppress unwanted signals outside the operating range (_the SI5351 emits unwanted harmonics along with the main signal emission at the operating frequency_).
 
 ## Device usage
 The device operates in fully automatic mode. Turn on the device by switching the **_SW1_** toggle switch position. After switching on the device the **_green LED (ON)_** should light up, which means that the device is working correctly and the initialization process has started. 
