@@ -9,12 +9,12 @@
 **GPS antenna type:** Active, external  
 **Maximum output power:** ~23 dBm  
 **Supply voltage:** 5V (_USB-B, fuse-protected, 750 mA fuse_)  
-| Mode                                                          | Current consumption |
-|---------------------------------------------------------------|---------------------|
-| Standby (_GPS antenna not connected, Wi-Fi not connected_)    |  TBD mA             |
-| Standby (_GPS antenna connected, Wi-Fi connected_)            |  TBD mA             |
-| Active TX mode (_GPS antenna connected, Wi-Fi not connected_) |  TBD mA             |
-| Active TX mode (_GPS antenna connected, Wi-Fi connected_)     |  TBD mA             |
+| Mode                                                                       | Current consumption |
+|----------------------------------------------------------------------------|---------------------|
+| Standby (_GPS antenna not connected, Wi-Fi not connected, 50 Ohm load_)    |  91 mA              |
+| Standby (_GPS antenna connected, Wi-Fi connected, 50 Ohm load_)            |  159 mA             |
+| Active TX mode (_GPS antenna connected, Wi-Fi not connected, 50 Ohm load_) |  191 mA             |
+| Active TX mode (_GPS antenna connected, Wi-Fi connected, 50 Ohm load_)     |  259 mA             |
 
 ## Firmware info
 **Latest firmware version:** [wspr-beacon-2.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-firmware-2.0)  
