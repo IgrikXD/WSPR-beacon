@@ -157,9 +157,6 @@ Manual calibration procedure:
 - Press the **Terminate** button to stop carrier generation
 
 ### Device connection settings block
-> [!IMPORTANT]
-> The PC running [BEACON.App] and the device must be on the same local network! Otherwise, the application will not be able to discover the device.
-
 The **SSID** field is used to specify the name of the Wi-Fi network that the device will connect to for use with [BEACON.App].
 
 The **Password** field is used to specify the password of the Wi-Fi network the device will connect to.
@@ -167,6 +164,8 @@ The **Password** field is used to specify the password of the Wi-Fi network the 
 The **Auto-connect to Wi-Fi on startup** option enables/disables automatic connection to the specified Wi-Fi network when the device boots.
 
 The **Connect** button initiates a connection to the specified Wi-Fi network and changes its state to **Connecting...** while the operation is in progress.
+> [!IMPORTANT]
+> The PC running [BEACON.App] and the device must be on the same local network! Otherwise, the application will not be able to discover the device.
 
 Results:
 - **Disconnect** - Connection established (_press again to disconnect the Wi-Fi connection_)
