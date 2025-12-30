@@ -157,6 +157,9 @@ Manual calibration procedure:
 - Press the **Terminate** button to stop carrier generation
 
 ### Device connection settings block
+> [!IMPORTANT]
+> The PC running [BEACON.App] and the device must be on the same local network! Otherwise, the application will not be able to discover the device.
+
 The **SSID** field is used to specify the name of the Wi-Fi network that the device will connect to for use with [BEACON.App].
 
 The **Password** field is used to specify the password of the Wi-Fi network the device will connect to.
@@ -170,9 +173,6 @@ Results:
 - **Failed!** - Connection failed
 
 In case of **Failed!**, after 2 seconds the button returns to the **Connect** state, allowing you to retry the connection.
-
-> [!IMPORTANT]
-> The PC running [BEACON.App] and the device must be on the same local network! Otherwise, the application will not be able to discover the device.
 
 ### App settings block
 The **UI theme** option sets the [BEACON.App] user interface theme (_Dark, Light_). The value is automatically saved to the app configuration file and loaded on the next launch.
