@@ -36,7 +36,7 @@ For device usage details, refer to the [operating instructions](./Usage-guide.md
 [WSPR - Signal Identification Wiki](https://www.sigidwiki.com/wiki/WSPR)  
 
 ## Who helped me with the development of the project?
-Many thanks to [PCBWay](https://pcbway.com) for manufacturing the PCBs for this project as a sponsored contribution, and to [Mini-Circuits](https://www.minicircuits.com/) for providing transformer samples through their [EZ-Sample](https://www.minicircuits.com/WebStore/ez_sample.html) program.
+Many thanks to [PCBWay](https://pcbway.com) for manufacturing the PCBs for this project as a sponsored contribution, to [Mini-Circuits](https://www.minicircuits.com/) for providing transformer samples through their [EZ-Sample](https://www.minicircuits.com/WebStore/ez_sample.html) program, and to [Molex](https://www.molex.com/en-us/home) for supplying GPS receive antennas.
 ![Sponsor-logos](./Resources/Sponsor-logos.png)
 
 ## How to contact me?
