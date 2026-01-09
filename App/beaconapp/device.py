@@ -1,11 +1,11 @@
-from contextlib import contextmanager, redirect_stdout, redirect_stderr
+from contextlib import contextmanager, nullcontext, redirect_stdout, redirect_stderr
 from beaconapp.data_wrappers import ActiveTXMode, Status, Transport, WiFiCredentials, WiFiData
-from beaconapp.logger import log_ok, log_error
+from beaconapp.logger import is_debug_mode, log_ok, log_error
 from beaconapp.transports.serial_transport import SerialTransport
 from beaconapp.transports.websocket_transport import WebsocketTransport
 from dataclasses import dataclass
 from enum import Enum
-from esptool import detect_chip, attach_flash, reset_chip, write_flash
+from esptool import detect_chip, attach_flash, erase_region, reset_chip, write_flash
 from packaging.version import Version
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -105,6 +105,17 @@ class Device:
     Flash memory address where the firmware should be written during update.
     """
     __FLASH_ADDR = 0x10000
+
+    """
+    Flash memory address of the otadata partition.
+    Used to reset boot partition selection before firmware update.
+    """
+    __OTADATA_ADDR = 0xD000
+
+    """
+    Size of the otadata partition in bytes.
+    """
+    __OTADATA_SIZE = 0x2000
 
     """
     Multicast DNS name for the device when connected via Wi-Fi.
@@ -578,17 +589,22 @@ class Device:
                 self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.LATEST)
                 return  # No update needed
 
+            # Get ota_0 partition data (used for USB firmware updates)
+            ota_0 = manifest.get("ota_0")
+            if not ota_0 or "url" not in ota_0 or "sha256" not in ota_0:
+                raise Device.FirmwareUpdateError("Invalid firmware manifest: missing 'ota_0' partition data")
+
             # Terminate active device connections for releasing the serial port
             self.disconnect()
 
             # Download firmware binary data
-            firmware_response = requests.get(manifest["url"], timeout=120)
+            firmware_response = requests.get(ota_0["url"], timeout=120)
             firmware_response.raise_for_status()
             firmware_data = firmware_response.content
 
             # Verify SHA256 checksum
             actual_sha256 = hashlib.sha256(firmware_data).hexdigest()
-            expected_sha256 = manifest["sha256"]
+            expected_sha256 = ota_0["sha256"]
             if actual_sha256.lower() != expected_sha256.lower():
                 raise Device.FirmwareUpdateError(
                     f"Firmware checksum mismatch: expected {expected_sha256}, got {actual_sha256}"
@@ -598,10 +614,13 @@ class Device:
             self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.UPDATING)
             log_ok("Firmware flashing started")
 
-            # Flash firmware to the device (suppressing esptool output)
-            with self._suppress_output():
+            # Flash firmware to the device (suppressing esptool output unless in debug mode)
+            with nullcontext() if is_debug_mode() else self._suppress_output():
                 with detect_chip(port) as esp:
                     attach_flash(esp)
+                    # Erase otadata partition to reset boot partition selection
+                    # Use "force" flag required according to enabled Flash Encryption & Secure Boot
+                    erase_region(esp, self.__OTADATA_ADDR, self.__OTADATA_SIZE, force=True)
                     # Write firmware binary directly from memory (bytes)
                     # Use "force" flag required according to enabled Flash Encryption & Secure Boot
                     write_flash(esp, [(self.__FLASH_ADDR, firmware_data)], force=True)

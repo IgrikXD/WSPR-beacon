@@ -13,6 +13,13 @@ if not logger.handlers:
     logger.setLevel(logging.DEBUG if ('--debug' in sys.argv) else logging.CRITICAL)
 
 
+def is_debug_mode() -> bool:
+    """
+    Returns True if the application was started with --debug flag.
+    """
+    return '--debug' in sys.argv
+
+
 def log_error(message: str) -> None:
     """
     Logs an error message in red color.
