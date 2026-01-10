@@ -164,15 +164,14 @@ The **Password** field is used to specify the password of the Wi-Fi network the 
 The **Auto-connect to Wi-Fi on startup** option enables/disables automatic connection to the specified Wi-Fi network when the device boots.
 
 The **Connect** button initiates a connection to the specified Wi-Fi network and changes its state to **Connecting...** while the operation is in progress.
+> [!IMPORTANT]
+> The PC running [BEACON.App] and the device must be on the same local network! Otherwise, the application will not be able to discover the device.
 
 Results:
 - **Disconnect** - Connection established (_press again to disconnect the Wi-Fi connection_)
 - **Failed!** - Connection failed
 
 In case of **Failed!**, after 2 seconds the button returns to the **Connect** state, allowing you to retry the connection.
-
-> [!IMPORTANT]
-> The PC running [BEACON.App] and the device must be on the same local network! Otherwise, the application will not be able to discover the device.
 
 ### App settings block
 The **UI theme** option sets the [BEACON.App] user interface theme (_Dark, Light_). The value is automatically saved to the app configuration file and loaded on the next launch.
