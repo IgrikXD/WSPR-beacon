@@ -594,9 +594,6 @@ class Device:
             if not ota_0 or "url" not in ota_0 or "sha256" not in ota_0:
                 raise Device.FirmwareUpdateError("Invalid firmware manifest: missing 'ota_0' partition data")
 
-            # Terminate active device connections for releasing the serial port
-            self.disconnect()
-
             # Download firmware binary data
             firmware_response = requests.get(ota_0["url"], timeout=120)
             firmware_response.raise_for_status()
@@ -613,6 +610,9 @@ class Device:
             # Notify firmware update started
             self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.UPDATING)
             log_ok("Firmware flashing started")
+
+            # Terminate active device connections for releasing the serial port
+            self.disconnect()
 
             # Flash firmware to the device (suppressing esptool output unless in debug mode)
             with nullcontext() if is_debug_mode() else self._suppress_output():
