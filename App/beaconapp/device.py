@@ -110,7 +110,7 @@ class Device:
     Flash memory address of the otadata partition.
     Used to reset boot partition selection before firmware update.
     """
-    __OTADATA_ADDR = 0xD000
+    __OTADATA_ADDR = 0xE000
 
     """
     Size of the otadata partition in bytes.
