@@ -1,9 +1,12 @@
 from beaconapp.data_wrappers import ActiveTXMode
+from beaconapp.logger import log_error
 from beaconapp.ui.widgets import Widgets
 from beaconapp.wsprlive_api import WsprLiveApi
 
 import copy
 import customtkinter
+import urllib.error
+import json
 import threading
 
 
@@ -99,7 +102,13 @@ class SpotsDatabaseWidget:
                 self.extract_latest_option.get().split()[0]
             )
             self._spots_extraction_pass(extracted_data)
-        except Exception:
+        
+        except (urllib.error.URLError, json.JSONDecodeError, ValueError) as e:
+            log_error(f"Failed to extract spots data: {e}")
+            self._spots_extraction_error_handle()
+        
+        except Exception as e:
+            log_error(f"Unexpected error during spots extraction: {e}")
             self._spots_extraction_error_handle()
 
     def _create_table_headers(self, row):
