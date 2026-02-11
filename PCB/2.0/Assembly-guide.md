@@ -13,7 +13,7 @@ This is because **ATmega328P chips distributed as individual electronic componen
 ## Installing the PCB in the aluminum enclosure
 
 > [!NOTE]
->The photos below show the version 1.0 PCB. **Installing the version 2.0 PCB into the aluminum enclosure is done in exactly the same way.** The photos are provided as an example of how to properly prepare the enclosure for PCB mounting.
+> The photos below show the version 1.0 PCB. **Installing the version 2.0 PCB into the aluminum enclosure is done in exactly the same way.** The photos are provided as an example of how to properly prepare the enclosure for PCB mounting.
 
 To assemble the device, an aluminum case with dimensions 80 x 50 x 20 mm is used.
 
