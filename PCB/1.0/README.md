@@ -23,8 +23,8 @@
 
 ## PCB fabrication parameters
 > [!WARNING]
->It is critical to strictly adhere to the specified parameters during PCB manufacturing!
-Failure to do so may result in additional signal loss due to deviation of the RF line impedance from the calculated values. Impedance calculations were performed using the [Saturn PCB Design Toolkit](https://saturnpcb.com/saturn-pcb-toolkit/) for FR-4 material.
+> It is critical to strictly adhere to the specified parameters during PCB manufacturing!
+> Failure to do so may result in additional signal loss due to deviation of the RF line impedance from the calculated values. Impedance calculations were performed using the [Saturn PCB Design Toolkit](https://saturnpcb.com/saturn-pcb-toolkit/) for FR-4 material.
 
 **Used PCB Material:** FR-4, TG150  
 **PCB thickness:** 1.6 mm  
