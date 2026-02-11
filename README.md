@@ -20,7 +20,7 @@ The transmitted WSPR message's correctness was verified by decoding the transmis
 ## How to use this repository?
 The [Firmware](./Firmware/) directory contains the software required for device operation, along with [firmware installation instructions](./Firmware/README.md).
 
-The [PCB](./PCB/) directory contains everything required for [factory manufacturing and assembly](https://www.pcbway.com/project/shareproject/WSPR_beacon_2_0_472264d9.html), including the **Gerber**, **BOM**, **schematic** and **assembly guide** for different device revisions.
+The [PCB](./PCB/) directory contains everything required for factory manufacturing and assembly, including the **Gerber**, **BOM**, **schematic** and **assembly guide** for different device revisions.
 
 For device usage details, refer to the [operating instructions](./Usage-guide.md).
 
