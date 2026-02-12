@@ -18,7 +18,7 @@ The transmitted WSPR message's correctness was verified by decoding the transmis
 ![WSJT-X report](./Resources/WSJT-X-report.png)
 
 ## How to use this repository?
-The [Firmware](./Firmware/) directory contains the software required for device operation, along with [firmware installation instructions](./Firmware/ESP32C3-based/README.md).The [PCB](./PCB/) directory contains everything required for factory manufacturing and assembly, including the **Gerber**, **BOM**, **schematic** and **assembly guide** for different device revisions.
+The [Firmware](./Firmware/) directory contains the software required for device operation, along with [firmware installation instructions](./Firmware/ESP32C3-based/README.md). The [PCB](./PCB/) directory contains everything required for factory manufacturing and assembly, including the **Gerber**, **BOM**, **schematic** and **assembly guide** for different device revisions.
 
 For device usage details, refer to the [operating instructions](./Firmware/ESP32C3-based/Usage-guide.md).
 
@@ -30,7 +30,6 @@ For device usage details, refer to the [operating instructions](./Firmware/ESP32
 [HarrydeBug/WSPR-transmitters: Arduino firmware for ZachTek WSPR transmitters.](https://github.com/HarrydeBug/WSPR-transmitters/tree/master)  
 [K1FM-WSPR-TX - GitHub](https://github.com/adecarolis/K1FM-WSPR-TX)  
 [QRP Labs QRSS/WSPR TX Kit](https://qrp-labs.com/images/ultimate3s/assembly_u3s_r3_lt.pdf)  
-[WSPR beacon – Projets radio](https://hamprojects.wordpress.com/2019/06/02/wspr-beacon/)  
 [WSPR - Signal Identification Wiki](https://www.sigidwiki.com/wiki/WSPR)  
 
 ## Who helped me with the development of the project?
