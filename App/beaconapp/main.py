@@ -130,7 +130,7 @@ class BeaconApp(customtkinter.CTk):
             self.iconphoto(True, self.icon_photo)
         # Minimum window size
         self.minsize(1100, 600)
-        # Defaulf app theme
+        # Default app theme
         customtkinter.set_appearance_mode(config.get_ui_theme())
         # Default app scaling
         customtkinter.set_widget_scaling(config.get_ui_scaling())
