@@ -2,11 +2,11 @@ name: App build (Windows)
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "**" ]
     paths:
       - 'App/**'
   pull_request:
-    branches: [ "master" ]
+    branches: [ "**" ]
     paths:
       - 'App/**'
   workflow_dispatch:
