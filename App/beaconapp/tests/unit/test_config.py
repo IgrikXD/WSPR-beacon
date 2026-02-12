@@ -79,7 +79,7 @@ def temp_config_file(tmp_path):
                 "default_ui_scaling": 1                         # default
             }
         ),
-        # Comfig file exists with all fields
+        # Config file exists with all fields
         (
             True,
             {
