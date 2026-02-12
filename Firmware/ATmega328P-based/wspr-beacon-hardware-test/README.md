@@ -22,7 +22,7 @@ Before building the firmware using Arduino IDE, you **need to install all the re
 ./arduino-cli compile --export-binaries
 ```
 
-## Upload an firmware:
+## Upload a firmware:
 Click the "_Upload_" button in the Arduino IDE to build and upload firmware to the device.
 
 Alternatively, you can upload the precompiled _.hex_ file (_located in the build/arduino.avr.nano directory_) directly to the device using Arduino CLI:
