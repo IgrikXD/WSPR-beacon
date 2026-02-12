@@ -281,8 +281,8 @@ class SpotsDatabaseWidget:
 
         for key, label in labels.items():
             if key == order_by:
-                # If active sotring option is SNR - add an upward arrow to table header label
-                # If active sotring option is not SNR - add a downward arrow to table header label
+                # If active sorting option is SNR - add an upward arrow to table header label
+                # If active sorting option is not SNR - add a downward arrow to table header label
                 arrow = " ↑" if key == "SNR" else " ↓"
                 label.configure(text=f"{key}{arrow}")
             else:
