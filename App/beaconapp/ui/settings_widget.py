@@ -194,7 +194,7 @@ class SettingsWidget:
 
     def set_wifi_data(self, data: WiFiData):
         """
-        Updates the Wi-Fi paremeters in the UI with the provided Wi-Fi data.
+        Updates the Wi-Fi parameters in the UI with the provided Wi-Fi data.
 
         Args:
             data (WiFiData): An object containing the Wi-Fi data to be set, including:

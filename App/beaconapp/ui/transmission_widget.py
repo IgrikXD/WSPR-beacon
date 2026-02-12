@@ -17,7 +17,7 @@ class TransmissionWidget:
             parent: The parent widget that this frame will be placed into.
             device (Device): An instance of the Device class to interact with the hardware.
             config (Config): An instance of the Config class containing default transmission
-            paramaters. Used also to update default transmission parameters based on the latest
+            parameters. Used also to update default transmission parameters based on the latest
             active mode parameters applied to the device.
         """
         self.device = device
