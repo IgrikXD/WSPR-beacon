@@ -211,7 +211,7 @@ def test_run_wifi_connection(device):
             break
         time.sleep(0.2)
 
-    # Wi-Fi conncetion status changed from INITIATED to FAILED due to fake SSID
+    # Wi-Fi connection status changed from INITIATED to FAILED due to fake SSID
     assert received_data[Device.Message.Incoming.WIFI_STATUS] == [Status.INITIATED, Status.FAILED]
 
 
