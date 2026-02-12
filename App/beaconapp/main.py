@@ -184,6 +184,7 @@ def check_already_running() -> bool:
                     if "python" in process_name or "beaconapp" in process_name:
                         return True
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    # Process disappeared or is inaccessible — treat as not running
                     pass
             # The old process is not active or not BEACON.App, remove the outdated lock file
             os.remove(LOCK_FILE)
