@@ -2,12 +2,12 @@ name: Firmware build (ATmega328P-based)
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "**" ]
     paths:
       - 'Firmware/ATmega328P-based/**/*.ino'
       - 'Firmware/ATmega328P-based/**/*.yml'
   pull_request:
-    branches: [ "master" ]
+    branches: [ "**" ]
     paths:
       - 'Firmware/ATmega328P-based/**/*.ino'
       - 'Firmware/ATmega328P-based/**/*.yml'
