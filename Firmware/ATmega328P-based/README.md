@@ -1,4 +1,7 @@
-# Firmware instruction
+# Firmware instructions
+
+> [!NOTE]
+> This firmware version is **compatible only** with devices based on the **ATmega328P** (versions [1.0](../../PCB/1.0/README.md) and [2.0](../../PCB/2.0/README.md))!
 
 ## Select the board:
 Open [Arduino IDE](https://www.arduino.cc/en/software), go to "_Tools_" -> "_Board_", then select  "_Arduino Nano_".
@@ -7,17 +10,10 @@ Open [Arduino IDE](https://www.arduino.cc/en/software), go to "_Tools_" -> "_Boa
 Connect the device to your computer via USB cable. Then, in the "_Tools_" -> "_Port_" menu, select the target COM port.
 
 ## Verification of hardware operability after device assembly
-After assembling the device, you can upload [firmware for testing the hardware](./wspr-beacon-hardware-test/wspr-beacon-hardware-test.ino).
+After assembling the device, you can upload [firmware for testing the hardware](./wspr-beacon-hardware-test/README.md).
 
 > [!NOTE]
->This is an optional step, you can skip it. I recommend using this firmware if you encounter issues with the device's functionality when using the main wspr-beacon firmware.
-
-This firmware checks the correctness of the LEDs initialization (_visual inspection_), SI5351 IC initialization, the correctness of the serial connection with the GPS module, and GPS data synchronization.
-
-To get a report on the hardware functionality, [builld and upload](#firmware-building) the [wspr-beacon-hardware-test](./wspr-beacon-hardware-test/wspr-beacon-hardware-test.ino) firmware, open the "_Tools_" -> "_Serial Monitor_" in the Arduino IDE, and turn on the device.
-
-**An example of an hardware test report:**
-![Hardware test](../Resources/Hardware-test.png)
+>This is an optional step, you can skip it. I recommend using this firmware if you encounter issues with the device's functionality when using the [main WSPR-beacon firmware](./wspr-beacon-1.1/wspr-beacon-1.1.ino).
 
 ## I2C address of the SI5351:
 By default, the SI5351 uses address **_0x60_** on the I2C bus. If necessary, you can change the I2C address of the SI5351 according to the datasheet of your instance:
