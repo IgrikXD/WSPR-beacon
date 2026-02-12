@@ -111,4 +111,4 @@ To perform the hardware self-check:
 1. Navigate to the **Self-check** section in the application.
 2. Click the **Run checks** button.
 
-If the test completes with the status **PASS!**, the device is fully operational and ready to use.
+If the test completes with the status **Passed!**, the device is fully operational and ready to use.
