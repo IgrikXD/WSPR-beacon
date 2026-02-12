@@ -193,6 +193,7 @@ def check_already_running() -> bool:
             try:
                 os.remove(LOCK_FILE)
             except OSError:
+                # Lock file already removed or inaccessible — safe to ignore
                 pass
     return False
 
