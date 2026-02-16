@@ -37,6 +37,9 @@ For device usage details, refer to the [operating instructions](./Firmware/ESP32
 Many thanks to [RTL-SDR.COM](https://www.rtl-sdr.com/) for providing RTL-SDR.COM V.4 SDR receiver samples and informational support, to [PCBWay](https://pcbway.com) for manufacturing the PCBs for this project as a sponsored contribution, to [Mini-Circuits](https://www.minicircuits.com/) for providing transformer samples through their [EZ-Sample](https://www.minicircuits.com/WebStore/ez_sample.html) program, to [Molex](https://www.molex.com/en-us/home) for supplying GPS receive antennas, and to [Samtec](https://www.samtec.com/) for providing RF cable assemblies.
 ![Sponsor-logos](./Resources/Sponsor-logos.png)
 
+## Licensing & terms of use
+This project follows a multi-license model. Please review the full [Licensing & terms of use](./DISCLAIMER.md) before using, modifying, or distributing any part of this project.
+
 ## How to contact me?
 - E-mail: igor.nikolaevich.96@gmail.com
 - Telegram: https://t.me/igrikxd

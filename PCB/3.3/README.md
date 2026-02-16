@@ -28,6 +28,11 @@
 >
 > Alternatively, you can use version [1.0](../1.0/README.md) and [2.0](../2.0/README.md) devices based on ATmega328P with the [wspr-beacon-1.1](../../Firmware/ATmega328P-based/wspr-beacon-1.1/) firmware, which is publicly available. These device versions **do not support [BEACON.App](../../App/README.md)** and can only be configured by modifying and rebuilding the firmware source code.
 
+## Hardware Licensing
+The device source files (_including schematics, PCB designs, and BOM_) are distributed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 ([_CC BY-NC-SA 4.0_](./LICENSE.md)) license.
+
+Commercial use, including the sale of assembled devices, kits, or PCBs produced from these files, is strictly prohibited. You are free to use these materials for personal, educational, and experimental purposes only. Any derivative works must be shared under the same non-commercial terms.
+
 ## PCB fabrication parameters
 > [!WARNING]
 > It is critical to strictly adhere to the specified parameters during PCB manufacturing!
