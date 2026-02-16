@@ -2,13 +2,13 @@
 This project follows a multi-license model. By using any part of this project, you agree to the following terms:
 
 ## License matrix
-| Component	                             | License	                         | Commercial Use               |
-|----------------------------------------|-----------------------------------|------------------------------|
-| Control Software (_Source, binaries_)  | GNU GPL v3.0	                     | Allowed (under GPLv3 terms)  |
-| Hardware (_Schematics, PCB_)           | CC BY-NC-SA 4.0                   | Prohibited                   |
-| Firmware (_ATmega328P based_)	         | GNU GPL v3.0                      | Allowed (under GPLv3 terms)  |
-| Firmware (_ESP32-C3 based_)	         | Proprietary / EULA                | Prohibited                   |
-| Project Name & Logo	                 | Trademark / Intellectual Property | Prohibited                   |
+| Component	                             | License	                         | Commercial Use                 |
+|----------------------------------------|-----------------------------------|--------------------------------|
+| Control Software (_Source, binaries_)  | GNU GPL v3.0	                     | Allowed (_under GPLv3 terms_)  |
+| Hardware (_Schematics, PCB_)           | CC BY-NC-SA 4.0                   | Prohibited                     |
+| Firmware (_ATmega328P based_)	         | GNU GPL v3.0                      | Allowed (_under GPLv3 terms_)  |
+| Firmware (_ESP32-C3 based_)	         | Proprietary / EULA                | Prohibited                     |
+| Project Name & Logo	                 | Trademark / Intellectual Property | Prohibited                     |
 
 ## Commercial use restrictions
 Usage of the following materials for commercial purposes is strictly prohibited without prior written consent from the author:
@@ -58,7 +58,7 @@ The following are not considered factory defects and are not covered:
 - Mechanical damage, signs of drops/impacts.
 - Device damage caused by operating into a mismatched load/antenna.
 - Device damage caused by connecting external amplifiers/modules.
-- Device damage caused by static discharge (ESD) or lightning.
+- Device damage caused by static discharge (_ESD_) or lightning.
 - Disassembly, alterations, self-repair, software/firmware modifications (_including via OTA_) that change the device’s operating mode.
 
 ## Statutory rights
