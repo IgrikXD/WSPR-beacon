@@ -1,17 +1,41 @@
+# Licensing & terms of use
+This project follows a multi-license model. By using any part of this project, you agree to the following terms:
+
+## License matrix
+| Component	                             | License	                         | Commercial Use               |
+|----------------------------------------|-----------------------------------|------------------------------|
+| Control Software (_Source, binaries_)  | GNU GPL v3.0	                     | Allowed (under GPLv3 terms)  |
+| Hardware (_Schematics, PCB_)           | CC BY-NC-SA 4.0                   | Prohibited                   |
+| Firmware (_ATmega328P based_)	         | GNU GPL v3.0                      | Allowed (under GPLv3 terms)  |
+| Firmware (_ESP32-C3 based_)	         | Proprietary / EULA                | Prohibited                   |
+| Project Name & Logo	                 | Trademark / Intellectual Property | Prohibited                   |
+
+## Commercial use restrictions
+Usage of the following materials for commercial purposes is strictly prohibited without prior written consent from the author:
+- **Hardware.** Production, assembly, and sale of PCBs, kits, or finished devices based on the provided designs.
+- **ESP32-C3 firmware.** Distribution, flashing onto devices for sale, or bundling with commercial products.
+- **Branding.** Using the name "WSPR-beacon", the author's nickname, or associated logos for marketing any products or services.
+- **Documentation.** Reproduction of project documentation for commercial manuals or guides.
+
 # Important
-This device is radio transmitting equipment and is intended for experimental use by licensed radio amateurs. The user is responsible for complying with local laws and radio regulations (_operating frequencies, output power, possession of a valid license and amateur radio callsign, antenna requirements, and output signal filtering_). The seller/designer is not liable for the consequences of misuse, modifications, incorrect configuration, or operation of the device, including interference, damage, or potential legal issues, to the extent permitted by applicable law.
+This device is radio transmitting equipment and is intended for experimental use by licensed radio amateurs. The user is responsible for: 
+- Complying with local laws and radio regulations (_operating frequencies, output power_). 
+- Possession of a valid amateur radio license and callsign.
+- Proper antenna installation and output signal filtering.
+
+The seller/designer is not liable for the consequences of misuse, modifications, incorrect configuration, or operation of the device, including interference, damage, or potential legal issues, to the extent permitted by applicable law.
 
 ## Intended use
 The device is an amateur-radio beacon (_transmitter_) for experimental operation on the following amateur bands: **2200m, 600m, 160m, 80m, 60m, 40m, 30m, 20m, 17m, 15m, 12m, 10m, 6m, 4m, 2m**.
-
-## Commercial use
-Usage of any WSPR-beacon project materials (_including schematics, PCB designs, firmware, and documentation_) for commercial purposes is strictly prohibited.
 
 ## Output power
 Output power is approximately **~23 dBm** (_~200 mW_) and is not a guaranteed or calibrated value. Actual performance depends on the power supply, temperature, load, filtering, and the antenna used.
 
 # Warnings and user responsibility
-The user is solely responsible for complying with the laws and regulatory requirements of their country/region, including holding a valid license and amateur radio callsign, selecting the correct frequency/sub-band, observing output power and duty-cycle limits, and meeting any other requirements imposed by the local regulator.
+The user is solely responsible for:
+- Complying with the laws and regulatory requirements of their country/region, including holding a valid license and amateur radio callsign.
+- Selecting the correct frequency/sub-band, observing output power and duty-cycle limits.
+- Meeting any other requirements imposed by the local regulator.
 
 ## Interference and cessation of operation
 If interference to other radio services/devices occurs, the user must immediately stop transmitting and eliminate the cause (_incorrect device configuration, insufficient output filtering, unsuitable antenna, high SWR, excessive output power, improper transmitter placement, etc._).
@@ -30,10 +54,11 @@ If, within **14 calendar days** from receipt of the device, a hardware defect at
 
 ## Exclusions
 The following are not considered factory defects and are not covered:
-- Incorrect wiring/power, overvoltage, overheating, moisture/corrosion;
-- Mechanical damage, signs of drops/impacts;
-- Device damage caused by operating into a mismatched load/antenna;
-- Device damage caused by connecting external amplifiers/modules;
+- Incorrect wiring/power, overvoltage, overheating, moisture/corrosion.
+- Mechanical damage, signs of drops/impacts.
+- Device damage caused by operating into a mismatched load/antenna.
+- Device damage caused by connecting external amplifiers/modules.
+- Device damage caused by static discharge (ESD) or lightning.
 - Disassembly, alterations, self-repair, software/firmware modifications (_including via OTA_) that change the device’s operating mode.
 
 ## Statutory rights
