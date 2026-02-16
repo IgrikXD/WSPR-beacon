@@ -38,7 +38,7 @@ Many thanks to [RTL-SDR.COM](https://www.rtl-sdr.com/) for providing RTL-SDR.COM
 ![Sponsor-logos](./Resources/Sponsor-logos.png)
 
 ## Licensing & terms of use
-This project follows a multi-license model. Please review the full [Licensing & terms of use](./DISCLAIMER.md) before using, modifying, or distributing any part of this project.
+This project follows a multi-license model. Please review the full [licensing & terms of use](./DISCLAIMER.md) before using, modifying, or distributing any part of this project.
 
 ## How to contact me?
 - E-mail: igor.nikolaevich.96@gmail.com
