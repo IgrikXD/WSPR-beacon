@@ -66,8 +66,7 @@ class BeaconApp(customtkinter.CTk):
                                                          ) if transport is None else None],
             Device.Message.Incoming.ACTIVE_TX_MODE:     [transmission_frame.set_active_tx_mode,
                                                          spots_database_frame.set_active_tx_mode,
-                                                         lambda active_tx_mode:
-                                                            self._handle_active_tx_mode_tab_lock(
+                                                         lambda active_tx_mode: self._handle_active_tx_mode_tab_lock(
                                                                 active_tx_mode,
                                                                 self_check_frame,
                                                                 settings_frame)],
@@ -101,8 +100,7 @@ class BeaconApp(customtkinter.CTk):
             Device.Message.Incoming.SELF_CHECK_STATUS:  [self_check_frame.update_self_check_status],
             Device.Message.Incoming.TX_ACTION_STATUS:   [transmission_frame.update_tx_message_action_status],
             Device.Message.Incoming.TX_STATUS:          [transmission_frame.update_tx_status,
-                                                         lambda tx_status:
-                                                            self._handle_tx_status_tab_unlock(
+                                                         lambda tx_status: self._handle_tx_status_tab_unlock(
                                                                 tx_status,
                                                                 self_check_frame,
                                                                 settings_frame)],
