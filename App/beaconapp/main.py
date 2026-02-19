@@ -27,7 +27,10 @@ class BeaconApp(customtkinter.CTk):
         self.device = Device()
         # Load the default configuration from a file
         self.config = Config("config.json")
-        self.app_configuration(self.config)
+        # Track TX status for deferred tab unlocking
+        self._tx_active = False
+        self._unlock_pending = False
+        self._app_configuration(self.config)
         # Create the navigation widget
         navigation_frame = NavigationWidget(self)
         # Create the "Transmission" widget
@@ -52,6 +55,7 @@ class BeaconApp(customtkinter.CTk):
             Device.Message.Incoming.ACTIVE_TRANSPORT:   [navigation_frame.set_connection_status,
                                                          # Handle device disconnection
                                                          lambda transport: (
+                                                            self._reset_tab_lock_state(),
                                                             transmission_frame.update_gps_status(False),
                                                             transmission_frame.update_cal_status(False),
                                                             transmission_frame.update_tx_status(False),
@@ -62,10 +66,11 @@ class BeaconApp(customtkinter.CTk):
                                                          ) if transport is None else None],
             Device.Message.Incoming.ACTIVE_TX_MODE:     [transmission_frame.set_active_tx_mode,
                                                          spots_database_frame.set_active_tx_mode,
-                                                         lambda active_tx_mode: self_check_frame.change_state(
-                                                            "disabled" if active_tx_mode.tx_mode else "normal"),
-                                                         lambda active_tx_mode: settings_frame.change_state(
-                                                            "disabled" if active_tx_mode.tx_mode else "normal")],
+                                                         lambda active_tx_mode:
+                                                            self._handle_active_tx_mode_tab_lock(
+                                                                active_tx_mode,
+                                                                self_check_frame,
+                                                                settings_frame)],
             Device.Message.Incoming.CAL_FREQ_GENERATED: [settings_frame.set_calibration_freq_status,
                                                          lambda cal_freq_generated: transmission_frame.change_state(
                                                             "disabled" if cal_freq_generated else "normal"),
@@ -87,7 +92,7 @@ class BeaconApp(customtkinter.CTk):
                                                          settings_frame.update_gps_status],
             Device.Message.Incoming.HARDWARE_INFO:      [self_check_frame.update_hardware_info],
             Device.Message.Incoming.QTH_LOCATOR:        [transmission_frame.update_qth_locator],
-            Device.Message.Incoming.PROTOCOL_ERROR:     [self.protocol_error_handler],
+            Device.Message.Incoming.PROTOCOL_ERROR:     [self._protocol_error_handler],
             Device.Message.Incoming.SELF_CHECK_ACTION:  [self_check_frame.update_self_check_action_status],
             Device.Message.Incoming.SELF_CHECK_ACTIVE:  [lambda self_check_active: transmission_frame.change_state(
                                                             "disabled" if self_check_active else "normal"),
@@ -95,7 +100,12 @@ class BeaconApp(customtkinter.CTk):
                                                             "disabled" if self_check_active else "normal")],
             Device.Message.Incoming.SELF_CHECK_STATUS:  [self_check_frame.update_self_check_status],
             Device.Message.Incoming.TX_ACTION_STATUS:   [transmission_frame.update_tx_message_action_status],
-            Device.Message.Incoming.TX_STATUS:          [transmission_frame.update_tx_status],
+            Device.Message.Incoming.TX_STATUS:          [transmission_frame.update_tx_status,
+                                                         lambda tx_status:
+                                                            self._handle_tx_status_tab_unlock(
+                                                                tx_status,
+                                                                self_check_frame,
+                                                                settings_frame)],
             Device.Message.Incoming.WIFI_SSID_DATA:     [settings_frame.set_wifi_data],
             Device.Message.Incoming.WIFI_STATUS:        [settings_frame.update_wifi_status,
                                                          lambda wifi_status: transmission_frame.change_state(
@@ -111,7 +121,7 @@ class BeaconApp(customtkinter.CTk):
         # Select the default frame
         navigation_frame.select_frame_by_name("transmission")
 
-    def app_configuration(self, config: Config):
+    def _app_configuration(self, config: Config):
         """
         Configure the application: title, icon, minimum window size, theme, and UI scaling.
         """
@@ -140,9 +150,52 @@ class BeaconApp(customtkinter.CTk):
         self.grid_columnconfigure(1, weight=1)
 
         # Handle the window close event
-        self.protocol("WM_DELETE_WINDOW", self.update_default_config_and_close_app)
+        self.protocol("WM_DELETE_WINDOW", self._update_default_config_and_close_app)
 
-    def protocol_error_handler(self, error_message: str):
+    def _reset_tab_lock_state(self):
+        """
+        Reset the tab lock state tracking variables.
+        """
+        self._tx_active = False
+        self._unlock_pending = False
+
+    def _handle_active_tx_mode_tab_lock(self, active_tx_mode, *frames):
+        """
+        Handle tab locking/unlocking when ACTIVE_TX_MODE changes.
+        If the mode is cleared but the device is still transmitting,
+        defer unlocking until transmission completes.
+
+        Args:
+            active_tx_mode: An instance of ActiveTXMode.
+            *frames: Widget frames to lock/unlock.
+        """
+        if active_tx_mode.tx_mode:
+            self._unlock_pending = False
+            for frame in frames:
+                frame.change_state("disabled")
+        else:
+            if self._tx_active:
+                self._unlock_pending = True
+            else:
+                self._unlock_pending = False
+                for frame in frames:
+                    frame.change_state("normal")
+
+    def _handle_tx_status_tab_unlock(self, tx_status, *frames):
+        """
+        Track TX_STATUS and perform deferred tab unlocking when transmission ends.
+
+        Args:
+            tx_status: Boolean indicating if transmission is active.
+            *frames: Widget frames to unlock when transmission ends.
+        """
+        self._tx_active = tx_status
+        if not tx_status and self._unlock_pending:
+            self._unlock_pending = False
+            for frame in frames:
+                frame.change_state("normal")
+
+    def _protocol_error_handler(self, error_message: str):
         """
         Handle protocol error messages received from the device by displaying a warning message box.
         """
@@ -153,7 +206,7 @@ class BeaconApp(customtkinter.CTk):
             "and that your device firmware is up to date."
         )
 
-    def update_default_config_and_close_app(self):
+    def _update_default_config_and_close_app(self):
         """
         Save the current configuration, properly disconnect from device, and close the app.
         """
