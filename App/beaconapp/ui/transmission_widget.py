@@ -55,7 +55,7 @@ class TransmissionWidget:
                 ("<Return>", self._wspr_set_as_active_mode_button_pressed)]
         )
 
-        # WSPR _changedmode -> QTH locator
+        # WSPR mode -> QTH locator
         self.wspr_qth_locator_entry = Widgets.create_entry_with_label(
             wspr_mode_frame,
             row=1,
@@ -68,7 +68,7 @@ class TransmissionWidget:
                 ("<Return>", self._wspr_set_as_active_mode_button_pressed)]
         )
 
-        # WSPR _changedmode -> Output power
+        # WSPR mode -> Output power
         self.wspr_output_power_entry = Widgets.create_entry_with_label(
             wspr_mode_frame,
             row=2,
@@ -92,7 +92,7 @@ class TransmissionWidget:
             command=self._check_if_wspr_mode_parameters_changed
         )
 
-        # WSPR _changedmode -> Active band
+        # WSPR mode -> Active band
         self.wspr_active_band_option = Widgets.create_option_menu_with_label(
             wspr_mode_frame,
             row=4,
@@ -103,7 +103,7 @@ class TransmissionWidget:
             command=self._check_if_wspr_mode_parameters_changed
         )
 
-        # WSPR _changedmode -> Set as active mode
+        # WSPR mode -> Set as active mode
         self.wspr_set_as_active_mode_button = customtkinter.CTkButton(
             self.mode_selection_view.tab("WSPR"),
             width=200,
