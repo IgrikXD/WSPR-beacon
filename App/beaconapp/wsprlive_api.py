@@ -24,6 +24,9 @@ class WsprLiveApi:
         2: "144"
     }
 
+    ALLOWED_ORDER_BY = {"time", "snr", "drift", "distance"}
+    ALLOWED_ORDER_DIRECTION = {"ASC", "DESC"}
+
     @classmethod
     def _fetch_data(cls, query):
         """
@@ -40,7 +43,13 @@ class WsprLiveApi:
         Fetches WSPR spots data for a specific band, transmitter call sign, and query parameters.
         """
         if band not in cls.FREQUENCY_MAPPING:
-            raise ValueError
+            raise ValueError(f"Invalid band: {band}")
+        if order_by not in cls.ALLOWED_ORDER_BY:
+            raise ValueError(f"Invalid order_by: {order_by}")
+        if order_direction not in cls.ALLOWED_ORDER_DIRECTION:
+            raise ValueError(f"Invalid order_direction: {order_direction}")
+        if not str(records_amount).isdigit():
+            raise ValueError(f"Invalid records_amount: {records_amount}")
 
         return cls._fetch_data(
             f"SELECT * FROM rx "

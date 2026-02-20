@@ -46,12 +46,18 @@ def urlopen_no_connection_mock(url):
 
 
 @pytest.mark.unit
-def test_invalid_band_raises_error():
+@pytest.mark.parametrize("band, tx_call, order_by, order_direction, records_amount, expected_error", [
+    ("1m", "N0CALL", "time", "DESC", 10, "Invalid band"),
+    (2, "N0CALL", "DROP TABLE rx;--", "DESC", 10, "Invalid order_by"),
+    (2, "N0CALL", "time", "DROP", 10, "Invalid order_direction"),
+    (2, "N0CALL", "time", "DESC", "abc", "Invalid records_amount"),
+])
+def test_invalid_query_parameters_raise_error(band, tx_call, order_by, order_direction, records_amount, expected_error):
     """
-    Test that get_wspr_spots_data raises ValueError when an invalid band is provided.
+    Test that get_wspr_spots_data raises ValueError when invalid query parameters are provided.
     """
-    with pytest.raises(ValueError):
-        WsprLiveApi.get_wspr_spots_data("1m", "N0CALL", "time", "DESC", 10)
+    with pytest.raises(ValueError, match=expected_error):
+        WsprLiveApi.get_wspr_spots_data(band, tx_call, order_by, order_direction, records_amount)
 
 
 @pytest.mark.unit
