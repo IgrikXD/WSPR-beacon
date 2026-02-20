@@ -74,7 +74,7 @@ class ActiveTXMode:
 
     @classmethod
     def from_json(cls, json_data):
-        if not json_data:
+        if not isinstance(json_data, dict):
             return cls()
 
         return cls(
@@ -107,4 +107,7 @@ class WiFiData:
 
     @classmethod
     def from_json(cls, json_data):
+        if not isinstance(json_data, dict):
+            return cls()
+
         return cls(**json_data)

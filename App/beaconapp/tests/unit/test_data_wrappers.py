@@ -131,6 +131,61 @@ def test_active_tx_mode_to_json_param(input_value, expected_value):
             "transmit_every": TransmitEvery.MINUTES_10,
             "active_band": Band.BAND_2200M
         }
+    ),
+    (
+        None,  # None should yield default values
+        {
+            "tx_mode": None,
+            "tx_call": None,
+            "qth_locator": None,
+            "output_power": None,
+            "transmit_every": None,
+            "active_band": None
+        }
+    ),
+    (
+        42,  # Non-dict type should yield default values
+        {
+            "tx_mode": None,
+            "tx_call": None,
+            "qth_locator": None,
+            "output_power": None,
+            "transmit_every": None,
+            "active_band": None
+        }
+    ),
+    (
+        "string",  # String should yield default values
+        {
+            "tx_mode": None,
+            "tx_call": None,
+            "qth_locator": None,
+            "output_power": None,
+            "transmit_every": None,
+            "active_band": None
+        }
+    ),
+    (
+        [1, 2, 3],  # List should yield default values
+        {
+            "tx_mode": None,
+            "tx_call": None,
+            "qth_locator": None,
+            "output_power": None,
+            "transmit_every": None,
+            "active_band": None
+        }
+    ),
+    (
+        True,  # Bool should yield default values
+        {
+            "tx_mode": None,
+            "tx_call": None,
+            "qth_locator": None,
+            "output_power": None,
+            "transmit_every": None,
+            "active_band": None
+        }
     )
 ])
 @pytest.mark.unit
@@ -187,6 +242,46 @@ def test_wifi_credentials_to_json_param(ssid, password):
     ),
     (
         {},  # Empty dictionary should yield default values
+        {
+            "ssid": None,
+            "password": None,
+            "connect_at_startup": False,
+        }
+    ),
+    (
+        None,  # None should yield default values
+        {
+            "ssid": None,
+            "password": None,
+            "connect_at_startup": False,
+        }
+    ),
+    (
+        42,  # Non-dict type should yield default values
+        {
+            "ssid": None,
+            "password": None,
+            "connect_at_startup": False,
+        }
+    ),
+    (
+        "string",  # String should yield default values
+        {
+            "ssid": None,
+            "password": None,
+            "connect_at_startup": False,
+        }
+    ),
+    (
+        [1, 2, 3],  # List should yield default values
+        {
+            "ssid": None,
+            "password": None,
+            "connect_at_startup": False,
+        }
+    ),
+    (
+        True,  # Bool should yield default values
         {
             "ssid": None,
             "password": None,
