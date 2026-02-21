@@ -19,7 +19,7 @@ The transmitted WSPR message's correctness was verified by decoding the transmis
 [![BeaconApp](./Resources/BeaconApp-Transmission-frame.png)](./App/README.md)
 
 ## How to use this repository?
-The [Firmware](./Firmware/) directory contains the software required for device operation, along with [firmware installation instructions](./Firmware/ESP32C3-based/README.md). The [PCB](./PCB/) directory contains everything required for factory manufacturing and assembly, including the **Gerber**, **BOM**, **schematic** and **assembly guide** for different device revisions.
+The [App](./App/) directory contains the source code and [build instructions](./App/README.md) for **BEACON.App** - a cross-platform GUI application for configuring and managing the device via USB or Wi-Fi. The [Firmware](./Firmware/) directory contains the software required for device operation, along with [firmware installation instructions](./Firmware/ESP32C3-based/README.md). The [PCB](./PCB/) directory contains everything required for factory manufacturing and assembly, including the **Gerber**, **BOM**, **schematic** and **assembly guide** for different device revisions. 
 
 For device usage details, refer to the [operating instructions](./Firmware/ESP32C3-based/Usage-guide.md).
 
