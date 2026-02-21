@@ -14,7 +14,7 @@ Your support helps me continue developing open-source projects like [WSPR-beacon
 [![GitHub Actions: Firmware build status][Firmware-build-badge]](https://github.com/IgrikXD/WSPR-beacon/actions/workflows/firmware-build.yml)&nbsp;[![Progress](https://img.shields.io/badge/latest%20firmware%20version-2.0-blue.svg?longCache=true&style=for-the-badge)](./Firmware)  
 [![GitHub Actions: App build Windows status][App-build-Windows-badge]](https://github.com/IgrikXD/WSPR-beacon/actions/workflows/app-build-windows.yml)&nbsp;[![GitHub Actions: App build Linux status][App-build-Linux-badge]](https://github.com/IgrikXD/WSPR-beacon/actions/workflows/app-build-linux.yml)&nbsp;[![Progress](https://img.shields.io/badge/latest%20app%20version-1.0-blue.svg?longCache=true&style=for-the-badge)](./App) 
 
-The transmitted WSPR message's correctness was verified by decoding the transmission using a locally located Airspy R2 SDR receiver and the [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) application. Also, you can see the [results of testing the device during long-distance WSPR message transmission](./Device-test-report.md).
+The transmitted WSPR message's correctness was verified by decoding the transmission using a locally located [RTL-SDR.COM V.4 SDR receiver](https://www.rtl-sdr.com/buy-rtl-sdr-dvb-t-dongles/) and the [WSJT-X](https://wsjt.sourceforge.io/wsjtx.html) application. Also, you can see the [results of testing the device during long-distance WSPR message transmission](./Device-test-report.md).
 
 [![BeaconApp](./Resources/BeaconApp-Transmission-frame.png)](./App/README.md)
 
