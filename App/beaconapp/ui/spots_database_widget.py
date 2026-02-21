@@ -213,7 +213,7 @@ class SpotsDatabaseWidget:
         self.extract_button.focus_set()
         self.extract_button.configure(
             state="disabled",
-            text="Extraction ...",
+            text="Extraction...",
             fg_color=["#3B8ED0", "#1F6AA5"],
             text_color_disabled=["#DCE4EE", "#DCE4EE"])
 

@@ -72,7 +72,7 @@ The **Extract the latest** field allows you to choose how many of the most recen
 
 The **Sort by** field allows you to select the spot sorting method (_Time, SNR, Drift, Distance_).
 
-The **Extract** button downloads spots for the currently set active transmission mode using the [WSPR.live API](https://wspr.live/). During execution, the button state changes to **Running...**. After completion, the downloaded spots are displayed in the table.
+The **Extract** button downloads spots for the currently set active transmission mode using the [WSPR.live API](https://wspr.live/). During execution, the button state changes to **Extraction...**. After completion, the downloaded spots are displayed in the table.
 
 Results:
 - **Extracted!** - The spot list was successfully downloaded and displayed in the table
