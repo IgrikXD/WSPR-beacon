@@ -23,6 +23,13 @@ The [Firmware](./Firmware/) directory contains the software required for device 
 
 For device usage details, refer to the [operating instructions](./Firmware/ESP32C3-based/Usage-guide.md).
 
+> [!IMPORTANT]
+> **The project includes several device versions that are distributed under different terms.**
+>
+> Devices based on the **ATmega328P MCU** (_PCB versions [1.0](./PCB/1.0/) and [2.0](./PCB/2.0/)_) and the [firmware](./Firmware/ATmega328P-based/README.md) provided for them are fully open-source and available for self-manufacturing.
+>
+> Devices based on the **ESP32-C3 SoC** (_PCB version [3.3](./PCB/3.3/) and later_) have an open-hardware design but closed, proprietary [firmware](./Firmware/ESP32C3-based/README.md) that is distributed only as a pre-encrypted and signed binary form. The firmware runs only on devices with explicitly provisioned Flash Encryption and Secure Boot v2 keys. **It is not possible to run the publicly distributed firmware on self-assembled devices!** You can either develop your own firmware for ESP32-C3-based devices, or [purchase a ready-made device](https://linktr.ee/wsprbeacon) that can run the publicly distributed firmware.
+
 ## Resources
 [A Little WSPR Beacon (Aren’t They All Little?) – Dave Richards AA7EE](https://aa7ee.wordpress.com/2023/02/26/a-little-wspr-beacon-arent-they-all-little/)  
 [Bifilar and trifilar PA](https://qrp-labs.com/ultimate3/u3info/u3sbifilar.html)  
