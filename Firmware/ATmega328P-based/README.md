@@ -1,7 +1,7 @@
 # Firmware instructions
 
 > [!NOTE]
-> This firmware version is **compatible only** with devices based on the **ATmega328P** (versions [1.0](../../PCB/1.0/README.md) and [2.0](../../PCB/2.0/README.md))!
+> This firmware version is **compatible only** with devices based on the **ATmega328P** (_versions [1.0](../../PCB/1.0/README.md) and [2.0](../../PCB/2.0/README.md)_)!
 
 ## Select the board:
 Open [Arduino IDE](https://www.arduino.cc/en/software), go to "_Tools_" -> "_Board_", then select  "_Arduino Nano_".
