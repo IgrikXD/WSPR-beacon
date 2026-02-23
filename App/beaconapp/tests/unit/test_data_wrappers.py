@@ -35,7 +35,7 @@ def test_active_tx_mode_defaults_param(input_value, expected_value):
 @pytest.mark.parametrize("input_value", [
     {
         "tx_mode": TXMode.WSPR,
-        "tx_call": "N0CALL",
+        "tx_call": "XX0YYY",
         "qth_locator": "XX00",
         "output_power": 23,
         "transmit_every": TransmitEvery.MINUTES_10,
@@ -60,7 +60,7 @@ def test_active_tx_mode_clear_param(input_value):
     (
         # Without tx_mode set
         {
-            "tx_call": "N0CALL",
+            "tx_call": "XX0YYY",
             "qth_locator": "XX00",
             "output_power": 23,
             "transmit_every": TransmitEvery.MINUTES_10,
@@ -68,7 +68,7 @@ def test_active_tx_mode_clear_param(input_value):
         },
         {
             "tx_mode": None,
-            "tx_call": "N0CALL",
+            "tx_call": "XX0YYY",
             "qth_locator": "XX00",
             "output_power": 23,
             "transmit_every": 10,
@@ -79,7 +79,7 @@ def test_active_tx_mode_clear_param(input_value):
         # With tx_mode set
         {
             "tx_mode": TXMode.WSPR,
-            "tx_call": "N0CALL",
+            "tx_call": "XX0YYY",
             "qth_locator": "XX00",
             "output_power": 23,
             "transmit_every": TransmitEvery.MINUTES_10,
@@ -87,7 +87,7 @@ def test_active_tx_mode_clear_param(input_value):
         },
         {
             "tx_mode": 1,
-            "tx_call": "N0CALL",
+            "tx_call": "XX0YYY",
             "qth_locator": "XX00",
             "output_power": 23,
             "transmit_every": 10,
@@ -117,7 +117,7 @@ def test_active_tx_mode_to_json_param(input_value, expected_value):
     (
         {
             "tx_mode": 1,
-            "tx_call": "N0CALL",
+            "tx_call": "XX0YYY",
             "qth_locator": "XX00",
             "output_power": 23,
             "transmit_every": 10,
@@ -125,7 +125,7 @@ def test_active_tx_mode_to_json_param(input_value, expected_value):
         },
         {
             "tx_mode": TXMode.WSPR,
-            "tx_call": "N0CALL",
+            "tx_call": "XX0YYY",
             "qth_locator": "XX00",
             "output_power": 23,
             "transmit_every": TransmitEvery.MINUTES_10,

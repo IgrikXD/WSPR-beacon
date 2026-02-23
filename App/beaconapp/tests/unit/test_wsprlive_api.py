@@ -47,10 +47,10 @@ def urlopen_no_connection_mock(url):
 
 @pytest.mark.unit
 @pytest.mark.parametrize("band, tx_call, order_by, order_direction, records_amount, expected_error", [
-    ("1m", "N0CALL", "time", "DESC", 10, "Invalid band"),
-    (2, "N0CALL", "DROP TABLE rx;--", "DESC", 10, "Invalid order_by"),
-    (2, "N0CALL", "time", "DROP", 10, "Invalid order_direction"),
-    (2, "N0CALL", "time", "DESC", "abc", "Invalid records_amount"),
+    ("1m", "XX0YYY", "time", "DESC", 10, "Invalid band"),
+    (2, "XX0YYY", "DROP TABLE rx;--", "DESC", 10, "Invalid order_by"),
+    (2, "XX0YYY", "time", "DROP", 10, "Invalid order_direction"),
+    (2, "XX0YYY", "time", "DESC", "abc", "Invalid records_amount"),
 ])
 def test_invalid_query_parameters_raise_error(band, tx_call, order_by, order_direction, records_amount, expected_error):
     """
@@ -68,7 +68,7 @@ def test_get_wspr_spots_data_no_internet(monkeypatch):
     # Mock urllib.request.urlopen with our urlopen_no_connection_mock function
     monkeypatch.setattr(urllib.request, "urlopen", urlopen_no_connection_mock)
     with pytest.raises(urllib.error.URLError):
-        WsprLiveApi.get_wspr_spots_data(2, "N0CALL", "time", "DESC", 10)
+        WsprLiveApi.get_wspr_spots_data(2, "XX0YYY", "time", "DESC", 10)
 
 
 @pytest.mark.unit
@@ -78,7 +78,7 @@ def test_get_wspr_spots_data_returns_empty_list_when_no_data(monkeypatch):
     """
     # Mock urllib.request.urlopen with urlopen_no_data_mock function
     monkeypatch.setattr(urllib.request, "urlopen", urlopen_no_data_mock)
-    assert WsprLiveApi.get_wspr_spots_data(2, "N0CALL", "time", "DESC", 10) == []
+    assert WsprLiveApi.get_wspr_spots_data(2, "XX0YYY", "time", "DESC", 10) == []
 
 
 @pytest.mark.unit
@@ -88,12 +88,12 @@ def test_get_wspr_spots_data_constructs_correct_query(monkeypatch):
     """
     # Mock urllib.request.urlopen with urlopen_success_mock function
     monkeypatch.setattr(urllib.request, "urlopen", urlopen_success_mock)
-    data = WsprLiveApi.get_wspr_spots_data(2, "N0CALL", "time", "DESC", 10)
+    data = WsprLiveApi.get_wspr_spots_data(2, "XX0YYY", "time", "DESC", 10)
 
     assert len(data) == 10
     for item in data:
         assert item.get("time") in ["2024-07-14 20:00:00", "2024-07-14 20:10:00", "2024-07-14 20:20:00"]
-        assert item.get("tx_sign") == "N0CALL"
+        assert item.get("tx_sign") == "XX0YYY"
         assert item.get("tx_loc") == "XX00"
         assert item.get("tx_lat") == 55.479
         assert item.get("tx_lon") == 22.958

@@ -77,7 +77,7 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
         ({"type": "ACTIVE_TX_MODE",
           "data": {
               "tx_mode": 1,
-              "tx_call": "N0CALL",
+              "tx_call": "XX0YYY",
               "qth_locator": "XX00",
               "output_power": 23,
               "transmit_every": 10,
@@ -85,7 +85,7 @@ def test_decide_active_transport(connected_transports, requested_transport, prio
             }
           },
          Device.Message.Incoming.ACTIVE_TX_MODE,
-         ActiveTXMode(TXMode.WSPR, "N0CALL", "XX00", 23, TransmitEvery.MINUTES_10, Band.BAND_2200M)),
+         ActiveTXMode(TXMode.WSPR, "XX0YYY", "XX00", 23, TransmitEvery.MINUTES_10, Band.BAND_2200M)),
         # Incoming: ACTIVE_TX_MODE: empty ActiveTXMode
         ({"type": "ACTIVE_TX_MODE", "data": None},
          Device.Message.Incoming.ACTIVE_TX_MODE,
@@ -237,12 +237,12 @@ def test_decode_device_message(incoming_json, expected_type, expected_data):
         # Outgoing: SET_ACTIVE_TX_MODE: ActiveTXMode
         (
             Device.Message.Outgoing.SET_ACTIVE_TX_MODE,
-            ActiveTXMode(TXMode.WSPR, "N0CALL", "XX00", 23, TransmitEvery.MINUTES_10, Band.BAND_2200M),
+            ActiveTXMode(TXMode.WSPR, "XX0YYY", "XX00", 23, TransmitEvery.MINUTES_10, Band.BAND_2200M),
             (
                 '{'
                 '"type": "SET_ACTIVE_TX_MODE", '
                 '"data": {"tx_mode": 1, '
-                '"tx_call": "N0CALL", '
+                '"tx_call": "XX0YYY", '
                 '"qth_locator": "XX00", '
                 '"output_power": 23, '
                 '"transmit_every": 10, '
@@ -381,14 +381,14 @@ def test_set_device_response_handlers(existing_handlers, new_handlers, expected_
                 "type": "ACTIVE_TX_MODE",
                 "data": {
                     "tx_mode": 1,
-                    "tx_call": "N0CALL",
+                    "tx_call": "XX0YYY",
                     "qth_locator": "AB12",
                     "output_power": 10,
                     "transmit_every": 2,
                     "active_band": 40
                 }
             },
-            ActiveTXMode(TXMode.WSPR, "N0CALL", "AB12", 10, TransmitEvery.MINUTES_2, Band.BAND_40M)
+            ActiveTXMode(TXMode.WSPR, "XX0YYY", "AB12", 10, TransmitEvery.MINUTES_2, Band.BAND_40M)
         ),
         # Incoming: WIFI_STATUS: Status("connected")
         (

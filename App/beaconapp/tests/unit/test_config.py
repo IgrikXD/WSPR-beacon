@@ -33,7 +33,7 @@ def temp_config_file(tmp_path):
             None,
             {
                 "default_tx_mode": TXMode.WSPR,
-                "default_tx_call": "N0CALL",
+                "default_tx_call": "XX0YYY",
                 "default_qth_locator": "XX00",
                 "default_output_power": 23,
                 "default_transmit_every": TransmitEvery.MINUTES_2,
@@ -49,7 +49,7 @@ def temp_config_file(tmp_path):
             {},
             {
                 "default_tx_mode": TXMode.WSPR,
-                "default_tx_call": "N0CALL",
+                "default_tx_call": "XX0YYY",
                 "default_qth_locator": "XX00",
                 "default_output_power": 23,
                 "default_transmit_every": TransmitEvery.MINUTES_2,
@@ -136,9 +136,9 @@ def test_config_load(patch_get_config_path, temp_config_file, config_file_exists
 @pytest.mark.parametrize(
     "initial_call, new_call",
     [
-        ("N0CALL", "R1ABC"),
+        ("XX0YYY", "R1ABC"),
         ("R1ABC", "K2XYZ"),
-        ("N0CALL", "MYCALL")
+        ("XX0YYY", "MYCALL")
     ]
 )
 @pytest.mark.unit

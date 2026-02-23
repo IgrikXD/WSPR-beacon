@@ -8,7 +8,7 @@ class Config:
     def __init__(self, config_file_name):
         # Default values used in case of missing overridden values in the configuration file
         self._default_tx_mode = TXMode.WSPR.value
-        self._default_tx_call = "N0CALL"
+        self._default_tx_call = "XX0YYY"
         self._default_qth_locator = "XX00"
         self._default_output_power = 23
         self._default_transmit_every = TransmitEvery.MINUTES_2.value
