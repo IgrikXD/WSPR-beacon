@@ -32,4 +32,4 @@ jobs:
       - name: Lint code
         run: |
           cd App
-          flake8 . --max-line-length 120
+          flake8 .
