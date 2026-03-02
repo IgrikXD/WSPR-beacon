@@ -34,7 +34,7 @@ Allows you to select the active transmission mode (_currently only WSPR is avail
 The **Set as active mode** button activates the configured transmission mode. After successful activation, the button changes state to **Activated!**.
 
 > [!NOTE]
-> When an active transmission mode is set, any actions in the **Self-check** and **Settings** tabs are blocked until the active transmission mode is reset!
+> When an active transmission mode is set, any actions in the **Self-check** and **Settings** tabs are blocked until the active transmission mode is reset or the active transmission is completed!
 
 ### Transmission details block
 The **Active mode details** field displays brief information about the currently set transmission mode in the following format:
@@ -72,7 +72,7 @@ The **Extract the latest** field allows you to choose how many of the most recen
 
 The **Sort by** field allows you to select the spot sorting method (_Time, SNR, Drift, Distance_).
 
-The **Extract** button downloads spots for the currently set active transmission mode using the [WSPR.live API](https://wspr.live/). During execution, the button state changes to **Running...**. After completion, the downloaded spots are displayed in the table.
+The **Extract** button downloads spots for the currently set active transmission mode using the [WSPR.live API](https://wspr.live/). During execution, the button state changes to **Extraction...**. After completion, the downloaded spots are displayed in the table.
 
 Results:
 - **Extracted!** - The spot list was successfully downloaded and displayed in the table
@@ -84,7 +84,7 @@ After 2 seconds, the button returns to the **Extract** state, allowing you to re
 Used to diagnose the device hardware and update the firmware.
 
 > [!NOTE]
-> Available only when no active transmission mode is set!
+> Available only when no active transmission mode is set and no transmission is in progress!
 
 ### Hardware test block
 The **Self-check** field displays the logs during hardware self-check execution.
@@ -123,7 +123,7 @@ After 2 seconds, the button returns to the **Update** state, allowing you to che
 Used to change the global settings of the device and UI parameters of the [BEACON.App].
 
 > [!NOTE]
-> Available only when no active transmission mode is set!
+> Available only when no active transmission mode is set and no transmission is in progress!
 
 ### Device calibration block
 The **Calibration value** field is used to display or adjust the current calibration value of the internal SI5351 IC (_in ppb_).
