@@ -47,7 +47,7 @@ class WebsocketTransport(BaseTransport):
                 # Receive messages until connection is closed or cancelled
                 await self._websocket_receiver(self._websocket)
 
-            except (OSError, socket.gaierror, TimeoutError):
+            except (OSError, socket.gaierror):
                 # Expected connection errors, will retry
                 pass
 

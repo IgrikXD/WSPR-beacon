@@ -431,7 +431,7 @@ class SettingsWidget:
         Args:
             value (str): Selected option for Wi-Fi connection at device startup ("Enabled" or "Disabled").
         """
-        self.device.set_ssid_connect_at_startup(True if value == "Enabled" else False)
+        self.device.set_ssid_connect_at_startup(value == "Enabled")
 
     def _wifi_connection_button_pressed(self):
         """

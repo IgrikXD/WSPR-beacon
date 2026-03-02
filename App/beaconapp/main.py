@@ -8,6 +8,7 @@ from beaconapp.ui.spots_database_widget import SpotsDatabaseWidget
 from beaconapp.ui.transmission_widget import TransmissionWidget
 
 import atexit
+import contextlib
 import customtkinter
 import os
 import psutil
@@ -241,11 +242,8 @@ def check_already_running() -> bool:
             os.remove(LOCK_FILE)
         except (ValueError, OSError):
             # If PID could not be read or something went wrong, remove the file
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(LOCK_FILE)
-            except OSError:
-                # Lock file already removed or inaccessible — safe to ignore
-                pass
     return False
 
 

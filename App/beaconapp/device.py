@@ -304,9 +304,8 @@ class Device:
             self._connected_transports.remove(transport_type)
 
         # If USB is disconnected, we assume the device has lost power, and remove Wi-Fi as well
-        if transport_type == Transport.USB:
-            if Transport.WIFI in self._connected_transports:
-                self._connected_transports.remove(Transport.WIFI)
+        if transport_type == Transport.USB and Transport.WIFI in self._connected_transports:
+            self._connected_transports.remove(Transport.WIFI)
 
         self._decide_active_transport()
 
@@ -615,16 +614,15 @@ class Device:
             self.disconnect()
 
             # Flash firmware to the device (suppressing esptool output unless in debug mode)
-            with nullcontext() if is_debug_mode() else self._suppress_output():
-                with detect_chip(port) as esp:
-                    attach_flash(esp)
-                    # Erase otadata partition to reset boot partition selection
-                    # Use "force" flag required according to enabled Flash Encryption & Secure Boot
-                    erase_region(esp, self.__OTADATA_ADDR, self.__OTADATA_SIZE, force=True)
-                    # Write firmware binary directly from memory (bytes)
-                    # Use "force" flag required according to enabled Flash Encryption & Secure Boot
-                    write_flash(esp, [(self.__FLASH_ADDR, firmware_data)], force=True)
-                    reset_chip(esp, "hard-reset")
+            with nullcontext() if is_debug_mode() else self._suppress_output(), detect_chip(port) as esp:
+                attach_flash(esp)
+                # Erase otadata partition to reset boot partition selection
+                # Use "force" flag required according to enabled Flash Encryption & Secure Boot
+                erase_region(esp, self.__OTADATA_ADDR, self.__OTADATA_SIZE, force=True)
+                # Write firmware binary directly from memory (bytes)
+                # Use "force" flag required according to enabled Flash Encryption & Secure Boot
+                write_flash(esp, [(self.__FLASH_ADDR, firmware_data)], force=True)
+                reset_chip(esp, "hard-reset")
 
             # Notify firmware update completed
             self._call_handlers(Device.Message.Incoming.FIRMWARE_STATUS, Status.UPDATED)
@@ -675,6 +673,5 @@ class Device:
         """
         Suppress stdout and stderr output. Used to suppress output from esptool library methods.
         """
-        with open(os.devnull, "w") as devnull:
-            with redirect_stdout(devnull), redirect_stderr(devnull):
-                yield
+        with open(os.devnull, "w") as devnull, redirect_stdout(devnull), redirect_stderr(devnull):
+            yield

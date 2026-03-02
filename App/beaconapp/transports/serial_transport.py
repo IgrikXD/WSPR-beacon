@@ -4,6 +4,7 @@ from beaconapp.logger import log_error, log_rx_message, log_tx_message, log_warn
 from typing import Optional
 
 import asyncio
+import contextlib
 import json
 import serial
 import serial.tools.list_ports
@@ -64,10 +65,8 @@ class SerialTransport(BaseTransport):
                     self._serial_port.dtr = False
                     self._serial_port.rts = False
                     # Use exclusive access if supported
-                    try:
+                    with contextlib.suppress(AttributeError, ValueError):
                         self._serial_port.exclusive = True
-                    except (AttributeError, ValueError):
-                        pass  # Not supported
 
                     self._serial_port.open()
                     self._transport, _ = await serial_asyncio.connection_for_serial(
