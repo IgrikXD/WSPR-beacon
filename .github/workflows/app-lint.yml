@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install flake8==7.1.1
+          pip install -r App/requirements-dev.txt
 
       - name: Lint code
         run: |
