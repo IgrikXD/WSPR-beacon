@@ -1,14 +1,15 @@
-from beaconapp.transports.base_transport import BaseTransport
-from beaconapp.data_wrappers import Transport
-from beaconapp.logger import log_error, log_rx_message, log_tx_message, log_warning
-from typing import Optional
-
 import asyncio
 import contextlib
 import json
+from typing import Optional
+
 import serial
 import serial.tools.list_ports
 import serial_asyncio
+
+from beaconapp.data_wrappers import Transport
+from beaconapp.logger import log_error, log_rx_message, log_tx_message, log_warning
+from beaconapp.transports.base_transport import BaseTransport
 
 
 class SerialTransport(BaseTransport):

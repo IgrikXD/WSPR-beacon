@@ -1,3 +1,12 @@
+import atexit
+import contextlib
+import os
+import sys
+import tkinter.messagebox
+
+import customtkinter
+import psutil
+
 from beaconapp.config import Config
 from beaconapp.data_wrappers import Status
 from beaconapp.device import Device
@@ -6,14 +15,6 @@ from beaconapp.ui.self_check_widget import SelfCheckWidget
 from beaconapp.ui.settings_widget import SettingsWidget
 from beaconapp.ui.spots_database_widget import SpotsDatabaseWidget
 from beaconapp.ui.transmission_widget import TransmissionWidget
-
-import atexit
-import contextlib
-import customtkinter
-import os
-import psutil
-import sys
-import tkinter.messagebox
 
 
 LOCK_DIR = os.path.expanduser("~/.beaconapp")

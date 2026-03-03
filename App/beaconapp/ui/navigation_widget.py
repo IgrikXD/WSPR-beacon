@@ -1,9 +1,9 @@
-from beaconapp.data_wrappers import Transport
-from beaconapp.ui.widgets import Widgets
-
 import os
 import re
 import sys
+
+from beaconapp.data_wrappers import Transport
+from beaconapp.ui.widgets import Widgets
 
 
 class NavigationWidget:

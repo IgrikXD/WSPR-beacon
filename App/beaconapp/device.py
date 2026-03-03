@@ -1,20 +1,21 @@
-from contextlib import contextmanager, nullcontext, redirect_stdout, redirect_stderr
-from beaconapp.data_wrappers import ActiveTXMode, Status, Transport, WiFiCredentials, WiFiData
-from beaconapp.logger import is_debug_mode, log_ok, log_error
-from beaconapp.transports.serial_transport import SerialTransport
-from beaconapp.transports.websocket_transport import WebsocketTransport
-from dataclasses import dataclass
-from enum import Enum
-from esptool import detect_chip, attach_flash, erase_region, reset_chip, write_flash
-from packaging.version import Version
-from typing import Any, Callable, Dict, List, Optional, Set
-
 import asyncio
 import hashlib
 import json
 import os
-import requests
 import threading
+from contextlib import contextmanager, nullcontext, redirect_stdout, redirect_stderr
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Set
+
+import requests
+from esptool import detect_chip, attach_flash, erase_region, reset_chip, write_flash
+from packaging.version import Version
+
+from beaconapp.data_wrappers import ActiveTXMode, Status, Transport, WiFiCredentials, WiFiData
+from beaconapp.logger import is_debug_mode, log_ok, log_error
+from beaconapp.transports.serial_transport import SerialTransport
+from beaconapp.transports.websocket_transport import WebsocketTransport
 
 
 class Device:

@@ -1,4 +1,5 @@
 import logging
+
 import pytest
 
 from beaconapp.data_wrappers import Transport

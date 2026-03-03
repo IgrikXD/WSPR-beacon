@@ -1,8 +1,9 @@
-from beaconapp.data_wrappers import Transport
-from colorama import Fore, Style
-
 import logging
 import sys
+
+from colorama import Fore, Style
+
+from beaconapp.data_wrappers import Transport
 
 # Module-level logger
 logger = logging.getLogger('beaconapp')

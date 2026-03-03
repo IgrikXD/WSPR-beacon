@@ -1,9 +1,10 @@
 import json
-import pytest
 import uuid
 
-from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
+import pytest
+
 from beaconapp.config import Config
+from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
 
 
 @pytest.fixture

@@ -1,8 +1,9 @@
 import json
-import urllib.request
-import urllib.parse
-import pytest
 import os
+import urllib.parse
+import urllib.request
+
+import pytest
 
 from beaconapp.wsprlive_api import WsprLiveApi
 

@@ -1,13 +1,14 @@
-from beaconapp.transports.base_transport import BaseTransport
-from beaconapp.data_wrappers import Transport
-from beaconapp.logger import log_error, log_rx_message, log_tx_message, log_warning
-from typing import Optional
-from websockets.asyncio.client import connect as ws_connect, ClientConnection
-from websockets.exceptions import ConnectionClosed
-
 import asyncio
 import json
 import socket
+from typing import Optional
+
+from websockets.asyncio.client import connect as ws_connect, ClientConnection
+from websockets.exceptions import ConnectionClosed
+
+from beaconapp.data_wrappers import Transport
+from beaconapp.logger import log_error, log_rx_message, log_tx_message, log_warning
+from beaconapp.transports.base_transport import BaseTransport
 
 
 class WebsocketTransport(BaseTransport):

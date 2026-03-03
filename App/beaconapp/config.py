@@ -1,7 +1,7 @@
-from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
-
 import json
 import os
+
+from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
 
 
 class Config:

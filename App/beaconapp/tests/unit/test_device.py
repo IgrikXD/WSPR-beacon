@@ -1,10 +1,11 @@
 import json
 import logging
+
 import pytest
 
-from beaconapp.device import Device
 from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
 from beaconapp.data_wrappers import Status, Transport, WiFiData, WiFiCredentials
+from beaconapp.device import Device
 
 
 @pytest.mark.parametrize(

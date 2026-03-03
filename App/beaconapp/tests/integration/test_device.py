@@ -1,12 +1,13 @@
+import threading
+import time
+from enum import Enum
+
 import pytest
 import serial.tools.list_ports
-import time
-import threading
 
-from beaconapp.device import Device
 from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
 from beaconapp.data_wrappers import Status, Transport, WiFiCredentials, WiFiData
-from enum import Enum
+from beaconapp.device import Device
 
 
 # VID and PID for ESP32-C3
