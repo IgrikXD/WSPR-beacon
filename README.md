@@ -41,7 +41,7 @@ For device usage details, refer to the [operating instructions](./Firmware/ESP32
 [WSPR - Signal Identification Wiki](https://www.sigidwiki.com/wiki/WSPR)  
 
 ## Who helped me with the development of the project?
-Many thanks to [RTL-SDR.COM](https://www.rtl-sdr.com/) for providing RTL-SDR.COM V.4 SDR receiver samples and informational support, to [PCBWay](https://pcbway.com) for manufacturing the PCBs for this project as a sponsored contribution, to [Mini-Circuits](https://www.minicircuits.com/) for providing transformer samples through their [EZ-Sample](https://www.minicircuits.com/WebStore/ez_sample.html) program, to [Molex](https://www.molex.com/en-us/home) for supplying GPS receive antennas, and to [Samtec](https://www.samtec.com/) for providing RF cable assemblies.
+Many thanks to [RTL-SDR.COM](https://www.rtl-sdr.com/) for providing RTL-SDR.COM V.4 SDR receiver samples and informational support, to [PCBWay](https://pcbway.com) for manufacturing the PCBs for this project as a sponsored contribution, to [Mini-Circuits](https://www.minicircuits.com/) for providing transformer samples through their [EZ-Sample](https://www.minicircuits.com/WebStore/ez_sample.html) program, to [Molex](https://www.molex.com/en-us/home) for supplying GPS receive antennas, to [Samtec](https://www.samtec.com/) for providing RF cable assemblies, and to [TE Connectivity](https://www.te.com/) for providing RF calibration kits.
 ![Sponsor-logos](./Resources/Sponsor-logos.png)
 
 ## Licensing & terms of use
