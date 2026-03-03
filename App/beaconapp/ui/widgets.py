@@ -1,6 +1,5 @@
-from PIL import Image
-
 import customtkinter
+from PIL import Image
 
 
 class Widgets:

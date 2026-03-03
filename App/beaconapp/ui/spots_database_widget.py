@@ -1,13 +1,14 @@
+import copy
+import json
+import threading
+import urllib.error
+
+import customtkinter
+
 from beaconapp.data_wrappers import ActiveTXMode
 from beaconapp.logger import log_error
 from beaconapp.ui.widgets import Widgets
 from beaconapp.wsprlive_api import WsprLiveApi
-
-import copy
-import customtkinter
-import urllib.error
-import json
-import threading
 
 
 class SpotsDatabaseWidget:

@@ -1,10 +1,10 @@
+import customtkinter
+
 from beaconapp.config import Config
 from beaconapp.data_validation import DataValidation
 from beaconapp.data_wrappers import Status, WiFiCredentials, WiFiData
 from beaconapp.device import Device
 from beaconapp.ui.widgets import Widgets
-
-import customtkinter
 
 
 class SettingsWidget:

@@ -1,11 +1,12 @@
+import copy
+
+import customtkinter
+
 from beaconapp.config import Config
 from beaconapp.data_validation import DataValidation
-from beaconapp.device import Device
 from beaconapp.data_wrappers import ActiveTXMode, Band, TransmitEvery, TXMode
+from beaconapp.device import Device
 from beaconapp.ui.widgets import Widgets
-
-import copy
-import customtkinter
 
 
 class TransmissionWidget:
