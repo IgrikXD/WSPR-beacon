@@ -24,7 +24,7 @@ applyTo: "**/*.py"
 - Use Google-style docstrings (_triple-quoted strings_) to document functions and classes. Include `Args:`, `Returns:`, `Yields:`, and `Raises:` sections where applicable.
 - Class-level docstrings are required for all classes, including widgets and test modules. Method-level docstrings are required for all public methods, and private methods that perform non-trivial operations.
 - For widget `__init__` methods that accept external dependencies (_e.g., `parent`, `device`, `config`_), add a docstring with an `Args:` section describing each parameter.
-- Document class-level private constants using triple-quoted strings placed above the constant (_standalone string literals, not attached to the constant itself_).
+- Document class-level private constants using regular `#` comments placed above the constant. Do not use standalone triple-quoted string literals inside a class body for this purpose - they are not attached to the following assignment, do not appear in generated documentation, and create an unused string constant at class creation time.
 - Use inline comments sparingly to explain non-obvious code sections. Avoid stating the obvious.
 - Keep comments up to date with code changes to prevent confusion.
 - Avoid using comments to disable code.
