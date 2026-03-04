@@ -46,13 +46,13 @@ def urlopen_no_connection_mock(url):
     raise urllib.error.URLError("No internet connection")
 
 
-@pytest.mark.unit
 @pytest.mark.parametrize("band, tx_call, order_by, order_direction, records_amount, expected_error", [
     ("1m", "XX0YYY", "time", "DESC", 10, "Invalid band"),
     (2, "XX0YYY", "DROP TABLE rx;--", "DESC", 10, "Invalid order_by"),
     (2, "XX0YYY", "time", "DROP", 10, "Invalid order_direction"),
     (2, "XX0YYY", "time", "DESC", "abc", "Invalid records_amount"),
 ])
+@pytest.mark.unit
 def test_invalid_query_parameters_raise_error(band, tx_call, order_by, order_direction, records_amount, expected_error):
     """
     Test that get_wspr_spots_data raises ValueError when invalid query parameters are provided.
