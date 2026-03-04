@@ -74,64 +74,42 @@ class Device:
         type: Incoming | Outgoing
         data: Any = None
 
-    """
-    Calibration frequency multiplier used in the GEN_CAL_FREQUENCY message.
-    Needed to avoid converting float -> uint64_t on the firmware side.
-    """
+    # Calibration frequency multiplier used in the GEN_CAL_FREQUENCY message.
+    # Needed to avoid converting float -> uint64_t on the firmware side.
     __CAL_FREQ_MULTIPLIER = 100_000_000
 
-    """
-    Default baudrate for Serial (USB) communication with the device.
-    """
+    # Default baudrate for Serial (USB) communication with the device.
     __DEVICE_BAUDRATE = 115200
 
-    """
-    USB Vendor ID for ESP32-C3.
-    """
+    # USB Vendor ID for ESP32-C3.
     __DEVICE_VID = 0x303A
-    """
-    USB Product ID for ESP32-C3.
-    """
+    # USB Product ID for ESP32-C3.
     __DEVICE_PID = 0x1001
 
-    """
-    URL to fetch the latest firmware manifest for updates.
-    """
+    # URL to fetch the latest firmware manifest for updates.
     __FIRMWARE_MANIFEST_URL = (
         "https://raw.githubusercontent.com/IgrikXD/WSPR-beacon/master/Firmware/"
         "ESP32C3-based/latest-stable.json"
     )
 
-    """
-    Flash memory address where the firmware should be written during update.
-    """
+    # Flash memory address where the firmware should be written during update.
     __FLASH_ADDR = 0x10000
 
-    """
-    Flash memory address of the otadata partition.
-    Used to reset boot partition selection before firmware update.
-    """
+    # Flash memory address of the otadata partition.
+    # Used to reset boot partition selection before firmware update.
     __OTADATA_ADDR = 0xE000
 
-    """
-    Size of the otadata partition in bytes.
-    """
+    # Size of the otadata partition in bytes.
     __OTADATA_SIZE = 0x2000
 
-    """
-    Multicast DNS name for the device when connected via Wi-Fi.
-    """
+    # Multicast DNS name for the device when connected via Wi-Fi.
     __MULTICAST_DNS_NAME = "wsprbeacon.local"
 
-    """
-    TCP port for WebSocket connection over Wi-Fi.
-    """
+    # TCP port for WebSocket connection over Wi-Fi.
     __TCP_PORT = 81
 
-    """
-    Maximum number of outgoing messages that can be queued.
-    Prevents memory overflow if messages are sent faster than they can be transmitted.
-    """
+    # Maximum number of outgoing messages that can be queued.
+    # Prevents memory overflow if messages are sent faster than they can be transmitted.
     __TX_QUEUE_MAX_SIZE = 20
 
     def __init__(self):
