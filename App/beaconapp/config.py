@@ -78,7 +78,7 @@ class Config:
         """
         Updates the configuration parameters based on the active transmission mode.
 
-        Parameters:
+        Args:
             active_tx_mode: An object containing transmission mode parameters
         """
         self._default_tx_mode = active_tx_mode.tx_mode.value
