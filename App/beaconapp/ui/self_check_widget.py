@@ -157,7 +157,7 @@ class SelfCheckWidget:
         Handle the event when the self-check fails.
         Updates the button appearance to indicate failure and resets it after 2 seconds.
         """
-        self.run_checks_button.after(0, self.run_checks_button.configure(
+        self.run_checks_button.after(0, lambda: self.run_checks_button.configure(
             text="Failed!",
             fg_color=["#D9534F", "#A94442"])
         )
