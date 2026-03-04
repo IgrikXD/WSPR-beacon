@@ -28,7 +28,7 @@ The application source code is organized into the following subpackages within `
 # Async and threading
 The application uses a two-thread architecture:
 - **Main thread** runs the Tkinter/customtkinter event loop (_UI_). All UI manipulations must happen on this thread.
-- **Asyncio thread** is a dedicated daemon thread running `asyncio.run_forever()` that handles USB (_Serial_) and Wi-Fi (_WebSocket_) transport I/O.
+- **Asyncio thread** is a dedicated daemon thread that owns an asyncio event loop and calls `loop.run_forever()` to handle USB (_Serial_) and Wi-Fi (_WebSocket_) transport I/O.
 
 Communication between threads:
 - **Main -> asyncio**: Use `asyncio.run_coroutine_threadsafe()` to schedule coroutines, or `loop.call_soon_threadsafe()` for synchronous calls into the event loop.
