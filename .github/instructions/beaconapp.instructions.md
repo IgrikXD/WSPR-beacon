@@ -28,7 +28,7 @@ The application source code is organized into the following subpackages within `
 # Async and threading
 The application uses a two-thread architecture:
 - **Main thread** runs the Tkinter/customtkinter event loop (_UI_). All UI manipulations must happen on this thread.
-- **Asyncio thread** is a dedicated daemon thread running `asyncio.run_forever()` that handles USB (_Serial_) and Wi-Fi (_WebSocket_) transport I/O.
+- **Asyncio thread** is a dedicated daemon thread that owns an asyncio event loop and calls `loop.run_forever()` to handle USB (_Serial_) and Wi-Fi (_WebSocket_) transport I/O.
 
 Communication between threads:
 - **Main -> asyncio**: Use `asyncio.run_coroutine_threadsafe()` to schedule coroutines, or `loop.call_soon_threadsafe()` for synchronous calls into the event loop.
@@ -37,7 +37,7 @@ Communication between threads:
 The UI registers its callbacks for device message types via `Device.set_device_response_handlers()`, forming a message-driven architecture where the `Device` class acts as the bridge between transports and UI.
 
 Threading primitives:
-- Use `asyncio.Queue` for outgoing message passing between the main thread and the asyncio transmit loop.
+- Use `asyncio.Queue` for outgoing message passing between the main thread and the asyncio transmit loop. `asyncio.Queue` is not thread-safe; the main thread must enqueue items via `loop.call_soon_threadsafe(queue.put_nowait, item)` to ensure the operation executes on the asyncio thread.
 - Use `threading.Lock` for protecting shared state (_e.g., connection state_).
 - Use `threading.Event` for cross-thread synchronization (_e.g., waiting for the event loop to start_).
 - Use `threading.Thread(target=..., daemon=True)` for background work dispatch (_e.g., USB firmware update_).
