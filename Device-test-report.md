@@ -52,6 +52,7 @@ This section provides information about the device's performance during long-dis
 | [HF2N](https://www.qrz.com/db/hf2n)     | 1.1              | 14.096977 MHz | Untuned telescopic antenna, approximately 5 meters tall            | -34 | 0     | 3902 km                   |
 
 If you would like to add the results of testing your WSPR beacon to this section, please send the following information to igor.nikolaevich.96@gmail.com:
+- Amateur radio callsign;
 - Version of the PCB used;
 - Bias voltage of the BS170 transistor (_only for PCB version 1.0_);
 - Version of the firmware used;
