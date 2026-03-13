@@ -14,25 +14,25 @@ For each transmission range, a visualized report with a list of all spots is ava
 
 ### [PCB version 1.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-1.0) with BS170 field-effect transistor amplifier:
 
-| Firmware version | TX frequency | TX time (CET) | PA bias | Used antenna     | SNR | Drift | Max distance to receiver                            |
-|------------------|--------------|---------------|---------|------------------|-----|-------|-----------------------------------------------------|
-| 1.0              | 5.2887 MHz   | 21:02 - 21:32 | 2.508V  | [Windcamp Gipsy] | -22 | 0     | [3898 km](https://kmzview.com/oLjDi97JSwUt4asd76AU) |
-| 1.0              | 7.0401 MHz   | 19:04 - 19:34 | 2.508V  | [Windcamp Gipsy] | -16 | 0     | [2849 km](https://kmzview.com/QG6PJxd4n7pIKje1FPqJ) |
-| 1.0              | 10.1402 MHz  | 17:32 - 18:02 | 2.508V  | [Windcamp Gipsy] | -4  | 0     | 2849 km                                             |
-| 1.0              | 14.0971 MHz  | 15:10 - 15:40 | 2.508V  | [Windcamp Gipsy] | -26 | 0     | 1797 km                                             |
-| 1.1              | 5.2887 MHz   | 21:36 - 22:06 | 2.508V  | [Windcamp Gipsy] | -23 | 0     | [3898 km](https://kmzview.com/xUuaNxEI2ygnvwKXAeCg) |
-| 1.1              | 7.0401 MHz   | 19:38 - 20:08 | 2.508V  | [Windcamp Gipsy] | -21 | 0     | [2043 km](https://kmzview.com/ISVBaADCSzKYEnMFMueG) |
-| 1.1              | 10.1402 MHz  | 16:56 - 17:26 | 2.508V  | [Windcamp Gipsy] | -4  | 0     | 2849 km                                             |
-| 1.1              | 14.0971 MHz  | 14:34 - 15:02 | 2.508V  | [Windcamp Gipsy] | -6  | 0     | 1721 km                                             |
+| Firmware version | TX frequency | TX time (CET) | PA bias | Used antenna     | SNR | Drift | Max distance to receiver |
+|------------------|--------------|---------------|---------|------------------|-----|-------|--------------------------|
+| 1.0              | 5.2887 MHz   | 21:02 - 21:32 | 2.508V  | [Windcamp Gipsy] | -22 | 0     | 3898 km                  |
+| 1.0              | 7.0401 MHz   | 19:04 - 19:34 | 2.508V  | [Windcamp Gipsy] | -16 | 0     | 2849 km                  |
+| 1.0              | 10.1402 MHz  | 17:32 - 18:02 | 2.508V  | [Windcamp Gipsy] | -4  | 0     | 2849 km                  |
+| 1.0              | 14.0971 MHz  | 15:10 - 15:40 | 2.508V  | [Windcamp Gipsy] | -26 | 0     | 1797 km                  |
+| 1.1              | 5.2887 MHz   | 21:36 - 22:06 | 2.508V  | [Windcamp Gipsy] | -23 | 0     | 3898 km                  |
+| 1.1              | 7.0401 MHz   | 19:38 - 20:08 | 2.508V  | [Windcamp Gipsy] | -21 | 0     | 2043 km                  |
+| 1.1              | 10.1402 MHz  | 16:56 - 17:26 | 2.508V  | [Windcamp Gipsy] | -4  | 0     | 2849 km                  |
+| 1.1              | 14.0971 MHz  | 14:34 - 15:02 | 2.508V  | [Windcamp Gipsy] | -6  | 0     | 1721 km                  |
 
 ### [PCB version 2.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-2.0) with SN74ACT244PWR buffer amplifier:
 
-| Firmware version | TX frequency | TX time (CET) | Used antenna     | SNR | Drift | Max distance to receiver                            |
-|------------------|--------------|---------------|------------------|-----|-------|-----------------------------------------------------|
-| 1.1              | 5.2887 MHz   | 22:10 - 22:40 | [Windcamp Gipsy] | -19 | 0     | [3898 km](https://kmzview.com/C4Vx5jR3cHyAeCuntnj1) |
-| 1.1              | 7.0401 MHz   | 20:14 - 20:44 | [Windcamp Gipsy] | -13 | 0     | [2849 km](https://kmzview.com/xsiJUzFLm3NW8JmR7vqk) |
-| 1.1              | 10.1402 MHz  | 16:16 - 16:46 | [Windcamp Gipsy] | -6  | 0     | [2849 km](https://kmzview.com/oxZQNGHUcbKiORljG38z) |
-| 1.1              | 14.0971 MHz  | 13:40 - 14:10 | [Windcamp Gipsy] | -19 | 0     | [3898 km](https://kmzview.com/sHu8uqWiTvDA2ghHyNwx) |
+| Firmware version | TX frequency | TX time (CET) | Used antenna     | SNR | Drift | Max distance to receiver |
+|------------------|--------------|---------------|------------------|-----|-------|--------------------------|
+| 1.1              | 5.2887 MHz   | 22:10 - 22:40 | [Windcamp Gipsy] | -19 | 0     | 3898 km                  |
+| 1.1              | 7.0401 MHz   | 20:14 - 20:44 | [Windcamp Gipsy] | -13 | 0     | 2849 km                  |
+| 1.1              | 10.1402 MHz  | 16:16 - 16:46 | [Windcamp Gipsy] | -6  | 0     | 2849 km                  |
+| 1.1              | 14.0971 MHz  | 13:40 - 14:10 | [Windcamp Gipsy] | -19 | 0     | 3898 km                  |
 
 ## Device testing reports from users
 
@@ -42,9 +42,17 @@ This section provides information about the device's performance during long-dis
 
 | Reporter                                | Firmware version | TX frequency | PA bias | Used antenna                 | SNR | Drift | Max distance to receiver  |
 |-----------------------------------------|------------------|--------------|---------|------------------------------|-----|-------|---------------------------|
-| [KD9MXZ](https://www.qrz.com/db/kd9mxz) | 1.1              | 14.0971 MHz  | 2.610V  | [PackTenna Mini Random Wire] | -28 | 0     | 4618 km                   |                          |
+| [KD9MXZ](https://www.qrz.com/db/kd9mxz) | 1.1              | 14.0971 MHz  | 2.610V  | [PackTenna Mini Random Wire] | -28 | 0     | 4618 km                   |
+
+### [PCB version 2.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-2.0) with SN74ACT244PWR buffer amplifier:
+
+| Reporter                                | Firmware version | TX frequency  | Used antenna                                                       | SNR | Drift | Max distance to receiver  |
+|-----------------------------------------|------------------|---------------|--------------------------------------------------------------------|-----|-------|---------------------------|
+| [HF2N](https://www.qrz.com/db/hf2n)     | 1.1              | 14.096995 MHz | End-Fed Half Wave antenna, 1:49 balun, approximately 20 meters long | -21 | 0     | 6545 km                   |
+| [HF2N](https://www.qrz.com/db/hf2n)     | 1.1              | 14.096977 MHz | Untuned telescopic antenna, approximately 5 meters tall            | -34 | 0     | 3902 km                   |
 
 If you would like to add the results of testing your WSPR beacon to this section, please send the following information to igor.nikolaevich.96@gmail.com:
+- Amateur radio callsign;
 - Version of the PCB used;
 - Bias voltage of the BS170 transistor (_only for PCB version 1.0_);
 - Version of the firmware used;
