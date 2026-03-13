@@ -48,7 +48,7 @@ This section provides information about the device's performance during long-dis
 
 | Reporter                                | Firmware version | TX frequency  | Used antenna                                                       | SNR | Drift | Max distance to receiver  |
 |-----------------------------------------|------------------|---------------|--------------------------------------------------------------------|-----|-------|---------------------------|
-| [HF2N](https://www.qrz.com/db/hf2n)     | 1.1              | 14.096995 MHz | End-fed halfwave antenna, 1:49 balun, approximately 20 meters long | -21 | 0     | 6545 km                   |
+| [HF2N](https://www.qrz.com/db/hf2n)     | 1.1              | 14.096995 MHz | End-Fed Half Wave antenna, 1:49 balun, approximately 20 meters long | -21 | 0     | 6545 km                   |
 | [HF2N](https://www.qrz.com/db/hf2n)     | 1.1              | 14.096977 MHz | Untuned telescopic antenna, approximately 5 meters tall            | -34 | 0     | 3902 km                   |
 
 If you would like to add the results of testing your WSPR beacon to this section, please send the following information to igor.nikolaevich.96@gmail.com:
