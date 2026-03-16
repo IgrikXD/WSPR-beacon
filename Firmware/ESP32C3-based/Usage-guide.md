@@ -10,6 +10,7 @@ The [BEACON.App] application structure:
 - [Self-check tab](#self-check-tab)
     - [Hardware test block](#hardware-test-block)
     - [Device info block](#device-info-block)
+    - [App info block](#app-info-block)
 - [Settings tab](#settings-tab)
     - [Device calibration block](#device-calibration-block)
         - [Automatic calibration (via GPS)](#automatic-calibration-via-gps)
@@ -118,6 +119,9 @@ Results:
 - **Failed!** - An error occurred during the update check or during the firmware update process
 
 After 2 seconds, the button returns to the **Update** state, allowing you to check for firmware updates again.
+
+### App info block
+The **Application version** field shows the current version of the [BEACON.App] application.
 
 ## Settings tab
 Used to change the global settings of the device and UI parameters of the [BEACON.App].
