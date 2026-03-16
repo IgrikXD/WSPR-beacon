@@ -1,3 +1,4 @@
+from beaconapp import __version__
 from beaconapp.data_wrappers import Status
 from beaconapp.device import Device
 from beaconapp.ui.widgets import Widgets
@@ -57,6 +58,18 @@ class SelfCheckWidget:
             button_command=self._firmware_update_button_pressed
         )
         self.firmware_version_entry.configure(state="disabled")
+
+        # App info label
+        Widgets.create_block_label(self.general_frame, row=5, text="App info")
+
+        # Self-check -> App info -> Application version
+        self.app_version_entry = Widgets.create_entry_with_background_frame(
+            self.general_frame,
+            row=6,
+            text="Application version:",
+            placeholder_text=__version__
+        )
+        self.app_version_entry.configure(state="disabled")
 
     def change_state(self, state):
         """
