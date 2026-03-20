@@ -46,10 +46,11 @@ This section provides information about the device's performance during long-dis
 
 ### [PCB version 2.0](https://github.com/IgrikXD/WSPR-beacon/releases/tag/wspr-beacon-pcb-2.0) with SN74ACT244PWR buffer amplifier:
 
-| Reporter                                | Firmware version | TX frequency  | Used antenna                                                       | SNR | Drift | Max distance to receiver  |
-|-----------------------------------------|------------------|---------------|--------------------------------------------------------------------|-----|-------|---------------------------|
+| Reporter                                | Firmware version | TX frequency  | Used antenna                                                        | SNR | Drift | Max distance to receiver  |
+|-----------------------------------------|------------------|---------------|---------------------------------------------------------------------|-----|-------|---------------------------|
+| [HF2N](https://www.qrz.com/db/hf2n)     | 1.1              | 14.097061 MHz | Ground-mounted 1/4-wave vertical antenna                            | -24 | 0     | 17729 km                  |
 | [HF2N](https://www.qrz.com/db/hf2n)     | 1.1              | 14.096995 MHz | End-Fed Half Wave antenna, 1:49 balun, approximately 20 meters long | -21 | 0     | 6545 km                   |
-| [HF2N](https://www.qrz.com/db/hf2n)     | 1.1              | 14.096977 MHz | Untuned telescopic antenna, approximately 5 meters tall            | -34 | 0     | 3902 km                   |
+| [HF2N](https://www.qrz.com/db/hf2n)     | 1.1              | 14.096977 MHz | Untuned telescopic antenna, approximately 5 meters tall             | -34 | 0     | 3902 km                   |
 
 If you would like to add the results of testing your WSPR beacon to this section, please send the following information to igor.nikolaevich.96@gmail.com:
 - Amateur radio callsign;
