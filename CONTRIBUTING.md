@@ -57,7 +57,7 @@ Use the following prefixes when creating branches to clearly indicate the scope 
 |--------------|---------------------------------------------|---------------------------------------|
 | `app/`       | Changes to BEACON.App (`App/`)              | `app/fix-serial-timeout`              |
 | `firmware/`  | Changes to firmware (`Firmware/`)           | `firmware/add-gps-retry-logic`        |
-| `pcb/`       | Changes to PCB files (`PCB/`)               | `pcb/update-bom-for-rev-3.3`         |
+| `pcb/`       | Changes to PCB files (`PCB/`)               | `pcb/update-bom-for-rev-3.3`          |
 | `docs/`      | Root-level documentation and `Resources/`   | `docs/update-usage-guide`             |
 | `ci/`        | GitHub Actions and CI/CD configuration      | `ci/add-lint-workflow`                |
 | `copilot/`   | GitHub Copilot configuration modifications  | `copilot/update-python-instructions`  |
@@ -112,8 +112,8 @@ The pull request description must include:
 > [!WARNING]
 > Do not paste full test execution logs into the PR description or comments - this clutters the pull request and makes it difficult to review. Upload complete logs to [GitHub Gist](https://gist.github.com/) and include the link instead. Only short, isolated log snippets that demonstrate a specific behavior are acceptable to include directly in the PR.
 
-### PR labels
-Apply appropriate [GitHub Labels](https://github.com/IgrikXD/WSPR-beacon/labels) to your pull request to categorize the changes. Labels help maintainers quickly understand the nature and scope of the proposed changes.
+### PR assignee and labels
+If you have the necessary repository permissions, assign yourself to the pull request and apply appropriate [GitHub Labels](https://github.com/IgrikXD/WSPR-beacon/labels) to categorize the changes. Assignees and labels help maintainers quickly understand the ownership, nature, and scope of the proposed changes.
 
 ### PR requirements
 - **No merge conflicts.** Pull requests containing merge conflicts will not be reviewed. Rebase your branch on the latest `master` and resolve any conflicts before submitting.
