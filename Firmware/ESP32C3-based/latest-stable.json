@@ -1,0 +1,11 @@
+{
+  "firmware-version": "2.0",
+  "ota_0": {
+    "url": "https://github.com/IgrikXD/WSPR-beacon/releases/download/wspr-beacon-3.3/wspr-beacon-firmware-2.0-ota0.bin",
+    "sha256": "b100f3f56798475fd82baa0bafcfffe78a27b69dbf51aa9047f1429f403f54ed"
+  },
+  "ota_1": {
+    "url": "https://github.com/IgrikXD/WSPR-beacon/releases/download/wspr-beacon-3.3/wspr-beacon-firmware-2.0-ota1.bin",
+    "sha256": "bbc54ab5b8ab16967883b5f65f0bff9e01857aee88d68c9e69733da6e6c06bab"
+  }
+}
