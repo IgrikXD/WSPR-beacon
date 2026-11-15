@@ -4,21 +4,47 @@ A cross-platform GUI application for configuring and managing a [WSPR-beacon](ht
 ![BeaconApp](../Resources/BeaconApp-Transmission-frame.png)
 
 ## Building
-Download and install the [latest version of Python for Windows](https://www.python.org/downloads/).
+Install **Python 3.12 or newer** by following the instructions for your operating system or using a package manager.
 
 ### Clone the repository & install dependencies
+
+#### Windows (PowerShell)
 ```powershell
 git clone https://github.com/IgrikXD/WSPR-beacon.git
 cd WSPR-beacon/App
-pip install --upgrade pip
-pip install -r requirements.txt
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
+
+#### Linux
+```bash
+sudo apt install python3-venv python3-tk
+
+git clone https://github.com/IgrikXD/WSPR-beacon.git
+cd WSPR-beacon/App
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+> [!NOTE]
+> The virtual environment must be activated in every new terminal session before running the commands below. If PowerShell blocks `Activate.ps1`, allow script execution for the current session only: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`.
 
 There are two possible ways to use the application: [creating a monolithic executable file](#build-the-executable-file) (_recommended_) and [running the application from the source code](#run-the-application-without-building-the-executable) without prior build.
 
-### Build the executable file (Windows)
+### Build the executable file
+Install the development dependencies:
+```bash
+python -m pip install -r requirements-dev.txt
+```
+
+Then build the executable for your operating system:
+
+#### Windows (PowerShell)
 ```powershell
-pip install -r requirements-dev.txt
 pyinstaller --noconsole --onefile `
     --icon=beaconapp/ui/resources/beacon-app-logo.ico `
     --add-data "beaconapp/ui/resources/*;ui/resources" `
@@ -26,9 +52,8 @@ pyinstaller --noconsole --onefile `
     --name BeaconApp beaconapp/main.py
 ```
 
-### Build the executable file (Linux)
+#### Linux
 ```bash
-pip install -r requirements-dev.txt
 pyinstaller --noconsole --onefile \
     --add-data "beaconapp/ui/resources/*:ui/resources" \
     --exclude-module beaconapp.tests \
@@ -40,13 +65,13 @@ After the build is complete, you can run the executable file located in the `dis
 
 ### Run the application without building the executable
 To run the application directly without building an executable, use:
-```powershell
+```bash
 python -m beaconapp.main
 ```
 
-#### Debug mode
-To enable debug mode and display messages about data exchange with the device in the console, use:
-```powershell
+### Debug mode
+To enable debug mode and display messages about data exchange with the device in the console, append `--debug` to the launch command:
+```bash
 python -m beaconapp.main --debug
 ```
 
@@ -67,8 +92,8 @@ Unit tests are available to verify the application's core functionality, includi
 - Correct saving and loading of the application's configuration file
 
 To run the unit tests, install development dependencies and execute:
-```powershell
-pip install -r requirements-dev.txt
+```bash
+python -m pip install -r requirements-dev.txt
 python -m pytest -m unit
 ```
 
@@ -86,8 +111,8 @@ Integration tests are available to verify the core functionality of the device, 
 - Handling incorrect request types and non-request messages by the device firmware
 
 To run the integration tests, install development dependencies and execute:
-```powershell
-pip install -r requirements-dev.txt
+```bash
+python -m pip install -r requirements-dev.txt
 python -m pytest -m integration
 ```
 
@@ -96,8 +121,8 @@ python -m pytest -m integration
 > By default, coverage runs both [unit](#unit-tests) and [integration](#integration-tests) tests. Integration tests require a physical WSPR-beacon device connected via USB! Wi-Fi connection and GPS antenna must be disconnected during [integration](#integration-tests) tests execution.
 
 To measure test coverage, install development dependencies and execute:
-```powershell
-pip install -r requirements-dev.txt
+```bash
+python -m pip install -r requirements-dev.txt
 python -m pytest --cov=beaconapp --cov-config=pytest.ini
 ```
 
