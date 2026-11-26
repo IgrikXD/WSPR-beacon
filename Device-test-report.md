@@ -51,6 +51,7 @@ This section provides information about the device's performance during long-dis
 | [HF2N](https://www.qrz.com/db/hf2n)     | 1.1              | 14.097061 MHz | Ground-mounted 1/4-wave vertical antenna                            | -24 | 0     | 17729 km                  |
 | [HF2N](https://www.qrz.com/db/hf2n)     | 1.1              | 14.096995 MHz | End-Fed Half Wave antenna, 1:49 balun, approximately 20 meters long | -21 | 0     | 6545 km                   |
 | [HF2N](https://www.qrz.com/db/hf2n)     | 1.1              | 14.096977 MHz | Untuned telescopic antenna, approximately 5 meters tall             | -34 | 0     | 3902 km                   |
+| [KN6SVA](https://www.qrz.com/db/KN6SVA) | 1.1              | 21.096111 MHz | L-shaped dipole antenna, ground floor of an apartment building      | -19 | 0     | 14894 km                  |
 
 If you would like to add the results of testing your WSPR beacon to this section, please send the following information to igor.nikolaevich.96@gmail.com:
 - Amateur radio callsign;
